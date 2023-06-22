@@ -3,6 +3,9 @@
 #ifdef USE_OPC
 #include "open62541/opc.h"
 #endif
+#include "taskmanager.h"
+#include "devices/display.h"
+#include "ui/ui.h"
 const char *TAG = "WT32-SqLn";
 //string device_info();
 extern "C" void app_main(void)
@@ -16,13 +19,14 @@ extern "C" void app_main(void)
 	}
 	ESP_ERROR_CHECK(ret);
 	wifi_init_sta();
+	
 #ifdef USE_OPC
 	opc_task();
 #endif
-	lcd.init(); // Initialize LovyanGFX
+//	lcd.init(); // Initialize LovyanGFX
 //	//lcd.setRotation(1);
-	lcd.initDMA(); // Init DMA
-	lv_init(); // Initialize lvglss
+//	lcd.initDMA(); // Init DMA
+	//lv_init(); // Initialize lvglss
 
 	if (lv_display_init() != ESP_OK) // Configure LVGL
 	{
@@ -39,7 +43,7 @@ extern "C" void app_main(void)
 	
 	lv_scr_load(ui_Opc_Screen);
 	lv_label_set_text_fmt(ipAddressLabel, "#ff00ff %d.%d.%d.%d #", IP2STR(&wifi_info.ip));
-	
+	InitTaskManager();
 #endif
 	
 }

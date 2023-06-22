@@ -8,6 +8,8 @@ idf_component_register(
                 	open62541/opc.c
                 	ui/images/hyrel-mark.c
                 	ui/images/img-splash.c
+                	taskmanager.c
+                	devices/display.c
                 INCLUDE_DIRS "." "devices" "ui"
                 REQUIRES
                 	LovyanGFX

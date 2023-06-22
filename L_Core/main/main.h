@@ -55,7 +55,3 @@ using namespace std;
 //typedef lockGuard<LVGL>    lvglLock;
 //typedef lockGuard<BLE>     bleLock;
 
-#include "helpers/helper_display.hpp"
-#include "helpers/helper_ui.hpp"
-#include "helpers/helper_ota.hpp"
-#include "helpers/ui_callbacks.hpp"

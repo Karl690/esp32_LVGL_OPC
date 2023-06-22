@@ -21,6 +21,8 @@ lv_obj_t *ui_Main_Screen;
 lv_obj_t *ui_Opc_Screen;
 lv_obj_t *ipAddressLabel;
 lv_obj_t *OpcHeartBeatLabel;
+lv_obj_t *SecTimerLabel;
+lv_obj_t *ledSecs;
 lv_obj_t *ui_Counter_Display;
 void ui_event_Counter_Button( lv_event_t * e);
 lv_obj_t *ui_Counter_Button;
@@ -219,8 +221,17 @@ void ui_Opc_Screen_init(void)
 	lv_obj_t* button = ui_create_button(ui_Opc_Screen, "START", 10, 80, 150, 30, 6, 0x00A3FF, &lv_font_montserrat_20, ui_event_start_button_handler);
 	button = ui_create_button(ui_Opc_Screen, "STOP", 165, 80, 150, 30, 6, 0x565656, &lv_font_montserrat_20, ui_event_stop_button_handler);
 	
-	obj = ui_create_label(ui_Opc_Screen, "#ffff00 HeartBeat: #", 10, 120, &lv_font_montserrat_20);
-	OpcHeartBeatLabel = ui_create_label(ui_Opc_Screen, "", 160, 120, &lv_font_montserrat_20);
+	obj = ui_create_label(ui_Opc_Screen, "#ffff00 1s Timer: #", 10, 120, &lv_font_montserrat_20);
+	SecTimerLabel = ui_create_label(ui_Opc_Screen, "", 160, 120, &lv_font_montserrat_20);
+	
+	
+	ledSecs  = lv_led_create(ui_Opc_Screen);
+	lv_led_set_color(ledSecs, lv_color_hex(0xff0000));
+	lv_obj_set_pos(ledSecs, 250, 120);
+	lv_led_off(ledSecs);
+	
+	obj = ui_create_label(ui_Opc_Screen, "#ffff00 HeartBeat: #", 10, 150, &lv_font_montserrat_20);
+	OpcHeartBeatLabel = ui_create_label(ui_Opc_Screen, "", 160, 150, &lv_font_montserrat_20);
 	
 }
 void ui_Main_Screen_screen_init(void)

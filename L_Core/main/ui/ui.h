@@ -16,6 +16,8 @@ extern lv_obj_t *ui_Splash_Screen;
 extern lv_obj_t *ui_Opc_Screen;
 extern lv_obj_t *ipAddressLabel;
 extern lv_obj_t *OpcHeartBeatLabel;
+extern lv_obj_t *SecTimerLabel;
+extern lv_obj_t *ledSecs;
 void ui_event_Splash_Screen_Title( lv_event_t * e);
 extern lv_obj_t *ui_Splash_Screen_Title;
 extern lv_obj_t *ui_Splash_Screen_Text;
