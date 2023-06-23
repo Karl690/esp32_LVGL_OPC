@@ -12,7 +12,7 @@
 #define EXAMPLE_INTERFACE TCPIP_ADAPTER_IF_STA
 
 
-extern bool OpcPaused;
+extern bool OpcRunning;
 extern uint32_t OpcHeartBeat;
 void InitOPC();
 #endif

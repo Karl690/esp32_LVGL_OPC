@@ -9,12 +9,9 @@
 
 
 bool g_bRunning  = false;
-bool OpcPaused = false;
+bool OpcRunning = true;
 uint32_t OpcHeartBeat = 0;
 UA_NodeId   g_lastNodeId;
-static UA_Boolean running = true;
-
-static UA_Boolean isServerCreated = false;
 
 int NodeidHeartbeat = 0;
 const static char* OPC_TAG = "OPC";
@@ -306,7 +303,7 @@ void thread_opc_task(void* arg) {
     if (retval == UA_STATUSCODE_GOOD)
     {
         while (g_bRunning) {
-	        if (!OpcPaused)
+	        if (OpcRunning)
 	        {
 		        UA_Server_run_iterate(server, false);		        
 		        WriteIntVariable(server, NodeidHeartbeat, OpcHeartBeat);

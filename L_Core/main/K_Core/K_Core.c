@@ -11,7 +11,7 @@ void K_Core_Main()
 {
 	InitGPIO();
 	InitTaskManager();
-	xTaskCreatePinnedToCore(forground_task, "forground_task", 1024 * 5, NULL, 10, NULL, 1);
+	xTaskCreatePinnedToCore(forground_task, "forground_task", 1024 * 2, NULL, 10, NULL, 1);
 }
 
 void forground_task(void* arg) {

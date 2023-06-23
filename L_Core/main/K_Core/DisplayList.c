@@ -9,11 +9,13 @@ char* SystemInfo = "ESP32 SOC1 Plus";
 
 DisplayVariableInfo LcdVarsTable[] = {
 	{ SystemInfo, "SystemInfo", FUNC_ASCII, COLOR_WHITE, COLOR_RED, 0 },
-	{ (void*)SYSTEMVERSION, "SystemInfo", FUNC_ASCII, COLOR_WHITE, COLOR_RED, 0 },
+	{ (void*)SYSTEMVERSION, "Version", FUNC_ASCII, COLOR_WHITE, COLOR_RED, 0 },
+	{ (void*)WIFI_SSID, "WIFI SSID", FUNC_ASCII, COLOR_WHITE, COLOR_RED, 0 },
 	{ ipAddress, "WIFI IP", FUNC_ASCII, COLOR_WHITE, COLOR_RED, 0 },
+	{ &wifi_is_connected, "WIFI Status", FUNC_BOOLEAN, COLOR_WHITE, COLOR_RED, 0 },
 	{ &HeartBeat, "HB      ", FUNC_INT32, COLOR_WHITE, COLOR_RED, 0 },
-	{ &OpcPaused, "OPC Status", FUNC_BOOLEAN, COLOR_WHITE, COLOR_RED, 0 },
-	{ &HeartBeat, "HB      ", FUNC_INT32, COLOR_WHITE, COLOR_RED, 0 },
+	{ &OpcRunning, "OPC Status", FUNC_BOOLEAN, COLOR_WHITE, COLOR_RED, 0 },
+	{ &OpcHeartBeat, "OPC HeartBeat", FUNC_INT32, COLOR_WHITE, COLOR_RED, 0 },
 	{ &HeartBeat, "HB      ", FUNC_INT32, COLOR_WHITE, COLOR_RED, 0 },
 	{ &HeartBeat, "HB      ", FUNC_INT32, COLOR_WHITE, COLOR_RED, 0 },
 	{ &HeartBeat, "HB      ", FUNC_INT32, COLOR_WHITE, COLOR_RED, 0 },
@@ -40,8 +42,7 @@ DisplayVariableInfo Lcd1VarsTable[] = {
 	{ &HeartBeat, "HB      ", FUNC_INT32, COLOR_WHITE, COLOR_RED, 0 },
 	{ &HeartBeat, "HB      ", FUNC_INT32, COLOR_WHITE, COLOR_RED, 0 },
 	{ &HeartBeat, "HB      ", FUNC_INT32, COLOR_WHITE, COLOR_RED, 0 },
-	
-	{ &OpcPaused, "OPC Status", FUNC_BOOLEAN, COLOR_WHITE, COLOR_RED, 0 },
+	{ &OpcRunning, "OPC Status", FUNC_BOOLEAN, COLOR_WHITE, COLOR_RED, 0 },
 	{ 0 },
 };
 int GetDisplayVariableSize(DisplayVariableInfo* variableInfo)
@@ -84,7 +85,7 @@ void UpdateDisplayVariable(DisplayVariableInfo* variableInfo)
 			lv_table_set_cell_value_fmt(variableContainer, i+1, 1, "%d", (*(int*)variableInfo[i].VariablePointer));
 			break;
 		case FUNC_BOOLEAN:
-			lv_table_set_cell_value_fmt(variableContainer, i + 1, 1, "%s", ((bool)((int*)variableInfo[i].VariablePointer)) ? "True" : "False");
+			lv_table_set_cell_value_fmt(variableContainer, i + 1, 1, "%s", (*(bool*)variableInfo[i].VariablePointer) ? "True" : "False");
 			break;
 		case FUNC_ASCII:
 			lv_table_set_cell_value_fmt(variableContainer, i+1, 1, "%s", variableInfo[i].VariablePointer);

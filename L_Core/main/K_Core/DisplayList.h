@@ -35,7 +35,7 @@ typedef enum
 
 typedef struct {
 	void* 		VariablePointer; //points to the variable that holds the data we want to display
-	char 			Label[13];
+	char 			Label[20];
 	DISPLAYFUNCTYPE FuncType; //function type how we show the data, i.e. hex, int, float
 	uint32_t		Color_1; // this is for Label or background in Bar.
 	uint32_t			Color_2; // this is for Value or progress bar in Bar.
