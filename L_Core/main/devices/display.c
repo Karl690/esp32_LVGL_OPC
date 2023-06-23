@@ -15,7 +15,7 @@ static LGFX lcd; // declare display variable
 static TaskHandle_t g_lvgl_task_handle;
 
 
-esp_err_t lv_display_init()
+esp_err_t InitLCDAndLVGL()
 {
 	// Setting display to landscape
 	// if (lcd.width() < lcd.height()) lcd.setRotation(lcd.getRotation() ^ 2);
@@ -130,7 +130,7 @@ void gui_task(void *args)
 
 		/* Try to take the semaphore, call lvgl related function on success */
 	   // lvglLock lock;
-		if (OpcHeartBeatLabel) lv_label_set_text_fmt(OpcHeartBeatLabel, "#ff00ff %d #", (int)OpcHeartBeat);
+		//if (OpcHeartBeatLabel) lv_label_set_text_fmt(OpcHeartBeatLabel, "#ff00ff %d #", (int)OpcHeartBeat);
 		lv_task_handler();
 		//lv_timer_handler_run_in_period(5); /* run lv_timer_handler() every 5ms */
 	}

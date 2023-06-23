@@ -9,6 +9,8 @@
 #include "nvs_flash.h"
 
 #include "wifi.h"
+#include "ui/ui.h"
+
 /* The examples use WiFi configuration that you can set via project configuration menu
 
    If you'd rather not, just change the below entries to strings with
@@ -18,7 +20,7 @@
 
 /* FreeRTOS event group to signal when we are connected*/
 static EventGroupHandle_t s_wifi_event_group;
-
+char ipAddress[20] = { 0 };
 /* The event group allows multiple bits for each event, but we only care about two events:
  * - we are connected to the AP with an IP
  * - we failed to connect after the maximum amount of retries */
@@ -55,9 +57,10 @@ static void event_handler(void* arg,
 	else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
 		wifi_is_connected = true;
 		ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
-		
+		sprintf(ipAddress, "%d.%d.%d.%d", IP2STR(&wifi_info.ip));
 		memcpy(&wifi_info, &event->ip_info, sizeof(esp_netif_ip_info_t));
 		ESP_LOGI(TAG, "got ip:" IPSTR, IP2STR(&event->ip_info.ip));
+		//if (ipAddressLabel) lv_label_set_text_fmt(ipAddressLabel, "#ff00ff %d.%d.%d.%d #", IP2STR(&wifi_info.ip));
 		s_retry_num = 0;
 		xEventGroupSetBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
 	}
@@ -65,14 +68,16 @@ static void event_handler(void* arg,
 		// FMOD
 		wifi_is_connected = false;
 		ESP_LOGE(TAG, "Unhandled WIFI_EVENT event_id = %d", (int)event_id);
+		if (ipAddressLabel) lv_label_set_text_fmt(ipAddressLabel, "#ff00ff Not Connected #");
 	}
 	else if (event_base == IP_EVENT) {
 		wifi_is_connected = false;
 		// FMOD
 		ESP_LOGE(TAG, "Unhandled IP_EVENT event_id = %d", (int)event_id);
+		if (ipAddressLabel) lv_label_set_text_fmt(ipAddressLabel, "#ff00ff Not Connected #");
 	}
 }
-void wifi_init_sta(void)
+void InitWifi(void)
 {
 	wifi_is_connected = false;
 	s_wifi_event_group = xEventGroupCreate();
@@ -136,9 +141,11 @@ void wifi_init_sta(void)
 			"Failed to connect to SSID:%s, password:%s",
 			WIFI_SSID,
 			WIFI_PASSWORD);
+		sprintf(ipAddress, "%d.%d.%d.%d", 0,0,0,0);
 	}
 	else {
 		ESP_LOGE(TAG, "UNEXPECTED EVENT");
+		sprintf(ipAddress, "%d.%d.%d.%d", 0, 0, 0, 0);
 	}
 
 #if 0   // FMOD

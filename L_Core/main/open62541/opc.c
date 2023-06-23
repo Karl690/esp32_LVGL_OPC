@@ -322,7 +322,7 @@ void thread_opc_task(void* arg) {
     g_bRunning = false;
 }
 
-void opc_task() {
+void InitOPC() {
     //pthread_t thread_id;
 	//pthread_create(&thread_id, NULL, &thread_opc_task, NULL);
 

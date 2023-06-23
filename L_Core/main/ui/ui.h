@@ -18,27 +18,9 @@ extern lv_obj_t *ipAddressLabel;
 extern lv_obj_t *OpcHeartBeatLabel;
 extern lv_obj_t *SecTimerLabel;
 extern lv_obj_t *ledSecs;
-void ui_event_Splash_Screen_Title( lv_event_t * e);
-extern lv_obj_t *ui_Splash_Screen_Title;
-extern lv_obj_t *ui_Splash_Screen_Text;
-extern lv_obj_t *ui_OTA_Panel;
-extern lv_obj_t *ui_OTA_Screen_Title;
-extern lv_obj_t *ui_OTA_Status;
-extern lv_obj_t *ui_OTA_Spinner;
-extern lv_obj_t *ui_Main_Screen;
-extern lv_obj_t *ui_Counter_Display;
-void ui_event_Counter_Button( lv_event_t * e);
-extern lv_obj_t *ui_Counter_Button;
-extern lv_obj_t *ui_Counter_Button_Label;
+extern lv_obj_t * variableContainer;
 
-void splashScreenTapped_cb(lv_event_t * e);
-void counterButtonClicked_cb(lv_event_t * e);
-
-
-
-
-
-void ui_init(void);
+void InitUI(void);
 
 #ifdef __cplusplus
 } /*extern "C"*/

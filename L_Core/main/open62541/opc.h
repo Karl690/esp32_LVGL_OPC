@@ -14,5 +14,5 @@
 
 extern bool OpcPaused;
 extern uint32_t OpcHeartBeat;
-void opc_task();
+void InitOPC();
 #endif

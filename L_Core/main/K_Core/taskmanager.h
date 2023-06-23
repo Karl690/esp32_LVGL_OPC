@@ -15,6 +15,8 @@ typedef enum {
 } indexType;
 
 
+extern uint32_t HeartBeat;
+
 void func_SystickCallback(void* arg);
 void Spare(void);
 void BlinkHeartBeat(void);

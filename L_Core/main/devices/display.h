@@ -62,7 +62,7 @@ SOFTWARE.
 
 
 
-esp_err_t lv_display_init();
+esp_err_t InitLCDAndLVGL();
 
 // Display callback to flush the buffer to screen
 void display_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p);

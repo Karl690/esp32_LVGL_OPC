@@ -1,7 +1,7 @@
 #include "configure.h"
 #include "main.h"
 #include "taskmanager.h"
-#include "ui/ui.h"
+#include "../ui/ui.h"
 esp_timer_handle_t systickTimer;
 
 

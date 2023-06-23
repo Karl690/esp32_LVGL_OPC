@@ -17,41 +17,4 @@
 #include "devices/conf_WT32SCO1-Plus.h"
 using namespace std;
 
-//
-//extern const char *TAG;
-////
-//// Semaphore to handle concurrent call to lvgl and other shared stuff
-////
-//// If you wish to call *any* lvgl function from other threads/tasks
-//// you should lock on the very same semaphore!
-////
-//
-//typedef enum { LVGL, BLE } SemaphoreInstance_t;
-//
-//template<SemaphoreInstance_t I>
-//	class lockGuard
-//	{
-//		static SemaphoreHandle_t sSem;
-//
-//	public:
-//		static bool init()
-//		{
-//			sSem = xSemaphoreCreateRecursiveMutex();
-//			return sSem;
-//		}
-//
-//		lockGuard()
-//		{
-//			xSemaphoreTakeRecursive(sSem, portMAX_DELAY);
-//		}
-//
-//		~lockGuard()
-//		{
-//			xSemaphoreGiveRecursive(sSem);
-//		}
-//	};
-//template<SemaphoreInstance_t I> SemaphoreHandle_t lockGuard<I>::sSem;
-//
-//typedef lockGuard<LVGL>    lvglLock;
-//typedef lockGuard<BLE>     bleLock;
-
+extern bool IsInitialized;
