@@ -42,7 +42,6 @@ esp_err_t InitLCDAndLVGL()
 	lv_color_t * buf1 = (lv_color_t *)heap_caps_malloc(screenWidth * BUFF_SIZE * sizeof(lv_color_t), MALLOC_CAP_DMA);
 	lv_disp_draw_buf_init(&draw_buf, buf1, NULL, screenWidth * BUFF_SIZE);
 #endif
-#ifndef  AAA
 	/*** LVGL : Setup & Initialize the display device driver ***/
 	static lv_disp_drv_t disp_drv;
 	lv_disp_drv_init(&disp_drv);
@@ -89,7 +88,6 @@ esp_err_t InitLCDAndLVGL()
 		if (lv_periodic_timer) esp_timer_delete(lv_periodic_timer);
 		return ESP_FAIL;
 	}
-#endif
 	return ESP_OK;
 }
 

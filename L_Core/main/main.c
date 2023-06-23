@@ -22,12 +22,13 @@ extern "C" void app_main(void)
 	ESP_ERROR_CHECK(ret);
 	
 	IsInitialized = false;
-	K_Core_Main();
 	InitWifi();
 	InitOPC();
 	
 	InitLCDAndLVGL();
 	InitUI();
+	K_Core_Main();
+	
 	IsInitialized = true;
 	
 	SetActiveDisplayVariable(LcdVarsTable);
