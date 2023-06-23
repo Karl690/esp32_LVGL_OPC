@@ -57,8 +57,8 @@ static void event_handler(void* arg,
 	else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
 		wifi_is_connected = true;
 		ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
-		sprintf(ipAddress, "%d.%d.%d.%d", IP2STR(&wifi_info.ip));
 		memcpy(&wifi_info, &event->ip_info, sizeof(esp_netif_ip_info_t));
+		sprintf(ipAddress, "%d.%d.%d.%d", IP2STR(&event->ip_info.ip));
 		ESP_LOGI(TAG, "got ip:" IPSTR, IP2STR(&event->ip_info.ip));
 		//if (ipAddressLabel) lv_label_set_text_fmt(ipAddressLabel, "#ff00ff %d.%d.%d.%d #", IP2STR(&wifi_info.ip));
 		s_retry_num = 0;
