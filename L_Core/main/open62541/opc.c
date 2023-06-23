@@ -308,12 +308,11 @@ void thread_opc_task(void* arg) {
         while (g_bRunning) {
 	        if (!OpcPaused)
 	        {
-		        UA_Server_run_iterate(server, false);
-		        vTaskDelay(100 / portTICK_PERIOD_MS);
+		        UA_Server_run_iterate(server, false);		        
 		        WriteIntVariable(server, NodeidHeartbeat, OpcHeartBeat);
-		        OpcHeartBeat++;    
-		        
+		        OpcHeartBeat++; 
 	        }      
+	        vTaskDelay(100 / portTICK_PERIOD_MS);
             
         }
     }
