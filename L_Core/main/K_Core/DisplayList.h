@@ -40,14 +40,16 @@ typedef struct {
 	uint32_t		Color_1; // this is for Label or background in Bar.
 	uint32_t			Color_2; // this is for Value or progress bar in Bar.
 	uint32_t 		Offset; //for FUNC_MEMDUMPASCII if string is array variable(char a[]), it would be 1 otherwise 0. it is only for memory ascii function
-							//for FUNC_MEMDUMPHEX it means offset.
+							//for FUNC_MEMDUMPHEX it means offset.	
+	void*		lv_object;
 } __attribute__((packed)) DisplayVariableInfo;
 
 
 #define DISPLAYVARIABEINFO_SIZE sizeof(DisplayVariableInfo)
-extern DisplayVariableInfo LcdVarsTable[];
 
-void SetActiveDisplayVariable(DisplayVariableInfo* variableInfo);
-void UpdateDisplayVariable(DisplayVariableInfo* variableInfo);
-void DisplayIndexIncrement();
-void DisplayIndexDecrement();
+#define NUMBER_OF_DISPLAY_LISTS 4
+
+extern DisplayVariableInfo LcdVarsTable[];
+extern DisplayVariableInfo Lcd1VarsTable[];
+extern DisplayVariableInfo Lcd2VarsTable[];
+extern DisplayVariableInfo Lcd3VarsTable[];

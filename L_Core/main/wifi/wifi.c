@@ -68,13 +68,13 @@ static void event_handler(void* arg,
 		// FMOD
 		wifi_is_connected = false;
 		ESP_LOGE(TAG, "Unhandled WIFI_EVENT event_id = %d", (int)event_id);
-		if (ipAddressLabel) lv_label_set_text_fmt(ipAddressLabel, "#ff00ff Not Connected #");
+		//if (ipAddressLabel) lv_label_set_text_fmt(ipAddressLabel, "#ff00ff Not Connected #");
 	}
 	else if (event_base == IP_EVENT) {
 		wifi_is_connected = false;
 		// FMOD
 		ESP_LOGE(TAG, "Unhandled IP_EVENT event_id = %d", (int)event_id);
-		if (ipAddressLabel) lv_label_set_text_fmt(ipAddressLabel, "#ff00ff Not Connected #");
+		//if (ipAddressLabel) lv_label_set_text_fmt(ipAddressLabel, "#ff00ff Not Connected #");
 	}
 }
 void InitWifi(void)

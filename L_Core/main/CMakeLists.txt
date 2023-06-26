@@ -16,6 +16,8 @@ idf_component_register(
                 	K_Core/K_Core.c
                 	K_Core/taskmanager.c
                 	K_Core/DisplayList.c
+                	ui/ui-opc.c
+                	ui/ui-main.c
                 INCLUDE_DIRS "." "devices" "ui"
                 REQUIRES
                 	LovyanGFX

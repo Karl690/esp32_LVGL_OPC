@@ -24,13 +24,11 @@ extern "C" void app_main(void)
 	IsInitialized = false;
 	InitWifi();
 	InitOPC();
-	
+
 	InitLCDAndLVGL();
 	InitUI();
+	
 	K_Core_Main();
 	
 	IsInitialized = true;
-	
-	SetActiveDisplayVariable(LcdVarsTable);
-	
 }

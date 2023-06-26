@@ -104,14 +104,6 @@ void Spare(void)
 void BlinkHeartBeat(void)
 {	
 	HeartBeat++;
-	if(SecTimerLabel)	lv_label_set_text_fmt(SecTimerLabel, "#ffffff %d #", (int)HeartBeat);
-	if (HeartBeat & 1) {
-		//HEARTBEAT_SET;
-		if(ledSecs) lv_led_on(ledSecs);		
-	}
-	else {
-		if (ledSecs) lv_led_off(ledSecs);		
-	}
 }
 
 

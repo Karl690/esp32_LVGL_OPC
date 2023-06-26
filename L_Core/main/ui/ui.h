@@ -1,29 +1,13 @@
-// SquareLine LVGL GENERATED FILE
-// EDITOR VERSION: SquareLine Studio 1.1.1
-// LVGL VERSION: 8.2.0
-// PROJECT: SquareLine_Project
-
-#ifndef _SQUARELINE_PROJECT_UI_H
-#define _SQUARELINE_PROJECT_UI_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-    #include "lvgl.h"
-
-extern lv_obj_t *ui_Splash_Screen;
-extern lv_obj_t *ui_Opc_Screen;
-extern lv_obj_t *ipAddressLabel;
-extern lv_obj_t *OpcHeartBeatLabel;
-extern lv_obj_t *SecTimerLabel;
-extern lv_obj_t *ledSecs;
-extern lv_obj_t * variableContainer;
+#include "lvgl.h"
 
 void InitUI(void);
 
-#ifdef __cplusplus
-} /*extern "C"*/
-#endif
-
-#endif
+lv_obj_t* ui_create_label(lv_obj_t* parent, char* text, const lv_font_t* font);
+lv_obj_t* ui_create_button(lv_obj_t* parent,
+	char* text,
+	uint16_t w,
+	uint16_t h, 
+	uint16_t radius,
+	uint32_t color,
+	const lv_font_t* font,
+	lv_event_cb_t event_button_handler);

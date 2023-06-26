@@ -57,7 +57,7 @@ SOFTWARE.
 #define PAD_SMALL   (disp_size == DISP_LARGE ? lv_disp_dpx(theme.disp, 14) : disp_size == DISP_MEDIUM ? lv_disp_dpx(theme.disp, 12) : lv_disp_dpx(theme.disp, 10))
 #define PAD_TINY   (disp_size == DISP_LARGE ? lv_disp_dpx(theme.disp, 8) : disp_size == DISP_MEDIUM ? lv_disp_dpx(theme.disp, 6) : lv_disp_dpx(theme.disp, 2))
 
-#define BUFF_SIZE 40
+#define BUFF_SIZE 20
 //#define LVGL_DOUBLE_BUFFER
 
 
