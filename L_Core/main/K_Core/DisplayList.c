@@ -82,14 +82,4 @@ DisplayVariableInfo Lcd3VarsTable[] = {
 	{ &OpcRunning, "OPC Status", FUNC_BOOLEAN, COLOR_WHITE, COLOR_RED, 0, NULL },
 	{ 0 },
 };
-int GetDisplayVariableSize(DisplayVariableInfo* variableInfo)
-{
-	int i = 0;
-	while (1)
-	{
-		if (variableInfo[i].VariablePointer == 0) break;
-		i++;
-	}
-	return i;
-}
 

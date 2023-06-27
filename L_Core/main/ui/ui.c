@@ -56,7 +56,7 @@ lv_obj_t* ui_create_button(lv_obj_t* parent,
 	lv_label_set_text(label, text);
 	lv_obj_set_style_text_font(label, font, LV_PART_MAIN | LV_STATE_DEFAULT);
 	
-	lv_obj_add_event_cb(button, event_button_handler, LV_EVENT_ALL, NULL);
+	lv_obj_add_event_cb(button, event_button_handler, LV_EVENT_ALL, NULL);	
 	return button;
 }
 

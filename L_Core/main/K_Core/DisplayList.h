@@ -53,3 +53,4 @@ extern DisplayVariableInfo LcdVarsTable[];
 extern DisplayVariableInfo Lcd1VarsTable[];
 extern DisplayVariableInfo Lcd2VarsTable[];
 extern DisplayVariableInfo Lcd3VarsTable[];
+

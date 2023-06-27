@@ -2,13 +2,13 @@
 #include "ui-opc.h"
 
 #include "open62541/opc.h"
+#include "K_Core/DisplayList.h"
 
 lv_obj_t *ui_opc_screen;
 
 lv_obj_t * variableContainer;
 
 uint8_t DisplayIndex = 0;
-bool is_loading = false;
 DisplayVariableInfo* activeVarialbeInfo = NULL;
 
 void ui_event_start_button_handler(lv_event_t * e) {
@@ -43,6 +43,35 @@ void ui_event_display_next_button_handler(lv_event_t * e)
 		ui_opc_display_next();
 	}
 }
+
+static void draw_table_part_event_cb(lv_event_t * e)
+{
+	lv_obj_t * obj = lv_event_get_target(e);
+	lv_obj_draw_part_dsc_t * dsc = lv_event_get_draw_part_dsc(e);
+	/*If the cells are drawn...*/
+	if (dsc->part == LV_PART_ITEMS) {
+		uint32_t row = dsc->id /  lv_table_get_col_cnt(obj);
+		uint32_t col = dsc->id - row * lv_table_get_col_cnt(obj);
+
+		/*Make the texts in the first cell center aligned*/
+//		if (row == 0) {
+//			dsc->label_dsc->align = LV_TEXT_ALIGN_CENTER;
+//			dsc->rect_dsc->bg_color = lv_color_mix(lv_palette_main(LV_PALETTE_BLUE), dsc->rect_dsc->bg_color, LV_OPA_20);
+//			dsc->rect_dsc->bg_opa = LV_OPA_COVER;
+//		}
+		/*In the first column align the texts to the right*/
+//		else if(col == 0) {
+//			dsc->label_dsc->align = LV_TEXT_ALIGN_RIGHT;
+//		}
+
+		/*MAke every 2nd row grayish*/
+		if ((row != 0 && row % 2) == 0) {
+			dsc->rect_dsc->bg_color = lv_color_mix(lv_palette_main(LV_PALETTE_GREY), dsc->rect_dsc->bg_color, LV_OPA_10);
+			dsc->rect_dsc->bg_opa = LV_OPA_COVER;
+		}
+	}
+}
+
 void ui_opc_screen_init(void) 
 {
 	ui_opc_screen = lv_obj_create(NULL);	
@@ -70,9 +99,18 @@ void ui_opc_screen_init(void)
 	button = ui_create_button(ui_opc_screen, "STOP", 150, 30, 6, 0x565656, &lv_font_montserrat_20, ui_event_stop_button_handler);
 	lv_obj_set_pos(button, 165, 430);
 	
+	
+	variableContainer = lv_table_create(ui_opc_screen);
+	lv_obj_set_size(variableContainer, 310, 370);
+//	lv_obj_set_style_pad_all(variableContainer, 0, LV_PART_MAIN);
+//	lv_obj_set_align(variableContainer, LV_ALIGN_TOP_MID);
+	lv_obj_set_y(variableContainer, 50);
+	
+	//lv_obj_add_event_cb(variableContainer, draw_table_part_event_cb, LV_EVENT_DRAW_PART_BEGIN, NULL);
+	
+	
 	ui_opc_set_display_variable(LcdVarsTable);
 }
-
 
 lv_list_item* ui_listitem_create(lv_obj_t* parent, char* label, DISPLAYFUNCTYPE type, const lv_font_t* font, uint16_t w, uint16_t h, lv_color_t bgColor)
 {
@@ -128,80 +166,62 @@ void ui_opc_add_varialbeList(lv_obj_t* parent, DisplayVariableInfo* variableList
 void ui_opc_update_variableList()
 {
 	if (!activeVarialbeInfo) return;
-	if (is_loading) return;
 	
 	uint16_t i = 0;
-	
+	int rows = lv_table_get_row_cnt(variableContainer);
 	while (activeVarialbeInfo[i].VariablePointer)
 	{	
-		//lv_list_item* item = ui_listitem_create(variableContainer, variableInfo[i].Label, variableInfo[i].FuncType, &lv_font_montserrat_16, w, h, i % 2 ? lv_color_hex(0x232323) : lv_color_hex(0x161616));
-		//lv_obj_set_pos(item->obj, 5, i * 40);
-		lv_list_item* item = (lv_list_item*)activeVarialbeInfo[i].lv_object;
-		if (item)
+		
+		if (i >= rows) break;
+		switch (activeVarialbeInfo[i].FuncType)
 		{
-			switch (activeVarialbeInfo[i].FuncType)
-			{
-			case FUNC_INT:
-			case FUNC_INT16:
-			case FUNC_INT32:
-				lv_label_set_text_fmt(item->value, "#%x %d #", (int)activeVarialbeInfo[i].Color_2, (*(int*)activeVarialbeInfo[i].VariablePointer));
-				break;
-			case FUNC_FLOAT:
-				lv_label_set_text_fmt(item->value, "#%x %.3f #", (int)activeVarialbeInfo[i].Color_2, (*(float*)activeVarialbeInfo[i].VariablePointer));
-				break;
-			case FUNC_BOOLEAN:
-				if (*(bool*)activeVarialbeInfo[i].VariablePointer) lv_led_on(item->value);
-				else lv_led_off(item->value);
-				break;
-			case FUNC_ASCII:
-				lv_label_set_text_fmt(item->value, "#%x %s #", (int)activeVarialbeInfo[i].Color_2, (char*)activeVarialbeInfo[i].VariablePointer);
-				break;
-			default:
-				break;
-			}
+		case FUNC_INT:
+		case FUNC_INT16:
+		case FUNC_INT32:
+			lv_table_set_cell_value_fmt(variableContainer, i, 1, "%d", (*(int*)activeVarialbeInfo[i].VariablePointer));
+			break;
+		case FUNC_FLOAT:
+			lv_table_set_cell_value_fmt(variableContainer, i, 1, "%.3f", (*(float*)activeVarialbeInfo[i].VariablePointer));			
+			break;
+		case FUNC_BOOLEAN:
+			lv_table_set_cell_value_fmt(variableContainer, i, 1, "%s", *(bool*)activeVarialbeInfo[i].VariablePointer? "True": "False");			
+			break;
+		case FUNC_ASCII:
+			lv_table_set_cell_value_fmt(variableContainer, i, 1, "%s", (char*)activeVarialbeInfo[i].VariablePointer);			
+			break;
+		default:
+			break;
 		}
 		i++;	
 	}
 }
 
+int GetDisplayVariableSize(DisplayVariableInfo* variableInfo)
+{
+	int i = 0;
+	while (1)
+	{
+		if (variableInfo[i].VariablePointer == 0) break;
+		i++;
+	}
+	return i;
+}
 
 
 void ui_opc_set_display_variable(DisplayVariableInfo* variableInfo)
 {
-	if (activeVarialbeInfo && activeVarialbeInfo != variableInfo)
-	{
-		int i = 0;
-		while (activeVarialbeInfo[i].VariablePointer)
-		{
-			if(activeVarialbeInfo[i].lv_object)
-				lv_mem_buf_release(activeVarialbeInfo[i].lv_object);
-			activeVarialbeInfo[i].lv_object = NULL;
-			i++;
-		}
-	}	
 	activeVarialbeInfo = variableInfo;
-	is_loading = true;
-	if (variableContainer) {
-		lv_obj_del(variableContainer);
+	int rows = GetDisplayVariableSize(variableInfo);
+	lv_table_set_row_cnt(variableContainer, rows);
+	lv_table_set_col_cnt(variableContainer, 2);
+	//int w = lv_obj_get_width(variableContainer);
+	//lv_table_set_col_width(variableContainer, 0, w / 2 - 2);
+	//lv_table_set_col_width(variableContainer, 1, (w / 2) - 2);
+	for (uint8_t i = 0; i < rows; i++)
+	{
+		lv_table_set_cell_value_fmt(variableContainer, i, 0, variableInfo[i].Label);
+		lv_table_set_cell_value_fmt(variableContainer, i, 1, "");
 	}
-	
-	variableContainer = lv_obj_create(ui_opc_screen);
-	lv_obj_set_size(variableContainer, 310, 370);
-	lv_obj_set_style_pad_all(variableContainer, 0, LV_PART_MAIN);
-	lv_obj_set_align(variableContainer, LV_ALIGN_TOP_MID);
-	lv_obj_set_y(variableContainer, 50);
-	
-	uint16_t w = lv_obj_get_width(ui_opc_screen) - 20;
-	uint16_t h = 40;
-	uint16_t i = 0;
-	while (variableInfo[i].VariablePointer)
-	{	
-		lv_list_item* item = ui_listitem_create(variableContainer, variableInfo[i].Label, variableInfo[i].FuncType, &lv_font_montserrat_16, w, h, i % 2 ? lv_color_hex(0x232323) : lv_color_hex(0x161616));
-		lv_obj_set_pos(item->obj, 3, i * 40);
-		variableInfo[i].lv_object = item;
-		i++;	
-	}
-	is_loading = false; 
 }
 void SwitchDisplayVariableList()
 {

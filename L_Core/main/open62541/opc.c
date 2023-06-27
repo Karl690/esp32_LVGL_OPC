@@ -318,12 +318,7 @@ void thread_opc_task(void* arg) {
     g_bRunning = false;
 }
 
-void InitOPC() {
-    //pthread_t thread_id;
-	//pthread_create(&thread_id, NULL, &thread_opc_task, NULL);
-
-    xTaskCreatePinnedToCore(thread_opc_task, "opcua_task", 1024 * 10, NULL, 10, NULL, 1);
+void InitOPC() {    
+    xTaskCreatePinnedToCore(thread_opc_task, "opcua_task", 1024 * 10, NULL, 5, NULL, 1);
 }
-
-
 #endif

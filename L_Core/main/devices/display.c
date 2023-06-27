@@ -81,7 +81,7 @@ esp_err_t InitLCDAndLVGL()
 	//    //bg_theme_color = theme_current->flags & LV_USE_THEME_DEFAULT ? DARK_COLOR_CARD : LIGHT_COLOR_CARD;
 	//    bg_theme_color = theme_current->flags & LV_USE_THEME_DEFAULT ? lv_palette_darken(LV_PALETTE_GREY, 5) : lv_color_hex(0xBFBFBD);
 
-	int err = xTaskCreatePinnedToCore(gui_task, "lv gui", 1024 * 8, NULL, 5, &g_lvgl_task_handle, 1);
+	int err = xTaskCreatePinnedToCore(gui_task, "lv gui", 1024 * 8, NULL, 10, &g_lvgl_task_handle, 1);
 	if (!err)
 	{
 		//ESP_LOGE(TAG, "Create task for LVGL failed");
