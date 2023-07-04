@@ -4,7 +4,7 @@ extern "C" {
 #endif
 
 #include "lvgl.h"
-#include "K_Core/DisplayList.h"
+#include "K_Core/display/DisplayList.h"
 
 typedef struct
 {

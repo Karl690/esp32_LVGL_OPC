@@ -1,3 +1,4 @@
+#pragma once
 #include "configure.h"
 #include "esp_log.h"
 #include "nvs_flash.h"
@@ -14,7 +15,7 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>
 #include <string>
-#include "devices/conf_WT32SCO1-Plus.h"
+#include "L_Core/devices/conf_WT32SCO1-Plus.h"
 using namespace std;
 
 extern bool IsInitialized;

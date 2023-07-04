@@ -1,7 +1,8 @@
 #include "configure.h"
 #include "main.h"
 #include "taskmanager.h"
-#include "../ui/ui.h"
+#include "L_Core/ui/ui.h"
+#include "adc/adc.h"
 esp_timer_handle_t systickTimer;
 
 
@@ -25,7 +26,7 @@ const PFUNC F1000HZ[NUM_1000HZ] =
 const PFUNC F100HZ[NUM_100HZ] =
 {
 	Spare,
-	Spare,
+	ProcessGetAdcRawData,
 	Spare,
 	Spare,
 	Spare,

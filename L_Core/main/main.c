@@ -1,13 +1,13 @@
 #include "main.h"
 #include "K_Core/K_Core.h"
-#include "wifi/wifi.h"
+#include "L_Core/wifi/wifi.h"
 
 #ifdef USE_OPC
-#include "open62541/opc.h"
+#include "L_Core/open62541/opc.h"
 #endif
-#include "devices/display.h"
-#include "ui/ui.h"
-#include "K_Core/DisplayList.h"
+#include "L_Core/devices/display.h"
+#include "L_Core/ui/ui.h"
+#include "K_Core/display/DisplayList.h"
 const char *TAG = "L_Core";
 bool IsInitialized = false;
 extern "C" void app_main(void)

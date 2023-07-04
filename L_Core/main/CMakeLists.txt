@@ -1,24 +1,25 @@
 idf_component_register(
                 SRCS
                 	main.c
-                	"ui/ui.c"
-                	"ui/ui_helpers.c"
-                	open62541/open62541.c
-                	wifi/wifi.c
-                	open62541/opc.c
-                	ui/images/hyrel-mark.c
-                	ui/images/img-splash.c
-                	devices/display.c
+                	L_Core/ui/ui.c
+                	L_Core/ui/ui_helpers.c
+                	L_Core/open62541/open62541.c
+                	L_Core/wifi/wifi.c
+                	L_Core/open62541/opc.c
+                	L_Core/ui/images/hyrel-mark.c
+                	L_Core/ui/images/img-splash.c
+                	L_Core/devices/display.c
                 	K_Core/K_Core.c
-                	K_Core/GPIO.c
+                	K_Core/gpio/GPIO.c
                 	K_Core/taskmanager.c
-                	K_Core/GPIO.c
+                	K_Core/gpio/GPIO.c
                 	K_Core/K_Core.c
                 	K_Core/taskmanager.c
-                	K_Core/DisplayList.c
-                	ui/ui-opc.c
-                	ui/ui-main.c
-                INCLUDE_DIRS "." "devices" "ui"
+                	K_Core/display/DisplayList.c
+                	L_Core/ui/ui-opc.c
+                	L_Core/ui/ui-main.c
+                	K_Core/adc/adc.c
+                INCLUDE_DIRS "."
                 REQUIRES
                 	LovyanGFX
                 	lvgl

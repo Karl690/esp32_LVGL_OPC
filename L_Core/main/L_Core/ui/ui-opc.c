@@ -1,8 +1,8 @@
 #include "ui.h"
 #include "ui-opc.h"
-
-#include "open62541/opc.h"
-#include "K_Core/DisplayList.h"
+#include <stdio.h>
+#include "L_Core/open62541/opc.h"
+#include "K_Core/display/DisplayList.h"
 
 lv_obj_t *ui_opc_screen;
 
@@ -162,7 +162,7 @@ void ui_opc_add_varialbeList(lv_obj_t* parent, DisplayVariableInfo* variableList
 		i++;	
 	}
 }
-
+char szprintf[100] = { 0 };
 void ui_opc_update_variableList()
 {
 	if (!activeVarialbeInfo) return;
@@ -181,7 +181,8 @@ void ui_opc_update_variableList()
 			lv_table_set_cell_value_fmt(variableContainer, i, 1, "%d", (*(int*)activeVarialbeInfo[i].VariablePointer));
 			break;
 		case FUNC_FLOAT:
-			lv_table_set_cell_value_fmt(variableContainer, i, 1, "%.3f", (*(float*)activeVarialbeInfo[i].VariablePointer));			
+			sprintf(szprintf, "%.3f", (*(float*)activeVarialbeInfo[i].VariablePointer));
+			lv_table_set_cell_value_fmt(variableContainer, i, 1, "%s", szprintf);			
 			break;
 		case FUNC_BOOLEAN:
 			lv_table_set_cell_value_fmt(variableContainer, i, 1, "%s", *(bool*)activeVarialbeInfo[i].VariablePointer? "True": "False");			

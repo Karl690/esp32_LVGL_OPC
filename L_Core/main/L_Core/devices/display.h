@@ -1,6 +1,6 @@
-#include <devices/conf_WT32SCO1-Plus.h>
-#include "open62541/opc.h"
-#include "ui/ui.h"
+#include "L_Core/devices/conf_WT32SCO1-Plus.h"
+#include "L_Core/open62541/opc.h"
+#include "L_Core/ui/ui.h"
 /*
 MIT License
 

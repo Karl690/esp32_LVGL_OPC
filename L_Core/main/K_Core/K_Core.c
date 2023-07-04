@@ -1,10 +1,10 @@
-#include "../configure.h"
-#include "../main.h"
-#include "ui/ui-opc.h"
+#include "configure.h"
+#include "main.h"
+#include "L_Core/ui/ui-opc.h"
 #include "K_Core.h"
-#include "GPIO.h"
+#include "gpio/GPIO.h"
 #include "taskmanager.h"
-#include "DisplayList.h"
+#include "display/DisplayList.h"
 #include "RevisionHistory.h"
 DisplayVariableInfo *ActiveVariableInfo = NULL;
 void forground_task(void* arg);

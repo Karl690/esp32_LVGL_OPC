@@ -9,7 +9,7 @@
 #include "nvs_flash.h"
 
 #include "wifi.h"
-#include "ui/ui.h"
+#include "L_Core/ui/ui.h"
 
 /* The examples use WiFi configuration that you can set via project configuration menu
 
