@@ -112,7 +112,7 @@ void taskamanger_task(void* arg)
 {
 	
 }
-void InitTaskManager()
+void Init_TaskManager()
 {
 	//xTaskCreatePinnedToCore(taskamanger_task, "taskamanger_task", 1024 * 2, NULL, 10, NULL, 0);
 	

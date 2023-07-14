@@ -33,6 +33,16 @@ typedef enum
 	COLOR_BLUE  = 0x0000ff,
 }COLORTYPE;
 
+enum
+{
+	READONLY	= 0,
+	EDIALBE		= 1,
+};
+enum
+{
+	OPC_FALSE = 0,
+	OPC_TRUE = 1,
+};
 typedef struct {
 	void* 		VariablePointer; //points to the variable that holds the data we want to display
 	char 			Label[20];
@@ -41,8 +51,11 @@ typedef struct {
 	uint32_t			Color_2; // this is for Value or progress bar in Bar.
 	uint32_t 		Offset; //for FUNC_MEMDUMPASCII if string is array variable(char a[]), it would be 1 otherwise 0. it is only for memory ascii function
 							//for FUNC_MEMDUMPHEX it means offset.	
+	uint8_t			Editable;  //enabled editing by user
+	uint8_t			ExposedOpc;  //expose this value to OPC
+	uint32_t		OpcNodeId; // Opc Node id,
 	void*		lv_object;
-} __attribute__((packed)) DisplayVariableInfo;
+} DisplayVariableInfo; //__attribute__((packed)) 
 
 
 #define DISPLAYVARIABEINFO_SIZE sizeof(DisplayVariableInfo)

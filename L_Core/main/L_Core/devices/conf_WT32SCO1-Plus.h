@@ -36,9 +36,14 @@ SOFTWARE.
 #define SD_SCLK       GPIO_NUM_39
 #define SD_CS         GPIO_NUM_41
 
+#ifndef PORTRAIT
 // Portrait
 #define TFT_WIDTH   320
 #define TFT_HEIGHT  480
+#else
+#define TFT_WIDTH   480
+#define TFT_HEIGHT  320
+#endif
 
 class LGFX : public lgfx::LGFX_Device
 {

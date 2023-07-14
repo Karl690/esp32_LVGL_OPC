@@ -23,8 +23,9 @@ extern "C" void app_main(void)
 	
 	IsInitialized = false;
 	InitWifi();
+#ifdef USE_OPC
 	InitOPC();
-
+#endif
 	InitLCDAndLVGL();
 	InitUI();
 	

@@ -1,14 +1,14 @@
 #include "adc.h"
 #include "driver/adc.h"
-//#include "esp_adc_cal.h"
+#include "adc-table.h"
 
 
 ADC_ChannelDef AdcChannelTable[ADC_CHANNEL_NUM] = {
-	{ADC_UNIT_1, ADC1_CHANNEL_9, GPIO_NUM_10, NULL},
-	{ADC_UNIT_2, ADC2_CHANNEL_0, GPIO_NUM_11, NULL},
-	{ADC_UNIT_2, ADC2_CHANNEL_1, GPIO_NUM_12, NULL},
-	{ADC_UNIT_2, ADC2_CHANNEL_2, GPIO_NUM_13, NULL},
-	{ADC_UNIT_2, ADC2_CHANNEL_3, GPIO_NUM_14, NULL},
+	{ADC_UNIT_1, ADC1_CHANNEL_9, GPIO_NUM_10, HeadPositionTable},
+	{ADC_UNIT_2, ADC2_CHANNEL_0, GPIO_NUM_11, RtdTable_1M},
+	{ADC_UNIT_2, ADC2_CHANNEL_1, GPIO_NUM_12, RtdTable_50K},
+	{ADC_UNIT_2, ADC2_CHANNEL_2, GPIO_NUM_13, RtdTable_1K},
+	{ADC_UNIT_2, ADC2_CHANNEL_3, GPIO_NUM_14, RtdTable_100},
 };
 
 adcStruct ADC_Channel[ADC_CHANNEL_NUM];
@@ -23,12 +23,10 @@ uint16_t adc_raw_value = 0;
 uint16_t adc_voltage = 0;
 void Init_ADC()
 {
-	//esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN_DB_11, ADC_WIDTH_BIT_12, 0, &adc1_chars);
-	//esp_adc_cal_characterize(ADC_UNIT_2, ADC_ATTEN_DB_11, ADC_WIDTH_BIT_12, 0, &adc2_chars);
 	adc1_config_width(ADC_WIDTH_BIT_12);
 	for (int i = 0; i < ADC_CHANNEL_NUM; i++)
 	{
-		if (AdcChannelTable[i].Unit == ADC_UNIT_1) {			
+		if (AdcChannelTable[i].Unit == ADC_UNIT_1) {		
 			adc1_config_channel_atten((adc1_channel_t)AdcChannelTable[i].Channel, ADC_ATTEN_DB_11);	
 		}
 		else
@@ -44,14 +42,16 @@ void ProcessGetAdcRawData()
 	adcStruct *ADC_Work_Channel = &ADC_Channel[ADC_Work_Channel_Index];
 	if (adcChannelDef->Unit == ADC_UNIT_1)
 	{
-		ADC_Work_Channel->adcRaw = adc1_get_raw((adc1_channel_t)adcChannelDef->Channel);	
+		ADC_Work_Channel->adcRaw = adc1_get_raw((adc1_channel_t)adcChannelDef->Channel);
 	}
 	else
 	{
 		adc2_get_raw((adc2_channel_t)adcChannelDef->Channel, ADC_WIDTH_BIT_12, (int*)&ADC_Work_Channel->adcRaw);
 	}
-	
 	SmoothDataUsingOlympicVotingAverage();
+	
+	ADC_Work_Channel->convAvg = convertRtdDataFromRawADCValue(adcChannelDef->ConvertionTable, ADC_Work_Channel->adcAvg);
+	
 	ADC_Work_Channel_Index++;
 	if (ADC_Work_Channel_Index >= ADC_CHANNEL_NUM) ADC_Work_Channel_Index = 0; //keep in range
 }

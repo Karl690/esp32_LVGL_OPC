@@ -1,6 +1,6 @@
 #include "GPIO.h"
 #include "pinout.h"
-void InitGPIO() 
+void Init_GPIO() 
 {
 	
 }

@@ -5,4 +5,4 @@
 #include "lvgl/lvgl.h"
 #endif
 
-extern const lv_img_dsc_t img_hyrel_mark;
+extern lv_img_dsc_t img_mark;

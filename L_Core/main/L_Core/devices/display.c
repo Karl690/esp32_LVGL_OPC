@@ -1,8 +1,8 @@
 #include "display.h"
 
 /*** Setup screen resolution for LVGL ***/
-static const uint16_t screenWidth = TFT_WIDTH;
-static const uint16_t screenHeight = TFT_HEIGHT;
+static const uint16_t screenWidth = 480;// TFT_WIDTH;
+static const uint16_t screenHeight = 320;// TFT_HEIGHT;
 
 static lv_disp_draw_buf_t draw_buf;
 
@@ -18,10 +18,15 @@ static TaskHandle_t g_lvgl_task_handle;
 esp_err_t InitLCDAndLVGL()
 {
 	// Setting display to landscape
-	// if (lcd.width() < lcd.height()) lcd.setRotation(lcd.getRotation() ^ 2);
+	
 	lcd.init();
 	lcd.initDMA();
-	//lcd.setRotation(2);
+#ifdef PORTRAIT
+	
+#else
+	//if (lcd.width() < lcd.height()) lcd.setRotation(lcd.getRotation() ^ 2);
+	lcd.setRotation(1);
+#endif
 	lcd.setColorDepth(16);	
 	lcd.setBrightness(128);
 	//lcd.fillScreen(TFT_BLACK);
@@ -81,7 +86,7 @@ esp_err_t InitLCDAndLVGL()
 	//    //bg_theme_color = theme_current->flags & LV_USE_THEME_DEFAULT ? DARK_COLOR_CARD : LIGHT_COLOR_CARD;
 	//    bg_theme_color = theme_current->flags & LV_USE_THEME_DEFAULT ? lv_palette_darken(LV_PALETTE_GREY, 5) : lv_color_hex(0xBFBFBD);
 
-	int err = xTaskCreatePinnedToCore(gui_task, "lv gui", 1024 * 8, NULL, 10, &g_lvgl_task_handle, 1);
+	int err = xTaskCreatePinnedToCore(gui_task, "lv gui", 1024 * 16, NULL, 10, &g_lvgl_task_handle, 0);
 	if (!err)
 	{
 		//ESP_LOGE(TAG, "Create task for LVGL failed");

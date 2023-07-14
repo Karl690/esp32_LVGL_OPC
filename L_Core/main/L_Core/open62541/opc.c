@@ -7,6 +7,7 @@
 #include "nvs_flash.h"
 #include "nvs.h"
 
+#include "K_Core/display/DisplayList.h"
 
 bool g_bRunning  = false;
 bool OpcRunning = true;
@@ -19,6 +20,10 @@ static UA_UsernamePasswordLogin logins[3] = {
     {UA_STRING_STATIC("karl690"), UA_STRING_STATIC("karl690")},
     {UA_STRING_STATIC("hyrel"), UA_STRING_STATIC("hyrel")}
 };
+
+#define MAX_OPC_NODE 20
+uint16_t OpcNodeCount = 0;
+OpcNodeItem opcNodeList[MAX_OPC_NODE];
 
 static UA_StatusCode
 UA_ServerConfig_setUriName(UA_ServerConfig *uaServerConfig, const char *uri, const char *name)
@@ -47,30 +52,6 @@ UA_ServerConfig_setUriName(UA_ServerConfig *uaServerConfig, const char *uri, con
     return UA_STATUSCODE_GOOD;
 }
 
-void
-addRelay0ControlNode(UA_Server *server) {
-    UA_VariableAttributes attr = UA_VariableAttributes_default;
-    attr.displayName = UA_LOCALIZEDTEXT("en-US", "Relay0");
-    attr.dataType = UA_TYPES[UA_TYPES_STRING].typeId;
-    attr.accessLevel = UA_ACCESSLEVELMASK_READ | UA_ACCESSLEVELMASK_WRITE;
-	//attr.value = UA_STRING("ABCD");
-
-    UA_NodeId currentNodeId = UA_NODEID_STRING(1, "Control Relay number 0.");
-    UA_QualifiedName currentName = UA_QUALIFIEDNAME(1, "Control Relay number 0.");
-    UA_NodeId parentNodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER);
-    UA_NodeId parentReferenceNodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES);
-    UA_NodeId variableTypeNodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE);
-
-	UA_DataSource relay0 = { };
-    //Configure GPIOs just before adding relay 0 - not a good practice.
-    //configureGPIO();
-    //relay0.read = readRelay0State;
-    //relay0.write = setRelay0State;
-    UA_Server_addDataSourceVariableNode(server, currentNodeId, parentNodeId,
-                                        parentReferenceNodeId, currentName,
-                                        variableTypeNodeId, attr,
-                                        relay0, NULL, NULL);
-}
 
 
 int addNodeObject(UA_Server *server, int parentid, const char* objectName, const char* description) {
@@ -95,39 +76,11 @@ int addNodeObject(UA_Server *server, int parentid, const char* objectName, const
 
 int addVariable(UA_Server *server, int parentid, const char* variableName, int dataType, bool bWritable) {
 	UA_VariableAttributes attr = UA_VariableAttributes_default;
-	//UA_Variant_init(&attr.value);
+	
 	attr.description = UA_LOCALIZEDTEXT((char*)"en-US", (char*)variableName);
 	attr.displayName = UA_LOCALIZEDTEXT((char*)"en-US", (char*)variableName);
 	attr.dataType = UA_TYPES[dataType].typeId;
-//
-//	switch (dataType)
-//	{
-//	case UA_TYPES_STRING:
-//		{
-//			UA_String val = UA_STRING((char*)value);
-//			UA_Variant_setScalar(&attr.value, &val, &UA_TYPES[UA_TYPES_STRING]);
-//		}
-//		break;
-//	case UA_TYPES_FLOAT:
-//		{
-//			UA_Float val = atof(value);
-//			UA_Variant_setScalar(&attr.value, &val, &UA_TYPES[UA_TYPES_FLOAT]);
-//		}
-//		break;
-//	case UA_TYPES_DOUBLE:
-//		{
-//			UA_Double val = atof(value);
-//			UA_Variant_setScalar(&attr.value, &val, &UA_TYPES[UA_TYPES_DOUBLE]);
-//		}
-//		break;
-//	case UA_TYPES_INT16:
-//	case UA_TYPES_INT32:
-//		{
-//			UA_Double val = atoi(value);
-//			UA_Variant_setScalar(&attr.value, &val, &UA_TYPES[UA_TYPES_INT32]);
-//		}
-//		break;
-//	}
+	
 	if (bWritable)
 		attr.accessLevel = UA_ACCESSLEVELMASK_READ | UA_ACCESSLEVELMASK_WRITE;
 	else
@@ -143,10 +96,7 @@ int addVariable(UA_Server *server, int parentid, const char* variableName, int d
 		NULL,
 		&childId);
 
-	//UA_Server_setVariableNode_valueCallback(server, childId, callback);
-
 	return childId.identifier.numeric;
-
 }
 
 bool WriteIntVariable(UA_Server *server, int nodeId, int value)
@@ -215,63 +165,85 @@ bool WriteStringVariable(UA_Server *server, int nodeId, char* value)
 }
 
 
-bool writeVariable(UA_Server *server, int nodeId, const char* val, int type) {	
-	UA_NodeId myIntegerNodeId = UA_NODEID_NUMERIC(0, nodeId);
-	int valType = UA_TYPES_STRING;
+bool writeVariable(UA_Server *server, int nodeId, void* val, int type) {	
 
-	void* value = NULL;
-	float f;
-	double d;
-	bool b;
-	int i;
 	switch (type)
 	{
-	case UA_TYPES_STRING: value = (void*)val; break;
+	case UA_TYPES_STRING: 
+		WriteStringVariable(server, nodeId, (char*)val);
+		break;
 	case UA_TYPES_FLOAT: 
-		f = atof(val);
-		value = &f;
+		WriteFloatVariable(server, nodeId, *(float*)val);
 		break;
 	case UA_TYPES_DOUBLE:
-		f = atof(val);
-		value = &f;
+		WriteFloatVariable(server, nodeId, *(float*)val);
 		break;
 	case UA_TYPES_BOOLEAN:
-		b = atoi(val);
-		value = &b;
+		WriteBooleanVariable(server, nodeId, *(bool*)val);
 		break;
 	case UA_TYPES_INT16:
-		i = atoi(val);
-		value = &i;
+	case UA_TYPES_INT32:
+		WriteBooleanVariable(server, nodeId, *(int*)val);
 		break;
-	}
-	
-	/* Write a different integer value */
-	UA_VariableAttributes Attr;
-	UA_Variant_init(&Attr.value);
-	if (valType == UA_TYPES_STRING) {
-		UA_String s = UA_STRING_ALLOC((char*)value);
-		UA_Variant_setScalar(&Attr.value, &s, &UA_TYPES[valType]); //UA_TYPES_INT32
-	}
-	else
-		UA_Variant_setScalar(&Attr.value, value, &UA_TYPES[valType]); //UA_TYPES_INT32
-	
-	UA_StatusCode status = UA_Server_writeValue(server, myIntegerNodeId, Attr.value);
-	if (status != UA_STATUSCODE_GOOD) {
-		//std::cout << "Write Value Error: " << status << "\n";
-		return false;
 	}
 	return true;
 }
 
+void createNodeList(UA_Server* server,  char* name, DisplayVariableInfo* variableList )
+{
+	int parentId = addNodeObject(server, UA_NS0ID_OBJECTSFOLDER, name, "NameSpace");
+	int i = 0, childId = 0;
+	int c = 0;
+	while (variableList[i].VariablePointer)
+	{
+		childId = 0;
+		switch (variableList[i].FuncType)
+		{
+		case FUNC_INT:
+		case FUNC_INT16:
+		case FUNC_INT32:
+			childId = addVariable(server, parentId, variableList[i].Label, UA_TYPES_INT32, true);
+			variableList[i].OpcNodeId = childId;
+			opcNodeList[OpcNodeCount].nodeType = UA_TYPES_INT32;
+			break;
+		case FUNC_ASCII:
+			childId = addVariable(server, parentId, variableList[i].Label, UA_TYPES_STRING, true);
+			variableList[i].OpcNodeId = childId;
+			opcNodeList[OpcNodeCount].nodeType = UA_TYPES_STRING;
+			break;
+		case FUNC_FLOAT:
+			childId = addVariable(server, parentId, variableList[i].Label, UA_TYPES_FLOAT, true);
+			variableList[i].OpcNodeId = childId;
+			opcNodeList[OpcNodeCount].nodeType = UA_TYPES_FLOAT;
+			break;
+		case FUNC_BOOLEAN:
+			childId = addVariable(server, parentId, variableList[i].Label, UA_TYPES_BOOLEAN, true);
+			variableList[i].OpcNodeId = childId;
+			opcNodeList[OpcNodeCount].nodeType = UA_TYPES_BOOLEAN;
+			break;
+		default:
+			break;
+		}
+		if (childId != 0)
+		{
+			opcNodeList[OpcNodeCount].nodeId = childId;
+			strcpy(opcNodeList[OpcNodeCount].nodeName, variableList[i].Label);
+			opcNodeList[OpcNodeCount].nodeValue = variableList[i].VariablePointer;
+			OpcNodeCount++;
+		}
+		i++;
+	}
+}
+
 void thread_opc_task(void* arg) {
-	UA_Int32 sendBufferSize = 1024 * 8;//16384;
-	UA_Int32 recvBufferSize = 1024 * 8;//16384;
+	UA_Int32 sendBufferSize = 1024 * 8;
+	UA_Int32 recvBufferSize = 1024 * 8;
     
 	ESP_LOGI(OPC_TAG, "Fire up OPC UA Server.");
     UA_Server *server = UA_Server_new();
     UA_ServerConfig *config = UA_Server_getConfig(server);
     UA_ServerConfig_setMinimalCustomBuffer(config, 4840, 0, sendBufferSize, recvBufferSize);
-
+			
     const char *appUri = "open62541.esp321.server";
     UA_String hostName = UA_STRING("opcua-esp32");
 
@@ -285,28 +257,22 @@ void thread_opc_task(void* arg) {
     UA_StatusCode retval = UA_AccessControl_default(config, false,
         &config->securityPolicies[config->securityPoliciesSize - 1].policyUri, 2, logins);
 	
-	int nodeId = addNodeObject(server, UA_NS0ID_OBJECTSFOLDER, "ESP32", "NameSpace");
-	nodeId = addNodeObject(server, UA_NS0ID_OBJECTSFOLDER, "Printer", "object");	
-	int childid = addVariable(server, nodeId, "Firmware", UA_TYPES_STRING, true);
-	WriteStringVariable(server, childid, "ESP32SC01");
-	NodeidHeartbeat = addVariable(server, nodeId, "HeartBeat", UA_TYPES_INT32, true);
-	childid = addVariable(server, nodeId, "X", UA_TYPES_FLOAT, true); 
-	WriteFloatVariable(server, childid, 375.152f);
-	childid = addVariable(server, nodeId, "Y", UA_TYPES_FLOAT, true);
-	WriteFloatVariable(server, childid, 1375.152f);	
-	childid = addVariable(server, nodeId, "Z", UA_TYPES_FLOAT, true);
-	WriteFloatVariable(server, childid, 75.152f);
-
+	createNodeList(server, "LcdVarsTable", LcdVarsTable);
+	//createNodeList(server, "Lcd1VarsTable", Lcd1VarsTable);
+	
 	retval = UA_Server_run_startup(server);
     g_bRunning = true;
-	
+	uint16_t count = 0;
     if (retval == UA_STATUSCODE_GOOD)
     {
         while (g_bRunning) {
 	        if (OpcRunning)
 	        {
 		        UA_Server_run_iterate(server, false);		        
-		        WriteIntVariable(server, NodeidHeartbeat, OpcHeartBeat);
+		        writeVariable(server, opcNodeList[count].nodeId, opcNodeList[count].nodeValue, opcNodeList[count].nodeType);
+		        count++;
+		        if (count >= OpcNodeCount) count = 0;
+		        
 		        OpcHeartBeat++; 
 	        }      
 	        vTaskDelay(100 / portTICK_PERIOD_MS);
@@ -319,6 +285,7 @@ void thread_opc_task(void* arg) {
 }
 
 void InitOPC() {    
-    xTaskCreatePinnedToCore(thread_opc_task, "opcua_task", 1024 * 10, NULL, 5, NULL, 1);
+	//xTaskCreatePinnedToCore(thread_opc_task, "opcua_task", 1024*10, NULL, 5, NULL, 0);
+	xTaskCreate(thread_opc_task, "opcua_task", 10240, NULL, 10, NULL);
 }
 #endif

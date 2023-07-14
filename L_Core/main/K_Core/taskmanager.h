@@ -21,4 +21,4 @@ void func_SystickCallback(void* arg);
 void Spare(void);
 void BlinkHeartBeat(void);
 
-void InitTaskManager();
+void Init_TaskManager();

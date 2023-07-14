@@ -6,8 +6,7 @@ idf_component_register(
                 	L_Core/open62541/open62541.c
                 	L_Core/wifi/wifi.c
                 	L_Core/open62541/opc.c
-                	L_Core/ui/images/hyrel-mark.c
-                	L_Core/ui/images/img-splash.c
+                	L_Core/ui/images/mark.c
                 	L_Core/devices/display.c
                 	K_Core/K_Core.c
                 	K_Core/gpio/GPIO.c
@@ -17,8 +16,11 @@ idf_component_register(
                 	K_Core/taskmanager.c
                 	K_Core/display/DisplayList.c
                 	L_Core/ui/ui-opc.c
-                	L_Core/ui/ui-main.c
+                	L_Core/ui/ui-splash.c
                 	K_Core/adc/adc.c
+                	K_Core/adc/adc-table.c
+                	L_Core/ui/ui-variables.c
+                	K_Core/display/DisplayCagetoryList.c
                 INCLUDE_DIRS "."
                 REQUIRES
                 	LovyanGFX

@@ -1,4 +1,4 @@
-
+#ifdef USE_OPC
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -23,4 +23,5 @@ void ui_opc_update_variableList();
 	void ui_opc_display_prev();
 #ifdef __cplusplus
 } /*extern "C"*/
+#endif
 #endif

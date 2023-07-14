@@ -11,6 +11,13 @@
 #define DISCONNECT_EVENT WIFI_EVENT_STA_DISCONNECTED
 #define EXAMPLE_INTERFACE TCPIP_ADAPTER_IF_STA
 
+typedef struct
+{
+	uint32_t nodeId;
+	char nodeName[32];
+	uint16_t nodeType;
+	void* nodeValue;
+}OpcNodeItem;
 
 extern bool OpcRunning;
 extern uint32_t OpcHeartBeat;

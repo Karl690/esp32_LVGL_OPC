@@ -1,1 +1,2 @@
-void InitGPIO(); 
+#pragma once
+void Init_GPIO(); 

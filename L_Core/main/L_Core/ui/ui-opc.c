@@ -1,3 +1,4 @@
+#ifdef USE_OPC
 #include "ui.h"
 #include "ui-opc.h"
 #include <stdio.h>
@@ -255,3 +256,5 @@ void ui_opc_display_prev()
 	DisplayIndex--; if (DisplayIndex < 0) DisplayIndex = NUMBER_OF_DISPLAY_LISTS;
 	SwitchDisplayVariableList();
 }
+
+#endif
