@@ -1,6 +1,8 @@
 #include "ui.h"
+#include "ui-home.h"
 #include "K_Core/display/DisplayCagetoryList.h"
 lv_obj_t* ui_variables_screen;
+lv_obj_t* title;
 lv_obj_t* pages[GROUP_SIZE];
 lv_obj_t* active_page;
 lv_obj_t * keyboard;
@@ -19,22 +21,28 @@ void obj_event_cb(lv_event_t* e)
 	if (code == LV_EVENT_CLICKED || code == LV_EVENT_FOCUSED) {
 		/*Focus on the clicked text area*/
 		if (keyboard != NULL) {
-			if (lv_obj_check_type(obj, &lv_spinbox_class))
-			{	
-				lv_keyboard_set_mode(keyboard, LV_KEYBOARD_MODE_NUMBER);
-			}
-			else
+			DisplayVariableInfo* varInfo = (DisplayVariableInfo*)obj->user_data;
+			switch (varInfo->FuncType)
 			{
+			case FUNC_ASCII:
 				lv_keyboard_set_mode(keyboard, LV_KEYBOARD_MODE_TEXT_LOWER);
+				break;
+			default:
+				lv_keyboard_set_mode(keyboard, LV_KEYBOARD_MODE_NUMBER);
+				break;			
 			}
-			lv_obj_clear_flag(keyboard, LV_OBJ_FLAG_HIDDEN);
+			lv_obj_clear_flag(keyboard, LV_OBJ_FLAG_HIDDEN);				
 			lv_keyboard_set_textarea(keyboard, obj);
+			lv_obj_set_height(active_page, 150);
+			lv_obj_refresh_self_size(active_page);
 		}
 	}
 
 	else if (code == LV_EVENT_READY) {
 		LV_LOG_USER("Ready, current text: %s", lv_textarea_get_text(ta));
+		lv_obj_set_height(active_page, 320);
 		lv_obj_add_flag(keyboard, LV_OBJ_FLAG_HIDDEN);
+		lv_obj_refresh_self_size(active_page);
 	}
 }
 void screen_event_cb(lv_event_t* e)
@@ -67,21 +75,26 @@ void screen_event_cb(lv_event_t* e)
 		break;
 	}
 	if (active_page != pages[GroupIndex])
-	{
+	{	
 		lv_obj_add_flag(active_page, LV_OBJ_FLAG_HIDDEN);
 		active_page = pages[GroupIndex];
 		lv_obj_clear_flag(active_page, LV_OBJ_FLAG_HIDDEN);
 		lv_anim_t a;
 		lv_anim_init(&a);
-		lv_anim_set_var(&a, active_page);
+		lv_anim_set_var(&a, active_page); //active_page
 		lv_anim_set_values(&a, start, end);
 		lv_anim_set_time(&a, 100);
 		lv_anim_set_exec_cb(&a, anim_x_cb);
 		lv_anim_set_path_cb(&a, lv_anim_path_ease_in_out);
 		lv_anim_start(&a);
+		lv_label_set_text(title, displayGroupInfo[GroupIndex].name);
 	}
 }
 
+void event_back_cb(lv_event_t* e)
+{
+	lv_scr_load_anim(ui_home_screen, LV_SCR_LOAD_ANIM_FADE_ON, 300, 0, false);
+}
 void ui_variables_create_page(lv_obj_t* parent, DisplayParamInfo* paramInfo)
 {
 	uint8_t i = 0;
@@ -156,19 +169,18 @@ void ui_variables_create_page(lv_obj_t* parent, DisplayParamInfo* paramInfo)
 			case FUNC_HEX8:
 			case FUNC_HEX16:
 			case FUNC_HEX32:
-				value = lv_spinbox_create(item);
-				lv_spinbox_set_digit_format(value, 5, 0);
+				value = lv_textarea_create(item);
+				lv_textarea_set_accepted_chars(value, "0123456789-.");
+				lv_textarea_set_max_length(value, 5);
+				lv_textarea_set_one_line(value, true);
 				lv_obj_set_width(value, 100);
-				lv_spinbox_set_range(value, -1000, 25000);
-				lv_obj_add_event_cb(value, obj_event_cb, LV_EVENT_ALL, NULL);
-				//lv_keyboard_set_textarea(keyboard, value);
-				//lv_textarea_set_one_line(value, false);			
+				lv_obj_add_event_cb(value, obj_event_cb, LV_EVENT_ALL, NULL);				
 				break;
 			case FUNC_ASCII:
 				value = lv_textarea_create(item);
-				lv_textarea_set_one_line(value, true);	
+				lv_textarea_set_one_line(value, true);
+				lv_textarea_set_max_length(value, 10);
 				lv_obj_add_event_cb(value, obj_event_cb, LV_EVENT_ALL, NULL);
-				//lv_keyboard_set_textarea(keyboard, value);
 				break;
 			case FUNC_BOOLEAN:
 				value = lv_switch_create(item);
@@ -178,7 +190,10 @@ void ui_variables_create_page(lv_obj_t* parent, DisplayParamInfo* paramInfo)
 				break;
 			}	
 		}
-		if(value) lv_obj_align(value, LV_ALIGN_LEFT_MID, 200, 0);
+		if (value) {
+			value->user_data = &paramInfo->parameters[i];
+			lv_obj_align(value, LV_ALIGN_LEFT_MID, 200, 0);
+		}
 		
 		//lv_obj_set_y(value, lv_obj_get_y(label));
 		i++;	
@@ -193,22 +208,7 @@ lv_obj_t* ui_variables_create_group(DisplayGroupInfo* groupInfo)
 	lv_obj_set_height(page, LV_PCT(100));
 	lv_obj_set_style_pad_all(page, 0, LV_PART_MAIN);
 	
-	lv_obj_t* titlebar = lv_obj_create(page);	
-	lv_obj_clear_flag(titlebar, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_CLICKABLE); /// Flags
-	lv_obj_set_style_border_width(titlebar, 0, LV_PART_MAIN);
-	lv_obj_set_width(titlebar, LV_PCT(100));
-	lv_obj_set_height(titlebar, 40); 
 	
-	lv_obj_set_style_bg_color(titlebar, lv_color_hex(TITLEBAR_BACKGROUND_COLOR), LV_PART_MAIN);
-	lv_obj_align(titlebar, LV_ALIGN_TOP_MID, 0, 0);
-	lv_obj_t* obj = lv_label_create(titlebar);	
-	
-	lv_obj_set_width(obj, LV_SIZE_CONTENT);
-	lv_obj_set_height(obj, LV_SIZE_CONTENT);
-	lv_label_set_recolor(obj, true);
-	lv_label_set_text_fmt(obj, "#fffff %s #", groupInfo->name);
-	lv_obj_set_style_text_font(obj, &lv_font_montserrat_20, LV_PART_MAIN | LV_STATE_DEFAULT);	
-	lv_obj_align(obj, LV_ALIGN_CENTER, 0, 0);
 	
 	lv_obj_t*container = lv_obj_create(page);
 	lv_obj_set_width(container, LV_PCT(100));
@@ -241,5 +241,30 @@ void ui_variables_screen_init(void)
 	active_page = pages[0];
 	keyboard = lv_keyboard_create(ui_variables_screen);
 	lv_obj_add_flag(keyboard, LV_OBJ_FLAG_HIDDEN);
+	
+	lv_obj_t* titlebar = lv_obj_create(ui_variables_screen);	
+	lv_obj_clear_flag(titlebar, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_CLICKABLE); /// Flags
+	lv_obj_set_style_border_width(titlebar, 0, LV_PART_MAIN);
+	lv_obj_set_width(titlebar, LV_PCT(100));
+	lv_obj_set_height(titlebar, 40); 
+	
+	lv_obj_set_style_bg_color(titlebar, lv_color_hex(TITLEBAR_BACKGROUND_COLOR), LV_PART_MAIN);
+	lv_obj_align(titlebar, LV_ALIGN_TOP_MID, 0, 0);
+	title = lv_label_create(titlebar);	
+	lv_obj_set_width(title, LV_SIZE_CONTENT);
+	lv_obj_set_height(title, LV_SIZE_CONTENT);
+	lv_label_set_recolor(title, true);
+	lv_obj_set_style_text_color(title, lv_color_hex(0xFFFFFF), LV_PART_MAIN);
+	lv_label_set_text(title, displayGroupInfo[0].name);
+	lv_obj_set_style_text_font(title, &lv_font_montserrat_20, LV_PART_MAIN | LV_STATE_DEFAULT);	
+	lv_obj_align(title, LV_ALIGN_CENTER, 0, 0);
+	
+	
+	lv_obj_t* btnback = ui_create_label(ui_variables_screen, LV_SYMBOL_LEFT, &lv_font_montserrat_20);
+	lv_obj_set_style_text_color(btnback, lv_color_hex(0xFFFFFF), LV_PART_MAIN);
+	lv_obj_add_flag(btnback, LV_OBJ_FLAG_CLICKABLE);
+	lv_obj_set_size(btnback, 40, 40);
+	lv_obj_add_event_cb(btnback, event_back_cb, LV_EVENT_CLICKED, NULL);	
+	lv_obj_align(btnback, LV_ALIGN_TOP_LEFT, 10, 12);
 }
 

@@ -11,6 +11,7 @@
 #include "images/resource_img.h"
 
 #include "ui-splash.h"
+#include "ui-home.h"
 #include "ui-variables.h"
 //#include "ui-opc.h"
 
@@ -65,10 +66,13 @@ void InitUI( void )
     lv_theme_t *theme = lv_theme_default_init(dispp, lv_palette_main(LV_PALETTE_BLUE), lv_palette_main(LV_PALETTE_RED), true, LV_FONT_DEFAULT);
     lv_disp_set_theme(dispp, theme);
 	ui_splash_screen_init();
+	ui_home_screen_init();
 	ui_variables_screen_init();
-    lv_disp_load_scr(ui_main_screen);
+	lv_scr_load_anim(ui_splash_screen, LV_SCR_LOAD_ANIM_FADE_ON, 300, 0, false);
+    //lv_disp_load_scr(ui_main_screen);
 	
 	// Switch to the main application if OTA has not been started
 	vTaskDelay(pdMS_TO_TICKS(5000));
-	lv_scr_load(ui_variables_screen);
+	//lv_scr_load(ui_variables_screen);
+	lv_scr_load_anim(ui_home_screen, LV_SCR_LOAD_ANIM_FADE_ON, 300, 0, false);
 }

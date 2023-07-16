@@ -6,3 +6,11 @@
 #endif
 
 extern lv_img_dsc_t img_mark;
+extern lv_img_dsc_t copyright;
+extern lv_img_dsc_t btn_about;
+extern lv_img_dsc_t btn_automation;
+extern lv_img_dsc_t btn_opc;
+extern lv_img_dsc_t btn_wifi;
+extern lv_img_dsc_t btn_bluetooth;
+extern lv_img_dsc_t btn_quality;
+extern lv_img_dsc_t btn_variables;

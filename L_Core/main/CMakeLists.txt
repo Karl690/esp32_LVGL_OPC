@@ -21,6 +21,15 @@ idf_component_register(
                 	K_Core/adc/adc-table.c
                 	L_Core/ui/ui-variables.c
                 	K_Core/display/DisplayCagetoryList.c
+                	L_Core/ui/images/btn_about.c
+                	L_Core/ui/images/btn_automation.c
+                	L_Core/ui/images/btn_bluetooth.c
+                	L_Core/ui/images/btn_opc.c
+                	L_Core/ui/images/btn_quality.c
+                	L_Core/ui/images/btn_variables.c
+                	L_Core/ui/images/btn_wifi.c
+                	L_Core/ui/images/copyright.c
+                	L_Core/ui/ui-home.c
                 INCLUDE_DIRS "."
                 REQUIRES
                 	LovyanGFX
