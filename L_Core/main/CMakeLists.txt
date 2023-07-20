@@ -22,14 +22,21 @@ idf_component_register(
                 	L_Core/ui/ui-variables.c
                 	K_Core/display/DisplayCagetoryList.c
                 	L_Core/ui/images/btn_about.c
-                	L_Core/ui/images/btn_automation.c
-                	L_Core/ui/images/btn_bluetooth.c
-                	L_Core/ui/images/btn_opc.c
-                	L_Core/ui/images/btn_quality.c
-                	L_Core/ui/images/btn_variables.c
-                	L_Core/ui/images/btn_wifi.c
                 	L_Core/ui/images/copyright.c
                 	L_Core/ui/ui-home.c
+                	L_Core/bluetooth/bluetooth.c
+                	L_Core/sd-card/sd-card.c
+                	L_Core/ui/images/btnhome-01.c
+                	L_Core/ui/images/btnhome-02.c
+                	L_Core/ui/images/btnhome-03.c
+                	L_Core/ui/images/btnhome-04.c
+                	L_Core/ui/images/btnhome-06.c
+                	L_Core/ui/images/folder.c
+                	L_Core/ui/images/opc.c
+                	L_Core/ui/images/settings.c
+                	L_Core/ui/images/variables.c
+                	L_Core/ui/images/btnhome-05.c
+                	L_Core/ui/ui-sdcard.c
                 INCLUDE_DIRS "."
                 REQUIRES
                 	LovyanGFX
@@ -41,6 +48,9 @@ idf_component_register(
                 	spi_flash
                 	esp_wifi
                 	esp_partition
-                	esp_hw_support)
+                	esp_hw_support
+                	bt
+                	fatfs
+                	sdmmc)            
 component_compile_options(-fexceptions -x c++)
 set_property(TARGET ${COMPONENT_TARGET} PROPERTY CXX_STANDARD 17)

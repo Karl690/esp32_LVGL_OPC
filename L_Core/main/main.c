@@ -1,7 +1,8 @@
 #include "main.h"
 #include "K_Core/K_Core.h"
 #include "L_Core/wifi/wifi.h"
-
+#include "L_Core/bluetooth/bluetooth.h"
+#include "L_Core/sd-card/sd-card.h"
 #ifdef USE_OPC
 #include "L_Core/open62541/opc.h"
 #endif
@@ -22,7 +23,9 @@ extern "C" void app_main(void)
 	ESP_ERROR_CHECK(ret);
 	
 	IsInitialized = false;
-	InitWifi();
+	//InitWifi();
+	Init_BluetoothLE();
+	Init_SDCard();
 #ifdef USE_OPC
 	InitOPC();
 #endif
@@ -30,6 +33,6 @@ extern "C" void app_main(void)
 	InitUI();
 	
 	K_Core_Main();
-	
+//	
 	IsInitialized = true;
 }

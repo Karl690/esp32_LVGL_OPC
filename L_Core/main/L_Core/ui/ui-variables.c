@@ -5,7 +5,7 @@ lv_obj_t* ui_variables_screen;
 lv_obj_t* title;
 lv_obj_t* pages[GROUP_SIZE];
 lv_obj_t* active_page;
-lv_obj_t * keyboard;
+lv_obj_t* variables_menu;
 uint8_t GroupIndex = 0;
 LV_IMG_DECLARE(img_mark);
 ///////////////////// SCREENS ////////////////////
@@ -14,7 +14,7 @@ static void anim_x_cb(void * var, int32_t v)
 	lv_obj_set_x((lv_obj_t*)var, v);
 	
 }
-void obj_event_cb(lv_event_t* e)
+void event_variables_edit_cb(lv_event_t* e)
 {
 	lv_event_code_t code = lv_event_get_code(e);
 	lv_obj_t * obj = lv_event_get_target(e);
@@ -34,7 +34,7 @@ void obj_event_cb(lv_event_t* e)
 			lv_obj_clear_flag(keyboard, LV_OBJ_FLAG_HIDDEN);				
 			lv_keyboard_set_textarea(keyboard, obj);
 			lv_obj_set_height(active_page, 150);
-			lv_obj_refresh_self_size(active_page);
+			//lv_obj_scroll_to_view(active_page);
 		}
 	}
 
@@ -45,56 +45,83 @@ void obj_event_cb(lv_event_t* e)
 		lv_obj_refresh_self_size(active_page);
 	}
 }
-void screen_event_cb(lv_event_t* e)
+void event_variables_load_cb(lv_event_t* e)
+{
+	lv_obj_add_flag(variables_menu, LV_OBJ_FLAG_HIDDEN);
+	ui_show_messagebox(MESSAGEBOX_ERROR, "ERRORL Successful load data.", 3000);
+}
+void event_variables_save_cb(lv_event_t* e)
+{
+	lv_obj_add_flag(variables_menu, LV_OBJ_FLAG_HIDDEN);
+	//lv_scr_load_anim(ui_home_screen, LV_SCR_LOAD_ANIM_FADE_ON, 300, 0, false);
+	if (SaveDisplayGroupList(AMPLIIFER_CSV_FILE))
+		ui_show_messagebox(MESSAGEBOX_INFO, "Successful save the amplifier data.", 3000);
+	else
+	{
+		ui_show_messagebox(MESSAGEBOX_ERROR, "Falied save the amplifier data.", 3000);
+	}
+}
+void event_variables_showmenu_cb(lv_event_t* e)
+{
+	if (lv_obj_is_visible(variables_menu))
+		lv_obj_add_flag(variables_menu, LV_OBJ_FLAG_HIDDEN);
+	else
+		lv_obj_clear_flag(variables_menu, LV_OBJ_FLAG_HIDDEN);
+}
+void event_variable_gesture_cb(lv_event_t* e)
 {
 	lv_obj_t * screen = lv_event_get_current_target(e);
-	lv_dir_t dir = lv_indev_get_gesture_dir(lv_indev_get_act());
-	lv_coord_t start =0 , end = 0;
-	switch (dir)
+	if (e->code == LV_EVENT_CLICKED || e->code == LV_EVENT_FOCUSED)
 	{
-	case LV_DIR_LEFT:
-		//lv_label_set_text_fmt(title, "LEFT");
-		if (GroupIndex - 1 <= 0) GroupIndex = 0;
-		else GroupIndex--;
-		start = -100;
-		end = 0;
-		break;
-	case LV_DIR_RIGHT:
-		if (GroupIndex + 1 >= GROUP_SIZE) GroupIndex = GROUP_SIZE -1;
-		else GroupIndex++;
-		start = 100;
-		end = 0;
-		break;
-	case LV_DIR_TOP:
-		//lv_label_set_text_fmt(title, "TOP");
-		break;
-	case LV_DIR_BOTTOM:
-		//lv_label_set_text_fmt(title, "BOTTOM");
-		break;
-	default:
-		break;
+		lv_obj_add_flag(variables_menu, LV_OBJ_FLAG_HIDDEN);
 	}
-	if (active_page != pages[GroupIndex])
-	{	
-		lv_obj_add_flag(active_page, LV_OBJ_FLAG_HIDDEN);
-		active_page = pages[GroupIndex];
-		lv_obj_clear_flag(active_page, LV_OBJ_FLAG_HIDDEN);
-		lv_anim_t a;
-		lv_anim_init(&a);
-		lv_anim_set_var(&a, active_page); //active_page
-		lv_anim_set_values(&a, start, end);
-		lv_anim_set_time(&a, 100);
-		lv_anim_set_exec_cb(&a, anim_x_cb);
-		lv_anim_set_path_cb(&a, lv_anim_path_ease_in_out);
-		lv_anim_start(&a);
-		lv_label_set_text(title, displayGroupInfo[GroupIndex].name);
+	if (e->code == LV_EVENT_GESTURE)
+	{
+		lv_dir_t dir = lv_indev_get_gesture_dir(lv_indev_get_act());
+		lv_obj_add_flag(variables_menu, LV_OBJ_FLAG_HIDDEN);
+		lv_coord_t start = 0, end = 0;		
+		switch (dir)
+		{
+		case LV_DIR_LEFT:
+			//lv_label_set_text_fmt(title, "LEFT");
+			if (GroupIndex - 1 <= 0) GroupIndex = 0;
+			else GroupIndex--;
+			start = -100;
+			end = 0;
+			break;
+		case LV_DIR_RIGHT:
+			if (GroupIndex + 1 >= GROUP_SIZE) GroupIndex = GROUP_SIZE - 1;
+			else GroupIndex++;
+			start = 100;
+			end = 0;
+			break;
+		case LV_DIR_TOP:
+			//lv_label_set_text_fmt(title, "TOP");
+			break;
+		case LV_DIR_BOTTOM:
+			//lv_label_set_text_fmt(title, "BOTTOM");
+			break;
+		default:
+			break;
+		}
+		if (active_page != pages[GroupIndex])
+		{	
+			lv_obj_add_flag(active_page, LV_OBJ_FLAG_HIDDEN);
+			active_page = pages[GroupIndex];
+			lv_obj_clear_flag(active_page, LV_OBJ_FLAG_HIDDEN);
+			lv_anim_t a;
+			lv_anim_init(&a);
+			lv_anim_set_var(&a, active_page); //active_page
+			lv_anim_set_values(&a, start, end);
+			lv_anim_set_time(&a, 100);
+			lv_anim_set_exec_cb(&a, anim_x_cb);
+			lv_anim_set_path_cb(&a, lv_anim_path_ease_in_out);
+			lv_anim_start(&a);
+			lv_label_set_text(title, displayGroupInfo[GroupIndex].name);
+		}	
 	}
 }
 
-void event_back_cb(lv_event_t* e)
-{
-	lv_scr_load_anim(ui_home_screen, LV_SCR_LOAD_ANIM_FADE_ON, 300, 0, false);
-}
 void ui_variables_create_page(lv_obj_t* parent, DisplayParamInfo* paramInfo)
 {
 	uint8_t i = 0;
@@ -174,13 +201,13 @@ void ui_variables_create_page(lv_obj_t* parent, DisplayParamInfo* paramInfo)
 				lv_textarea_set_max_length(value, 5);
 				lv_textarea_set_one_line(value, true);
 				lv_obj_set_width(value, 100);
-				lv_obj_add_event_cb(value, obj_event_cb, LV_EVENT_ALL, NULL);				
+				lv_obj_add_event_cb(value, event_variables_edit_cb, LV_EVENT_ALL, NULL);				
 				break;
 			case FUNC_ASCII:
 				value = lv_textarea_create(item);
 				lv_textarea_set_one_line(value, true);
 				lv_textarea_set_max_length(value, 10);
-				lv_obj_add_event_cb(value, obj_event_cb, LV_EVENT_ALL, NULL);
+				lv_obj_add_event_cb(value, event_variables_edit_cb, LV_EVENT_ALL, NULL);
 				break;
 			case FUNC_BOOLEAN:
 				value = lv_switch_create(item);
@@ -201,26 +228,18 @@ void ui_variables_create_page(lv_obj_t* parent, DisplayParamInfo* paramInfo)
 }
 lv_obj_t* ui_variables_create_group(DisplayGroupInfo* groupInfo)
 {
-	lv_obj_t* page = lv_obj_create(ui_variables_screen);
-	lv_obj_clear_flag(page, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_CLICKABLE); /// Flags
-	lv_obj_set_style_bg_color(page, lv_color_hex(PAGE_BACKGROUND_COLOR), LV_PART_MAIN);
-	lv_obj_set_width(page, LV_PCT(100));
-	lv_obj_set_height(page, LV_PCT(100));
-	lv_obj_set_style_pad_all(page, 0, LV_PART_MAIN);
-	
-	
-	
-	lv_obj_t*container = lv_obj_create(page);
-	lv_obj_set_width(container, LV_PCT(100));
-	lv_obj_set_height(container, 320 - 50);
+	lv_obj_t*container = lv_obj_create(ui_variables_screen);
+	lv_obj_set_size(container, LV_PCT(100), 285);
+	lv_obj_set_style_border_width(container, 0, LV_PART_MAIN);
 	lv_obj_set_style_bg_color(container, lv_color_hex(0x0), LV_PART_MAIN);
-	lv_obj_set_y(container, 45);
+	lv_obj_set_y(container, 33);
 	lv_obj_set_style_pad_all(container, 0, LV_PART_MAIN);	
 	lv_obj_set_style_pad_left(container, 10, LV_PART_MAIN);	
 	lv_obj_set_flex_flow(container, LV_FLEX_FLOW_COLUMN);
 	ui_variables_create_page(container, &groupInfo->LiveParameters);
 	ui_variables_create_page(container, &groupInfo->ReceipeParameters);
-	return page;
+	ui_variables_create_page(container, &groupInfo->FrequenceParameters);
+	return container;
 }
 
 void ui_variables_screen_init(void)
@@ -229,7 +248,7 @@ void ui_variables_screen_init(void)
 	lv_obj_clear_flag(ui_variables_screen, LV_OBJ_FLAG_SCROLLABLE); /// Flags
 	lv_obj_set_style_bg_color(ui_variables_screen, lv_color_hex(UI_BACKGROUND_COLOR), LV_PART_MAIN | LV_STATE_DEFAULT);
 	lv_obj_set_style_bg_opa(ui_variables_screen, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-	lv_obj_add_event_cb(ui_variables_screen, screen_event_cb, LV_EVENT_GESTURE, NULL);
+	lv_obj_add_event_cb(ui_variables_screen, event_variable_gesture_cb, LV_EVENT_ALL, NULL);
 	GroupIndex = 0;
 	for (uint8_t i = 0; i < GROUP_SIZE; i++) {
 		pages[i] = ui_variables_create_group(&displayGroupInfo[i]);
@@ -239,15 +258,12 @@ void ui_variables_screen_init(void)
 		}
 	}
 	active_page = pages[0];
-	keyboard = lv_keyboard_create(ui_variables_screen);
-	lv_obj_add_flag(keyboard, LV_OBJ_FLAG_HIDDEN);
 	
 	lv_obj_t* titlebar = lv_obj_create(ui_variables_screen);	
-	lv_obj_clear_flag(titlebar, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_CLICKABLE); /// Flags
+	lv_obj_clear_flag(titlebar, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_CLICKABLE);
 	lv_obj_set_style_border_width(titlebar, 0, LV_PART_MAIN);
 	lv_obj_set_width(titlebar, LV_PCT(100));
-	lv_obj_set_height(titlebar, 40); 
-	
+	lv_obj_set_height(titlebar, TITLEBAR_HEIGHT); 	
 	lv_obj_set_style_bg_color(titlebar, lv_color_hex(TITLEBAR_BACKGROUND_COLOR), LV_PART_MAIN);
 	lv_obj_align(titlebar, LV_ALIGN_TOP_MID, 0, 0);
 	title = lv_label_create(titlebar);	
@@ -259,12 +275,35 @@ void ui_variables_screen_init(void)
 	lv_obj_set_style_text_font(title, &lv_font_montserrat_20, LV_PART_MAIN | LV_STATE_DEFAULT);	
 	lv_obj_align(title, LV_ALIGN_CENTER, 0, 0);
 	
+	lv_obj_t* obj = ui_create_label(ui_variables_screen, LV_SYMBOL_LEFT, &lv_font_montserrat_20);
+	lv_obj_set_style_text_color(obj, lv_color_hex(0xFFFFFF), LV_PART_MAIN);
+	lv_obj_add_flag(obj, LV_OBJ_FLAG_CLICKABLE);
+	lv_obj_set_size(obj, 30, 30);
+	lv_obj_add_event_cb(obj, event_go_home_cb, LV_EVENT_CLICKED, NULL);	
+	lv_obj_align(obj, LV_ALIGN_TOP_LEFT, 10, 5);
 	
-	lv_obj_t* btnback = ui_create_label(ui_variables_screen, LV_SYMBOL_LEFT, &lv_font_montserrat_20);
-	lv_obj_set_style_text_color(btnback, lv_color_hex(0xFFFFFF), LV_PART_MAIN);
-	lv_obj_add_flag(btnback, LV_OBJ_FLAG_CLICKABLE);
-	lv_obj_set_size(btnback, 40, 40);
-	lv_obj_add_event_cb(btnback, event_back_cb, LV_EVENT_CLICKED, NULL);	
-	lv_obj_align(btnback, LV_ALIGN_TOP_LEFT, 10, 12);
+	obj = ui_create_label(ui_variables_screen, LV_SYMBOL_LIST, &lv_font_montserrat_20);
+	lv_obj_set_style_text_color(obj, lv_color_hex(0xFFFFFF), LV_PART_MAIN);
+	lv_obj_add_flag(obj, LV_OBJ_FLAG_CLICKABLE);
+	lv_obj_set_size(obj, 80, 30);
+	lv_obj_set_pos(obj, 450, 5);
+	lv_obj_add_event_cb(obj, event_variables_showmenu_cb, LV_EVENT_CLICKED, NULL);	
+	
+	variables_menu = lv_obj_create(ui_variables_screen);
+	lv_obj_clear_flag(variables_menu, LV_OBJ_FLAG_SCROLLABLE); /// Flags
+	lv_obj_set_style_pad_all(variables_menu, 10, LV_PART_MAIN);
+	lv_obj_set_size(variables_menu, 110, 90);
+	lv_obj_set_pos(variables_menu, 370, 40);
+	lv_obj_set_flex_flow(variables_menu, LV_FLEX_FLOW_COLUMN);
+	
+	lv_obj_t * item = ui_create_label(variables_menu, LV_SYMBOL_REFRESH " LOAD", &lv_font_montserrat_20);	
+	lv_obj_set_size(item, LV_PCT(100), 30);
+	lv_obj_add_flag(item, LV_OBJ_FLAG_CLICKABLE);
+	lv_obj_add_event_cb(item, event_variables_load_cb, LV_EVENT_CLICKED, NULL);
+	item = ui_create_label(variables_menu, LV_SYMBOL_SAVE " SAVE", &lv_font_montserrat_20);
+	lv_obj_set_size(item, LV_PCT(100), 40);
+	lv_obj_add_flag(item, LV_OBJ_FLAG_CLICKABLE);
+	lv_obj_add_event_cb(item, event_variables_save_cb, LV_EVENT_CLICKED, NULL);
+	lv_obj_add_flag(variables_menu, LV_OBJ_FLAG_HIDDEN);
 }
 

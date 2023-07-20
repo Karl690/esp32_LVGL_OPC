@@ -14,8 +14,14 @@
 //#include <fmt/format.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/semphr.h>
-#include <string>
+#include "freertos/task.h"
+#include "freertos/event_groups.h"
+#include "esp_system.h"
+#include "esp_event.h"
+
+
 #include "L_Core/devices/conf_WT32SCO1-Plus.h"
 using namespace std;
 
+extern const char *TAG;
 extern bool IsInitialized;

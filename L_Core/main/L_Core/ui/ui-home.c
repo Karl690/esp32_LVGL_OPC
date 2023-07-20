@@ -1,67 +1,92 @@
 #include "ui.h"
 #include "ui-variables.h"
+#include "ui-sdcard.h"
+#include "../sd-card/sd-card.h"
 lv_obj_t* ui_home_screen;
+
+#define BUTTON_WIDTH	99
+#define BUTTON_HEIGHT	72
 
 static void event_variables_cb(lv_event_t* e)
 {
-	lv_scr_load_anim(ui_variables_screen, LV_SCR_LOAD_ANIM_FADE_ON, 300, 0, false);
+	//lv_scr_load_anim(ui_variables_screen, LV_SCR_LOAD_ANIM_FADE_ON, 300, 0, false);
+	ui_transform_screen(SCREEN_VARIABLE);
+}
+static void event_sdcard_cb(lv_event_t* e)
+{
+	//lv_scr_load_anim(ui_sdcard_screen, LV_SCR_LOAD_ANIM_FADE_ON, 300, 0, false);
+	ui_transform_screen(SCREEN_SDCARD);
+	ui_sdcard_load_directory(current_sdcard_path);
+}
+lv_obj_t* ui_home_create_button(lv_obj_t* parent, const lv_img_dsc_t* img, const lv_img_dsc_t* icon, char* text)
+{
+	lv_obj_t* btn = lv_obj_create(parent);
+	lv_obj_clear_flag(btn, LV_OBJ_FLAG_SCROLLABLE); /// Flags
+	lv_obj_set_style_border_width(btn, 0, LV_PART_MAIN);
+	lv_obj_set_style_pad_all(btn, 0, LV_PART_MAIN);
+	
+	lv_obj_t* obj = lv_img_create(btn);
+	lv_img_set_src(obj, img);
+	lv_obj_set_pos(obj, 0,0);
+	if (icon)
+	{
+		obj = lv_img_create(btn);
+		lv_img_set_src(obj, icon);
+		lv_obj_align(obj, LV_ALIGN_TOP_RIGHT, -5, 8);	
+	}
+	obj = lv_label_create(btn);
+	lv_label_set_text(obj, text);
+	lv_obj_align(obj, LV_ALIGN_BOTTOM_MID, 0, -5);
+	lv_obj_set_size(btn, BUTTON_WIDTH, BUTTON_HEIGHT);
+	return btn;
 }
 
 void ui_home_screen_init(void)
 {
 	
-	LV_IMG_DECLARE(btn_wifi);
-	LV_IMG_DECLARE(btn_bluetooth);
-	LV_IMG_DECLARE(btn_opc);
-	LV_IMG_DECLARE(btn_quality);
-	LV_IMG_DECLARE(btn_variables);
-	LV_IMG_DECLARE(btn_automation);
+	LV_IMG_DECLARE(btnhome_01);
+	LV_IMG_DECLARE(btnhome_02);
+	LV_IMG_DECLARE(btnhome_03);
+	LV_IMG_DECLARE(btnhome_04);
+	LV_IMG_DECLARE(btnhome_05);
+	LV_IMG_DECLARE(btnhome_06);
+	LV_IMG_DECLARE(settings);
+	LV_IMG_DECLARE(opc);
+	LV_IMG_DECLARE(variables);
+	LV_IMG_DECLARE(folder);
 	LV_IMG_DECLARE(btn_about);
 	
 	ui_home_screen = lv_obj_create(NULL);
-	//lv_obj_clear_flag(ui_home_screen, LV_OBJ_FLAG_SCROLLABLE); /// Flags
+	lv_obj_clear_flag(ui_home_screen, LV_OBJ_FLAG_SCROLLABLE); /// Flags
 	lv_obj_set_style_bg_color(ui_home_screen, lv_color_hex(UI_BACKGROUND_COLOR), LV_PART_MAIN | LV_STATE_DEFAULT);
 	lv_obj_set_style_bg_opa(ui_home_screen, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+	uint16_t x = 20, y = 60, gap_x = 10, gap_y = 30;
+	lv_obj_t* obj = ui_home_create_button(ui_home_screen, &btnhome_01, &settings, "Settings");
+	lv_obj_set_pos(obj, x, y);
 	
-	lv_obj_t* obj = lv_imgbtn_create(ui_home_screen);
-	lv_imgbtn_set_src(obj, LV_IMGBTN_STATE_RELEASED, NULL, &btn_about, NULL);
-	lv_obj_set_size(obj, 17, 17);
-	lv_obj_set_pos(obj, 457, 6);
-	
-	obj = lv_imgbtn_create(ui_home_screen);
-	lv_imgbtn_set_src(obj, LV_IMGBTN_STATE_RELEASED, NULL, &btn_wifi, NULL);
-	lv_obj_set_size(obj, 124, 83);
-	lv_obj_set_pos(obj, 41, 59); 
-	
-	obj = lv_imgbtn_create(ui_home_screen);
-	lv_imgbtn_set_src(obj, LV_IMGBTN_STATE_RELEASED, NULL, &btn_bluetooth, NULL);
-	lv_obj_set_size(obj, 124, 83);
-	lv_obj_set_pos(obj, 177, 59);
-	
-	obj = lv_imgbtn_create(ui_home_screen);
-	lv_imgbtn_set_src(obj, LV_IMGBTN_STATE_RELEASED, NULL, &btn_opc, NULL);
-	lv_obj_set_size(obj, 124, 83);
-	lv_obj_set_pos(obj, 313, 59);
-	
-	obj = lv_imgbtn_create(ui_home_screen);
-	lv_imgbtn_set_src(obj, LV_IMGBTN_STATE_RELEASED, NULL, &btn_quality, NULL);
-	lv_obj_set_size(obj, 124, 83);
-	lv_obj_set_pos(obj, 41, 164);
-
-	obj = lv_imgbtn_create(ui_home_screen);
-	lv_imgbtn_set_src(obj, LV_IMGBTN_STATE_RELEASED, NULL, &btn_automation, NULL);
-	lv_obj_set_size(obj, 124, 83);
-	lv_obj_set_pos(obj, 177, 164);
-	
-	obj = lv_imgbtn_create(ui_home_screen);
-	lv_imgbtn_set_src(obj, LV_IMGBTN_STATE_RELEASED, NULL, &btn_variables, NULL);
-	lv_obj_set_size(obj, 124, 83);
-	lv_obj_set_pos(obj, 313, 164);
+	x += BUTTON_WIDTH + gap_x;
+	obj = ui_home_create_button(ui_home_screen, &btnhome_02, &variables, "Variables");
+	lv_obj_set_pos(obj, x, y);
 	lv_obj_add_event_cb(obj, event_variables_cb, LV_EVENT_CLICKED, NULL);
 	
+	x += BUTTON_WIDTH + gap_x;
+	obj = ui_home_create_button(ui_home_screen, &btnhome_03, &opc, "OPC");
+	lv_obj_set_pos(obj, x, y);
+	
+	x += BUTTON_WIDTH + gap_x;
+	obj = ui_home_create_button(ui_home_screen, &btnhome_04, NULL, "Quality");
+	lv_obj_set_pos(obj, x, y);
+	
+	x = 20;
+	y += BUTTON_HEIGHT + gap_y;
+	obj = ui_home_create_button(ui_home_screen, &btnhome_05, NULL, "Automation");
+	lv_obj_set_pos(obj, x, y);
+	
+	x += BUTTON_WIDTH + gap_x;
+	obj = ui_home_create_button(ui_home_screen, &btnhome_06, &folder, "SD Card");
+	lv_obj_add_event_cb(obj, event_sdcard_cb, LV_EVENT_CLICKED, NULL);
+	lv_obj_set_pos(obj, x, y);
 	
 	lv_obj_t* banner = ui_create_label(ui_home_screen, "#ffffff ©2023, PCT Systems. All rights reserved. #", &lv_font_montserrat_14);
 	lv_obj_align(banner, LV_ALIGN_BOTTOM_MID, 0, -10);
-	
-
 }

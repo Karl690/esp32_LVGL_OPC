@@ -1,4 +1,8 @@
 #pragma once
+#include <stddef.h>
+#include <string.h>
+#include <stdbool.h>
+#include "configure.h"
 #include "DisplayList.h"
 
 #define GROUP_SIZE 4
@@ -67,3 +71,5 @@ typedef struct
 
 extern DisplayGroupInfo displayGroupInfo[];
 void Init_GroupList();
+bool SaveDisplayGroupList(const char* path);
+bool LoadDisplayGroupList(const char* path);

@@ -1,5 +1,4 @@
 #include "ui.h"
-
 #include "ui-splash.h"
 lv_obj_t* ui_splash_screen;
 

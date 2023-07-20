@@ -1,13 +1,5 @@
 #include <string.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "freertos/event_groups.h"
-#include "esp_system.h"
-
-#include "esp_event.h"
-#include "esp_log.h"
-#include "nvs_flash.h"
-
+#include "main.h"
 #include "wifi.h"
 #include "L_Core/ui/ui.h"
 
@@ -27,7 +19,6 @@ char ipAddress[20] = { 0 };
 #define WIFI_CONNECTED_BIT BIT0
 #define WIFI_FAIL_BIT      BIT1
 
-static const char *TAG = "wifi station";
 
 static int s_retry_num = 0;
 
