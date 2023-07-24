@@ -65,9 +65,6 @@ idf_component_register(
                 	esp_hw_support
                 	bt
                 	fatfs
-                	sdmmc
-                PRIV_INCLUDE_DIRS
-                	C:/sysgcc/esp32/tools/xtensa-esp32s3-elf/esp-2022r1-11.2.0/xtensa-esp32s3-elf/xtensa-esp32s3-elf/include/c++/11.2.0
-                	C:/sysgcc/esp32/tools/xtensa-esp32s3-elf/esp-2022r1-11.2.0/xtensa-esp32s3-elf/xtensa-esp32s3-elf/include/c++/11.2.0/xtensa-esp32s3-elf)            
+                	sdmmc)            
 component_compile_options(-fexceptions -x c++)
 set_property(TARGET ${COMPONENT_TARGET} PROPERTY CXX_STANDARD 17)
