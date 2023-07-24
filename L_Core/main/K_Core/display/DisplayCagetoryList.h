@@ -8,7 +8,24 @@
 #define GROUP_SIZE 4
 #define PARAM_SIZE 15
 
-
+typedef enum
+{
+	CSV_GROUPNAME,
+	CSV_PARAMNAME,
+	CSV_VAR_INDEX,
+	CSV_VAR_LABEL,
+	CSV_VAR_VALUE,
+	CSV_VAR_TYPE,
+	CSV_VAR_COLOR_1,
+	CSV_VAR_COLOR_2,
+	CSV_VAR_OFFSET,
+	CSV_VAR_EDITABLE,
+	CSV_VAR_OPC,
+}CSV_FIELD;
+#define CSV_FIELD_NAM CSV_VAR_OPC+1
+#define LIVE_PARAM_NAME						"Live"		
+#define RECIEPE_PARAM_NAME					"Reciepe data"		
+#define FREQUENCY_PARAM_NAME				"Frequence data"
 typedef struct
 {
 	uint16_t Unit; //Amplifier unit
@@ -70,6 +87,6 @@ typedef struct
 
 
 extern DisplayGroupInfo displayGroupInfo[];
-void Init_GroupList();
+void ResetGroupList();
 bool SaveDisplayGroupList(const char* path);
 bool LoadDisplayGroupList(const char* path);

@@ -37,35 +37,17 @@ void event_goto_directory_cb(lv_event_t* e)
 }
 void ui_sdcard_screen_init(void)
 {
-	ui_sdcard_screen = lv_obj_create(NULL);
-	lv_obj_clear_flag(ui_sdcard_screen, LV_OBJ_FLAG_SCROLLABLE); /// Flags
-	lv_obj_set_style_bg_color(ui_sdcard_screen, lv_color_hex(UI_BACKGROUND_COLOR), LV_PART_MAIN | LV_STATE_DEFAULT);
-	lv_obj_set_style_bg_opa(ui_sdcard_screen, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-	//lv_obj_add_event_cb(ui_sdcard_screen, screen_event_cb, LV_EVENT_GESTURE, NULL);
+	ui_sdcard_screen = ui_create_screen();	
+	lv_obj_t* titlebar = ui_create_titlebar(ui_sdcard_screen, TITLEBAR_BACKGROUND_COLOR);
 	
-	lv_obj_t* titlebar = lv_obj_create(ui_sdcard_screen);	
-	lv_obj_clear_flag(titlebar, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_CLICKABLE); /// Flags
-	lv_obj_set_style_border_width(titlebar, 0, LV_PART_MAIN);
-	lv_obj_set_width(titlebar, LV_PCT(100));
-	lv_obj_set_height(titlebar, 30); 
-	
-	lv_obj_set_style_bg_color(titlebar, lv_color_hex(TITLEBAR_BACKGROUND_COLOR), LV_PART_MAIN);
-	lv_obj_align(titlebar, LV_ALIGN_TOP_MID, 0, 0);
 	title_label = lv_label_create(titlebar);	
 	lv_obj_set_width(title_label, LV_SIZE_CONTENT);
 	lv_obj_set_height(title_label, LV_SIZE_CONTENT);
 	lv_label_set_recolor(title_label, true);
 	lv_obj_set_style_text_color(title_label, lv_color_hex(0xFFFFFF), LV_PART_MAIN);
 	lv_label_set_text(title_label, "SD Card [" SDCARD_MOUNT_POINT "]");
-	lv_obj_set_style_text_font(title_label, &lv_font_montserrat_14, LV_PART_MAIN | LV_STATE_DEFAULT);	
+	lv_obj_set_style_text_font(title_label, &lv_font_montserrat_16, LV_PART_MAIN | LV_STATE_DEFAULT);	
 	lv_obj_align(title_label, LV_ALIGN_CENTER, 0, 0);
-	
-	lv_obj_t* btnback = ui_create_label(ui_sdcard_screen, LV_SYMBOL_LEFT, &lv_font_montserrat_14);
-	lv_obj_set_style_text_color(btnback, lv_color_hex(0xFFFFFF), LV_PART_MAIN);
-	lv_obj_add_flag(btnback, LV_OBJ_FLAG_CLICKABLE);
-	lv_obj_set_size(btnback, 30, 30);
-	lv_obj_add_event_cb(btnback, event_go_home_cb, LV_EVENT_CLICKED, NULL);	
-	lv_obj_align(btnback, LV_ALIGN_TOP_LEFT, 10, 5);
 	
 	ui_sdcard_folders_panel = lv_obj_create(ui_sdcard_screen);
 	lv_obj_set_style_pad_all(ui_sdcard_folders_panel, 2, LV_PART_MAIN);

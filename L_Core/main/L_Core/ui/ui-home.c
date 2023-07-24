@@ -6,17 +6,18 @@ lv_obj_t* ui_home_screen;
 
 #define BUTTON_WIDTH	99
 #define BUTTON_HEIGHT	72
+SCREEN_TYPE screen_settings = SCREEN_SETTINGS;
+SCREEN_TYPE screen_variable = SCREEN_VARIABLE;
+SCREEN_TYPE screen_opc = SCREEN_OPC;
+SCREEN_TYPE screen_quality= SCREEN_QUALITY;
+SCREEN_TYPE screen_controls= SCREEN_CONTROLS;
+SCREEN_TYPE screen_sdcard= SCREEN_SDCARD;
 
-static void event_variables_cb(lv_event_t* e)
+static void event_tranform_screen_cb(lv_event_t* e)
 {
-	//lv_scr_load_anim(ui_variables_screen, LV_SCR_LOAD_ANIM_FADE_ON, 300, 0, false);
-	ui_transform_screen(SCREEN_VARIABLE);
-}
-static void event_sdcard_cb(lv_event_t* e)
-{
-	//lv_scr_load_anim(ui_sdcard_screen, LV_SCR_LOAD_ANIM_FADE_ON, 300, 0, false);
-	ui_transform_screen(SCREEN_SDCARD);
-	ui_sdcard_load_directory(current_sdcard_path);
+	SCREEN_TYPE type = (SCREEN_TYPE)(int)e->user_data;
+	ui_transform_screen(type);
+	if(type == SCREEN_SDCARD) ui_sdcard_load_directory(current_sdcard_path);
 }
 lv_obj_t* ui_home_create_button(lv_obj_t* parent, const lv_img_dsc_t* img, const lv_img_dsc_t* icon, char* text)
 {
@@ -36,6 +37,7 @@ lv_obj_t* ui_home_create_button(lv_obj_t* parent, const lv_img_dsc_t* img, const
 	}
 	obj = lv_label_create(btn);
 	lv_label_set_text(obj, text);
+	lv_obj_set_style_text_font(obj, &lv_font_montserrat_16, LV_PART_MAIN | LV_STATE_DEFAULT);
 	lv_obj_align(obj, LV_ALIGN_BOTTOM_MID, 0, -5);
 	lv_obj_set_size(btn, BUTTON_WIDTH, BUTTON_HEIGHT);
 	return btn;
@@ -50,10 +52,13 @@ void ui_home_screen_init(void)
 	LV_IMG_DECLARE(btnhome_04);
 	LV_IMG_DECLARE(btnhome_05);
 	LV_IMG_DECLARE(btnhome_06);
+	LV_IMG_DECLARE(btnhome_07);
+	LV_IMG_DECLARE(btnhome_08);
 	LV_IMG_DECLARE(settings);
 	LV_IMG_DECLARE(opc);
 	LV_IMG_DECLARE(variables);
 	LV_IMG_DECLARE(folder);
+	LV_IMG_DECLARE(controllers);
 	LV_IMG_DECLARE(btn_about);
 	
 	ui_home_screen = lv_obj_create(NULL);
@@ -62,31 +67,36 @@ void ui_home_screen_init(void)
 	lv_obj_set_style_bg_opa(ui_home_screen, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 	uint16_t x = 20, y = 60, gap_x = 10, gap_y = 30;
 	lv_obj_t* obj = ui_home_create_button(ui_home_screen, &btnhome_01, &settings, "Settings");
+	lv_obj_add_event_cb(obj, event_tranform_screen_cb, LV_EVENT_CLICKED, (void*)SCREEN_SETTINGS);
 	lv_obj_set_pos(obj, x, y);
 	
 	x += BUTTON_WIDTH + gap_x;
 	obj = ui_home_create_button(ui_home_screen, &btnhome_02, &variables, "Variables");
+	lv_obj_add_event_cb(obj, event_tranform_screen_cb, LV_EVENT_CLICKED, (void*)SCREEN_VARIABLE);
 	lv_obj_set_pos(obj, x, y);
-	lv_obj_add_event_cb(obj, event_variables_cb, LV_EVENT_CLICKED, NULL);
+	
 	
 	x += BUTTON_WIDTH + gap_x;
 	obj = ui_home_create_button(ui_home_screen, &btnhome_03, &opc, "OPC");
+	lv_obj_add_event_cb(obj, event_tranform_screen_cb, LV_EVENT_CLICKED, (void*)SCREEN_OPC);
 	lv_obj_set_pos(obj, x, y);
 	
 	x += BUTTON_WIDTH + gap_x;
 	obj = ui_home_create_button(ui_home_screen, &btnhome_04, NULL, "Quality");
+	lv_obj_add_event_cb(obj, event_tranform_screen_cb, LV_EVENT_CLICKED, (void*)SCREEN_QUALITY);
 	lv_obj_set_pos(obj, x, y);
 	
 	x = 20;
 	y += BUTTON_HEIGHT + gap_y;
-	obj = ui_home_create_button(ui_home_screen, &btnhome_05, NULL, "Automation");
+	obj = ui_home_create_button(ui_home_screen, &btnhome_05, &controllers, "Controls");
+	lv_obj_add_event_cb(obj, event_tranform_screen_cb, LV_EVENT_CLICKED, (void*)SCREEN_CONTROLS);
 	lv_obj_set_pos(obj, x, y);
 	
 	x += BUTTON_WIDTH + gap_x;
 	obj = ui_home_create_button(ui_home_screen, &btnhome_06, &folder, "SD Card");
-	lv_obj_add_event_cb(obj, event_sdcard_cb, LV_EVENT_CLICKED, NULL);
+	lv_obj_add_event_cb(obj, event_tranform_screen_cb, LV_EVENT_CLICKED, (void*)SCREEN_SDCARD);
 	lv_obj_set_pos(obj, x, y);
 	
-	lv_obj_t* banner = ui_create_label(ui_home_screen, "#ffffff ©2023, PCT Systems. All rights reserved. #", &lv_font_montserrat_14);
+	lv_obj_t* banner = ui_create_label(ui_home_screen, "#ffffff Â©2023, PCT Systems. All rights reserved. #", &font_en_16);
 	lv_obj_align(banner, LV_ALIGN_BOTTOM_MID, 0, -10);
 }

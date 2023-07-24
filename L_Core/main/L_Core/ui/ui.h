@@ -1,5 +1,6 @@
 #pragma once
 #include "lvgl.h"
+#include "font/font.h"
 #define UI_BACKGROUND_COLOR			0x0
 
 #define MENU_BACKGROUND_COLOR		0xffffff
@@ -27,6 +28,7 @@ typedef enum
 	SCREEN_OPC,
 	SCREEN_SETTINGS,
 	SCREEN_CONTROLS,
+	SCREEN_QUALITY,
 	SCREEN_SDCARD,
 }SCREEN_TYPE;
 
@@ -34,6 +36,8 @@ typedef enum
 extern lv_obj_t * keyboard;
 void InitUI(void);
 
+lv_obj_t* ui_create_screen();
+lv_obj_t* ui_create_titlebar(lv_obj_t* screen, uint32_t color);
 lv_obj_t* ui_create_label(lv_obj_t* parent, char* text, const lv_font_t* font);
 lv_obj_t* ui_create_button(lv_obj_t* parent,
 	char* text,
@@ -42,7 +46,8 @@ lv_obj_t* ui_create_button(lv_obj_t* parent,
 	uint16_t radius,
 	uint32_t color,
 	const lv_font_t* font,
-	lv_event_cb_t event_button_handler);
+	lv_event_cb_t event_button_handler,
+	void* event_data);
 
 void ui_transform_screen(SCREEN_TYPE screen);
 void ui_show_messagebox(MESSAGEBOX_TYPE type, char* msg, uint16_t delay);

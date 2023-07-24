@@ -1,14 +1,18 @@
+#include <stdio.h>
 #include "ui.h"
 #include "ui-home.h"
+#include "font/font.h"
 #include "K_Core/display/DisplayCagetoryList.h"
 lv_obj_t* ui_variables_screen;
 lv_obj_t* title;
 lv_obj_t* pages[GROUP_SIZE];
-lv_obj_t* active_page;
+lv_obj_t* variables_active_page;
 lv_obj_t* variables_menu;
 uint8_t GroupIndex = 0;
 LV_IMG_DECLARE(img_mark);
 ///////////////////// SCREENS ////////////////////
+
+void ui_variable_reload_groups();
 static void anim_x_cb(void * var, int32_t v)
 {
 	lv_obj_set_x((lv_obj_t*)var, v);
@@ -18,10 +22,12 @@ void event_variables_edit_cb(lv_event_t* e)
 {
 	lv_event_code_t code = lv_event_get_code(e);
 	lv_obj_t * obj = lv_event_get_target(e);
-	if (code == LV_EVENT_CLICKED || code == LV_EVENT_FOCUSED) {
+	DisplayVariableInfo* varInfo = (DisplayVariableInfo*)obj->user_data;
+	if (code == LV_EVENT_CLICKED || code == LV_EVENT_FOCUSED)
+	{
 		/*Focus on the clicked text area*/
-		if (keyboard != NULL) {
-			DisplayVariableInfo* varInfo = (DisplayVariableInfo*)obj->user_data;
+		if (keyboard != NULL)
+		{
 			switch (varInfo->FuncType)
 			{
 			case FUNC_ASCII:
@@ -31,24 +37,57 @@ void event_variables_edit_cb(lv_event_t* e)
 				lv_keyboard_set_mode(keyboard, LV_KEYBOARD_MODE_NUMBER);
 				break;			
 			}
-			lv_obj_clear_flag(keyboard, LV_OBJ_FLAG_HIDDEN);				
+			lv_obj_clear_flag(keyboard, LV_OBJ_FLAG_HIDDEN);
 			lv_keyboard_set_textarea(keyboard, obj);
-			lv_obj_set_height(active_page, 150);
-			//lv_obj_scroll_to_view(active_page);
+			lv_obj_set_height(variables_active_page, 125);
+			lv_obj_refr_size(variables_active_page);
 		}
 	}
 
-	else if (code == LV_EVENT_READY) {
-		LV_LOG_USER("Ready, current text: %s", lv_textarea_get_text(ta));
-		lv_obj_set_height(active_page, 320);
+	else if (code == LV_EVENT_READY )
+	{
+		if (varInfo->VariablePointer)
+		{
+			const char* text = lv_textarea_get_text(obj);
+			switch (varInfo->FuncType)
+			{
+			case FUNC_INT:
+				*(int*)varInfo->VariablePointer = atoi(text);
+				break;
+			case FUNC_INT16:
+				*(uint16_t*)varInfo->VariablePointer = atoi(text);
+				break;
+			case FUNC_INT32:
+				*(uint32_t*)varInfo->VariablePointer = atoi(text);
+				break;
+			case FUNC_ASCII:
+				strcpy((char*)varInfo->VariablePointer, text);
+				break;
+			case FUNC_FLOAT:
+				*(float*)varInfo->VariablePointer = atof(text);
+				break;
+			default:
+				break;
+			}
+		}
+		lv_obj_set_height(variables_active_page, 285);
 		lv_obj_add_flag(keyboard, LV_OBJ_FLAG_HIDDEN);
-		lv_obj_refresh_self_size(active_page);
+		lv_obj_refresh_self_size(variables_active_page);
+	}
+	else if (code == LV_EVENT_VALUE_CHANGED)
+	{
+		*(bool*)varInfo->VariablePointer = lv_obj_has_state(obj, LV_STATE_CHECKED);
 	}
 }
 void event_variables_load_cb(lv_event_t* e)
 {
 	lv_obj_add_flag(variables_menu, LV_OBJ_FLAG_HIDDEN);
-	ui_show_messagebox(MESSAGEBOX_ERROR, "ERRORL Successful load data.", 3000);
+	if (LoadDisplayGroupList(AMPLIIFER_CSV_FILE))
+	{
+		ui_show_messagebox(MESSAGEBOX_INFO, "Successful load the amplifier data.", 3000);
+		ui_variable_reload_groups();
+	}
+	else ui_show_messagebox(MESSAGEBOX_ERROR, "Falied load the amplifier data.", 3000);
 }
 void event_variables_save_cb(lv_event_t* e)
 {
@@ -77,8 +116,14 @@ void event_variable_gesture_cb(lv_event_t* e)
 	}
 	if (e->code == LV_EVENT_GESTURE)
 	{
+		if (lv_obj_is_visible(keyboard))
+		{
+			lv_obj_add_flag(keyboard, LV_OBJ_FLAG_HIDDEN);	
+			lv_obj_set_height(variables_active_page, 285);
+		}
+		
 		lv_dir_t dir = lv_indev_get_gesture_dir(lv_indev_get_act());
-		lv_obj_add_flag(variables_menu, LV_OBJ_FLAG_HIDDEN);
+		if(lv_obj_is_visible(variables_menu)) lv_obj_add_flag(variables_menu, LV_OBJ_FLAG_HIDDEN);
 		lv_coord_t start = 0, end = 0;		
 		switch (dir)
 		{
@@ -104,14 +149,14 @@ void event_variable_gesture_cb(lv_event_t* e)
 		default:
 			break;
 		}
-		if (active_page != pages[GroupIndex])
+		if (variables_active_page != pages[GroupIndex])
 		{	
-			lv_obj_add_flag(active_page, LV_OBJ_FLAG_HIDDEN);
-			active_page = pages[GroupIndex];
-			lv_obj_clear_flag(active_page, LV_OBJ_FLAG_HIDDEN);
+			lv_obj_add_flag(variables_active_page, LV_OBJ_FLAG_HIDDEN);
+			variables_active_page = pages[GroupIndex];
+			lv_obj_clear_flag(variables_active_page, LV_OBJ_FLAG_HIDDEN);
 			lv_anim_t a;
 			lv_anim_init(&a);
-			lv_anim_set_var(&a, active_page); //active_page
+			lv_anim_set_var(&a, variables_active_page); //active_page
 			lv_anim_set_values(&a, start, end);
 			lv_anim_set_time(&a, 100);
 			lv_anim_set_exec_cb(&a, anim_x_cb);
@@ -146,7 +191,7 @@ void ui_variables_create_page(lv_obj_t* parent, DisplayParamInfo* paramInfo)
 		label = lv_label_create(item);
 		lv_label_set_recolor(label, true);	
 		lv_obj_set_style_text_color(label, lv_color_hex(0xFFFFFF), LV_PART_MAIN);
-		lv_obj_set_style_text_font(label, &lv_font_montserrat_14, LV_PART_MAIN | LV_STATE_DEFAULT);		
+		lv_obj_set_style_text_font(label, &lv_font_montserrat_16, LV_PART_MAIN | LV_STATE_DEFAULT);		
 		lv_obj_set_align(label, LV_ALIGN_LEFT_MID);
 		lv_label_set_text(label, paramInfo->parameters[i].Label);
 		
@@ -159,9 +204,13 @@ void ui_variables_create_page(lv_obj_t* parent, DisplayParamInfo* paramInfo)
 			switch (paramInfo->parameters[i].FuncType)
 			{
 			case FUNC_INT:
-			case FUNC_INT16:
-			case FUNC_INT32:
 				lv_label_set_text_fmt(value, "%d", *(int*)paramInfo->parameters[i].VariablePointer); //
+				break;
+			case FUNC_INT16:
+				lv_label_set_text_fmt(value, "%d", (int)*(uint16_t*)paramInfo->parameters[i].VariablePointer); //
+				break;
+			case FUNC_INT32:				
+				lv_label_set_text_fmt(value, "%d", (int)*(uint32_t*)paramInfo->parameters[i].VariablePointer); //
 				break;
 			case FUNC_FLOAT:
 				lv_label_set_text_fmt(value, "%.3f", *(float*)paramInfo->parameters[i].VariablePointer); //
@@ -169,7 +218,7 @@ void ui_variables_create_page(lv_obj_t* parent, DisplayParamInfo* paramInfo)
 			case FUNC_HEX8:
 			case FUNC_HEX16:
 			case FUNC_HEX32:
-				lv_label_set_text_fmt(value, "%x", *(int*)paramInfo->parameters[i].VariablePointer); //
+				lv_label_set_text_fmt(value, "0x%X", *(int*)paramInfo->parameters[i].VariablePointer); //
 				break;
 			case FUNC_ASCII:
 				lv_label_set_text_fmt(value, "%s", (char*)paramInfo->parameters[i].VariablePointer); //
@@ -187,6 +236,8 @@ void ui_variables_create_page(lv_obj_t* parent, DisplayParamInfo* paramInfo)
 		}
 		else
 		{
+			char val[256] = {0};
+			
 			switch (paramInfo->parameters[i].FuncType)
 			{
 			case FUNC_INT:
@@ -195,11 +246,32 @@ void ui_variables_create_page(lv_obj_t* parent, DisplayParamInfo* paramInfo)
 			case FUNC_FLOAT:
 			case FUNC_HEX8:
 			case FUNC_HEX16:
-			case FUNC_HEX32:
+			case FUNC_HEX32:	
 				value = lv_textarea_create(item);
 				lv_textarea_set_accepted_chars(value, "0123456789-.");
 				lv_textarea_set_max_length(value, 5);
 				lv_textarea_set_one_line(value, true);
+				if (paramInfo->parameters[i].FuncType == FUNC_FLOAT)
+					sprintf(val, "%.3f", *(float*)paramInfo->parameters[i].VariablePointer);
+				else {
+					switch (paramInfo->parameters[i].FuncType)
+					{
+					case FUNC_INT:
+						sprintf(val, "%d", *(int*)paramInfo->parameters[i].VariablePointer);
+						break;
+					case FUNC_INT16:
+					case FUNC_HEX16:
+						sprintf(val, "%d", (int)*(uint16_t*)paramInfo->parameters[i].VariablePointer);
+						break;
+					case FUNC_INT32:					
+					case FUNC_HEX32:
+						sprintf(val, "%d", (int)*(uint32_t*)paramInfo->parameters[i].VariablePointer);
+						break;
+					default:
+						break;
+					}
+				}
+				lv_textarea_set_text(value, val);
 				lv_obj_set_width(value, 100);
 				lv_obj_add_event_cb(value, event_variables_edit_cb, LV_EVENT_ALL, NULL);				
 				break;
@@ -207,11 +279,13 @@ void ui_variables_create_page(lv_obj_t* parent, DisplayParamInfo* paramInfo)
 				value = lv_textarea_create(item);
 				lv_textarea_set_one_line(value, true);
 				lv_textarea_set_max_length(value, 10);
+				lv_textarea_set_text(value, (char*)paramInfo->parameters[i].VariablePointer);
 				lv_obj_add_event_cb(value, event_variables_edit_cb, LV_EVENT_ALL, NULL);
 				break;
 			case FUNC_BOOLEAN:
 				value = lv_switch_create(item);
 				lv_obj_add_state(value, *(bool*)paramInfo->parameters[i].VariablePointer ? LV_STATE_CHECKED : LV_STATE_DEFAULT);
+				lv_obj_add_event_cb(value, event_variables_edit_cb, LV_EVENT_VALUE_CHANGED, NULL);
 				break;
 			default:
 				break;
@@ -219,6 +293,7 @@ void ui_variables_create_page(lv_obj_t* parent, DisplayParamInfo* paramInfo)
 		}
 		if (value) {
 			value->user_data = &paramInfo->parameters[i];
+			paramInfo->parameters[i].lv_object = value;
 			lv_obj_align(value, LV_ALIGN_LEFT_MID, 200, 0);
 		}
 		
@@ -242,12 +317,19 @@ lv_obj_t* ui_variables_create_group(DisplayGroupInfo* groupInfo)
 	return container;
 }
 
+void ui_variable_reload_groups()
+{
+	for (uint8_t i = 0; i < GROUP_SIZE; i++)
+	{
+		lv_obj_clean(pages[i]);
+		ui_variables_create_page(pages[i], &displayGroupInfo[i].LiveParameters);
+		ui_variables_create_page(pages[i], &displayGroupInfo[i].ReceipeParameters);
+		ui_variables_create_page(pages[i], &displayGroupInfo[i].FrequenceParameters);
+	}
+}
 void ui_variables_screen_init(void)
 {
-	ui_variables_screen = lv_obj_create(NULL);
-	lv_obj_clear_flag(ui_variables_screen, LV_OBJ_FLAG_SCROLLABLE); /// Flags
-	lv_obj_set_style_bg_color(ui_variables_screen, lv_color_hex(UI_BACKGROUND_COLOR), LV_PART_MAIN | LV_STATE_DEFAULT);
-	lv_obj_set_style_bg_opa(ui_variables_screen, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+	ui_variables_screen = ui_create_screen();
 	lv_obj_add_event_cb(ui_variables_screen, event_variable_gesture_cb, LV_EVENT_ALL, NULL);
 	GroupIndex = 0;
 	for (uint8_t i = 0; i < GROUP_SIZE; i++) {
@@ -257,32 +339,20 @@ void ui_variables_screen_init(void)
 			lv_obj_add_flag(pages[i], LV_OBJ_FLAG_HIDDEN);
 		}
 	}
-	active_page = pages[0];
+	variables_active_page = pages[0];
 	
-	lv_obj_t* titlebar = lv_obj_create(ui_variables_screen);	
-	lv_obj_clear_flag(titlebar, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_CLICKABLE);
-	lv_obj_set_style_border_width(titlebar, 0, LV_PART_MAIN);
-	lv_obj_set_width(titlebar, LV_PCT(100));
-	lv_obj_set_height(titlebar, TITLEBAR_HEIGHT); 	
-	lv_obj_set_style_bg_color(titlebar, lv_color_hex(TITLEBAR_BACKGROUND_COLOR), LV_PART_MAIN);
-	lv_obj_align(titlebar, LV_ALIGN_TOP_MID, 0, 0);
+	lv_obj_t* titlebar = ui_create_titlebar(ui_variables_screen, TITLEBAR_BACKGROUND_COLOR);
 	title = lv_label_create(titlebar);	
 	lv_obj_set_width(title, LV_SIZE_CONTENT);
 	lv_obj_set_height(title, LV_SIZE_CONTENT);
 	lv_label_set_recolor(title, true);
 	lv_obj_set_style_text_color(title, lv_color_hex(0xFFFFFF), LV_PART_MAIN);
 	lv_label_set_text(title, displayGroupInfo[0].name);
-	lv_obj_set_style_text_font(title, &lv_font_montserrat_20, LV_PART_MAIN | LV_STATE_DEFAULT);	
+	lv_obj_set_style_text_font(title, &lv_font_montserrat_16, LV_PART_MAIN | LV_STATE_DEFAULT);	
 	lv_obj_align(title, LV_ALIGN_CENTER, 0, 0);
 	
-	lv_obj_t* obj = ui_create_label(ui_variables_screen, LV_SYMBOL_LEFT, &lv_font_montserrat_20);
-	lv_obj_set_style_text_color(obj, lv_color_hex(0xFFFFFF), LV_PART_MAIN);
-	lv_obj_add_flag(obj, LV_OBJ_FLAG_CLICKABLE);
-	lv_obj_set_size(obj, 30, 30);
-	lv_obj_add_event_cb(obj, event_go_home_cb, LV_EVENT_CLICKED, NULL);	
-	lv_obj_align(obj, LV_ALIGN_TOP_LEFT, 10, 5);
 	
-	obj = ui_create_label(ui_variables_screen, LV_SYMBOL_LIST, &lv_font_montserrat_20);
+	lv_obj_t* obj = ui_create_label(ui_variables_screen, LV_SYMBOL_LIST, &lv_font_montserrat_20);
 	lv_obj_set_style_text_color(obj, lv_color_hex(0xFFFFFF), LV_PART_MAIN);
 	lv_obj_add_flag(obj, LV_OBJ_FLAG_CLICKABLE);
 	lv_obj_set_size(obj, 80, 30);

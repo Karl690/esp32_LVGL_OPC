@@ -37,6 +37,20 @@ idf_component_register(
                 	L_Core/ui/images/variables.c
                 	L_Core/ui/images/btnhome-05.c
                 	L_Core/ui/ui-sdcard.c
+                	L_Core/ui/ui-settings.c
+                	L_Core/ui/images/btnhome-07.c
+                	L_Core/ui/images/btnhome-08.c
+                	L_Core/ui/images/controllers.c
+                	L_Core/ui/font/en_12.c
+                	L_Core/ui/font/en_16.c
+                	L_Core/ui/font/en_bold_16.c
+                	L_Core/ui/font/en_bold_20.c
+                	L_Core/ui/font/en_bold_24.c
+                	L_Core/ui/font/en_bold_30.c
+                	L_Core/ui/ui-control.c
+                	L_Core/ui/images/fan.c
+                	L_Core/ui/images/heater.c
+                	L_Core/ui/images/mtr.c
                 INCLUDE_DIRS "."
                 REQUIRES
                 	LovyanGFX
@@ -51,6 +65,9 @@ idf_component_register(
                 	esp_hw_support
                 	bt
                 	fatfs
-                	sdmmc)            
+                	sdmmc
+                PRIV_INCLUDE_DIRS
+                	C:/sysgcc/esp32/tools/xtensa-esp32s3-elf/esp-2022r1-11.2.0/xtensa-esp32s3-elf/xtensa-esp32s3-elf/include/c++/11.2.0
+                	C:/sysgcc/esp32/tools/xtensa-esp32s3-elf/esp-2022r1-11.2.0/xtensa-esp32s3-elf/xtensa-esp32s3-elf/include/c++/11.2.0/xtensa-esp32s3-elf)            
 component_compile_options(-fexceptions -x c++)
 set_property(TARGET ${COMPONENT_TARGET} PROPERTY CXX_STANDARD 17)

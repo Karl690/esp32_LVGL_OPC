@@ -14,11 +14,43 @@
 #include "ui-home.h"
 #include "ui-variables.h"
 #include "ui-sdcard.h"
-//#include "ui-opc.h"
+#include "ui-settings.h"
+#include "ui-control.h"
 
+//#include "ui-opc.h"
+	
 lv_obj_t * keyboard;
 lv_obj_t* msgbox;
 lv_obj_t* msgbox_label;
+
+lv_obj_t* ui_create_screen()
+{
+	lv_obj_t* screen = lv_obj_create(NULL);
+	lv_obj_clear_flag(screen, LV_OBJ_FLAG_SCROLLABLE); /// Flags
+	lv_obj_set_style_bg_color(screen, lv_color_hex(UI_BACKGROUND_COLOR), LV_PART_MAIN | LV_STATE_DEFAULT);
+	lv_obj_set_style_bg_opa(screen, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+	return screen;
+}
+
+lv_obj_t* ui_create_titlebar(lv_obj_t* screen, uint32_t color)
+{
+	lv_obj_t* titlebar = lv_obj_create(screen);	
+	lv_obj_clear_flag(titlebar, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_CLICKABLE); /// Flags
+	lv_obj_set_style_border_width(titlebar, 0, LV_PART_MAIN);
+	lv_obj_set_style_radius(titlebar, 0, LV_PART_MAIN);
+	lv_obj_set_width(titlebar, LV_PCT(100));
+	lv_obj_set_height(titlebar, 30); 
+	lv_obj_set_style_bg_color(titlebar, lv_color_hex(color), LV_PART_MAIN);
+	lv_obj_align(titlebar, LV_ALIGN_TOP_MID, 0, 0);
+	
+	lv_obj_t* btnback = ui_create_label(screen, LV_SYMBOL_LEFT, &lv_font_montserrat_14);
+	lv_obj_set_style_text_color(btnback, lv_color_hex(0xFFFFFF), LV_PART_MAIN);
+	lv_obj_add_flag(btnback, LV_OBJ_FLAG_CLICKABLE);
+	lv_obj_set_size(btnback, 30, 30);
+	lv_obj_add_event_cb(btnback, event_go_home_cb, LV_EVENT_CLICKED, NULL);	
+	lv_obj_align(btnback, LV_ALIGN_TOP_LEFT, 10, 5);
+	return titlebar;
+}
 
 lv_obj_t* ui_create_label(lv_obj_t* parent, char* text, const lv_font_t* font)
 {
@@ -39,7 +71,8 @@ lv_obj_t* ui_create_button(lv_obj_t* parent,
 	uint16_t radius,
 	uint32_t color,
 	const lv_font_t* font,
-	lv_event_cb_t event_button_handler)
+	lv_event_cb_t event_button_handler, 
+	void* event_data)
 {
 	lv_obj_t* button = lv_btn_create(parent);
 	
@@ -60,7 +93,7 @@ lv_obj_t* ui_create_button(lv_obj_t* parent,
 	lv_label_set_text(label, text);
 	lv_obj_set_style_text_font(label, font, LV_PART_MAIN | LV_STATE_DEFAULT);
 	
-	lv_obj_add_event_cb(button, event_button_handler, LV_EVENT_ALL, NULL);	
+	lv_obj_add_event_cb(button, event_button_handler, LV_EVENT_CLICKED, event_data);	
 	return button;
 }
 
@@ -74,10 +107,18 @@ void messagebox_delay_timer(lv_timer_t * timer)
 void ui_show_messagebox(MESSAGEBOX_TYPE type, char* msg, uint16_t delay)
 {
 	lv_color_t color = lv_color_hex(INFO_COLOR);
-	if (type == MESSAGEBOX_WARNING) color = lv_color_hex(WARNING_COLOR);
-	else if (type == MESSAGEBOX_ERROR) color = lv_color_hex(ERROR_COLOR);
+	if (type == MESSAGEBOX_WARNING) {
+		color = lv_color_hex(WARNING_COLOR);
+	}
+	else if (type == MESSAGEBOX_ERROR) {
+		color = lv_color_hex(ERROR_COLOR);
+	}
+	else {
+		
+	}
 	lv_obj_set_style_bg_color(msgbox, color, LV_PART_MAIN);
 	lv_label_set_text(msgbox_label, msg);
+	
 	if (delay > 0)
 	{	
 		lv_timer_t * timer = lv_timer_create(messagebox_delay_timer, delay, msgbox);
@@ -92,18 +133,24 @@ void ui_create_messagebox()
 	lv_obj_clear_flag(msgbox, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_CLICKABLE); /// Flags
 	lv_obj_set_style_border_width(msgbox, 0, LV_PART_MAIN);
 	lv_obj_set_size(msgbox, LV_PCT(60), 50);
-	msgbox_label = ui_create_label(msgbox, "", &lv_font_montserrat_16);
+	msgbox_label = ui_create_label(msgbox, "", &font_en_16);
 	lv_obj_center(msgbox);	
 	lv_obj_add_flag(msgbox, LV_OBJ_FLAG_HIDDEN);
 }
 
 void ui_transform_screen(SCREEN_TYPE screen)
 {
-	
+	if (lv_obj_is_visible(keyboard)) lv_obj_add_flag(keyboard, LV_OBJ_FLAG_HIDDEN);
+	if (lv_obj_is_visible(msgbox)) lv_obj_add_flag(msgbox, LV_OBJ_FLAG_HIDDEN);
 	switch (screen)
 	{
 	case SCREEN_HOME:
 		lv_scr_load_anim(ui_home_screen, LV_SCR_LOAD_ANIM_FADE_ON, 300, 0, false);
+		break;
+	case SCREEN_SETTINGS:
+		lv_scr_load_anim(ui_settings_screen, LV_SCR_LOAD_ANIM_FADE_ON, 300, 0, false);
+		lv_obj_set_parent(keyboard, ui_settings_screen);
+		lv_obj_set_parent(msgbox, ui_settings_screen);	
 		break;
 	case SCREEN_VARIABLE:
 		lv_scr_load_anim(ui_variables_screen, LV_SCR_LOAD_ANIM_FADE_ON, 300, 0, false);
@@ -115,10 +162,14 @@ void ui_transform_screen(SCREEN_TYPE screen)
 		lv_obj_set_parent(keyboard, ui_sdcard_screen);
 		lv_obj_set_parent(msgbox, ui_sdcard_screen);
 		break;
+	case SCREEN_CONTROLS:
+		lv_scr_load_anim(ui_control_screen, LV_SCR_LOAD_ANIM_FADE_ON, 300, 0, false);
+		lv_obj_set_parent(keyboard, ui_control_screen);
+		lv_obj_set_parent(msgbox, ui_control_screen);
+		break;
 	default:
 		break;
 	}
-	
 }
 
 void event_go_home_cb(lv_event_t* e)
@@ -135,6 +186,8 @@ void InitUI( void )
 	ui_home_screen_init();
 	ui_variables_screen_init();
 	ui_sdcard_screen_init();
+	ui_settings_screen_init();
+	ui_control_screen_init();
 	
 	keyboard = lv_keyboard_create(ui_home_screen);
 	lv_obj_add_flag(keyboard, LV_OBJ_FLAG_HIDDEN);
