@@ -358,7 +358,8 @@ static lv_obj_t * find_last_focusable(lv_obj_t * obj)
 static bool obj_is_focuable(lv_obj_t * obj)
 {
     if(lv_obj_has_flag(obj, LV_OBJ_FLAG_HIDDEN)) return false;
-    if(lv_obj_has_flag(obj, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_CLICK_FOCUSABLE)) return true;
+    if(lv_obj_has_flag(obj, 
+		)) return true;
     else return false;
 }
 

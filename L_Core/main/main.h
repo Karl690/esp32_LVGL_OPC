@@ -24,4 +24,8 @@
 using namespace std;
 
 extern const char *TAG;
+extern SYSTEMCONFIG systemconfig;
 extern bool IsInitialized;
+
+bool load_configuration();
+bool save_configuration();

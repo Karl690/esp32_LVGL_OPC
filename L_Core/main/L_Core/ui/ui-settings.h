@@ -1,8 +1,11 @@
 #pragma once
 #define SUBMENU_BACGROUND_COLOR		0x333333
-#define SUBMENU_ACTIVE_ITME_COLOR	0x0B72AB
+#define SUBMENU_ACTIVE_ITME_COLOR	0x579804
 #define SUBMENU_NORMAL_ITEM_COLOR	0x494949
 #define SETTINGS_TEXTAREA_BORDER_COLOR	0x858585
+
+#define SETTINGS_LINE_SPACE 45
+
 typedef enum
 {
 	SETTINGS_SUBMENU_BLUETOOTH,
@@ -12,5 +15,44 @@ typedef enum
 	SETTINGS_SUBMENU_SDCARD,
 }SETTINGS_SUBMENU_TYPE;
 
+typedef struct
+{
+	lv_obj_t* ssid;
+	lv_obj_t* password;
+	lv_obj_t* status;
+	lv_obj_t* autoconnect;
+	lv_obj_t* ip;
+	lv_obj_t* subnet;
+} UI_WIFI;
+
+typedef struct
+{
+	lv_obj_t* status;
+	lv_obj_t* autostart;
+} UI_BLUETOOTH;
+
+typedef struct
+{
+	lv_obj_t* status;
+	lv_obj_t* autostart;
+	lv_obj_t* name;
+	lv_obj_t* password;	
+} UI_OPC;
+
+typedef struct
+{
+	lv_obj_t* status;
+	lv_obj_t* automount;	
+} UI_SDCARD;
+
+typedef struct
+{
+	UI_WIFI ui_wifi;
+	UI_BLUETOOTH ui_bluetooth;
+	UI_OPC ui_opc;
+	UI_SDCARD ui_sdcard;
+}UI_SETTINGS;
+
 extern lv_obj_t* ui_settings_screen;
 void ui_settings_screen_init();
+void ui_settings_update_configuratiion();

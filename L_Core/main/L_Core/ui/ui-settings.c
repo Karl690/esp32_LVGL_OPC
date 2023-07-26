@@ -1,5 +1,7 @@
+#include "main.h"
 #include "ui.h"
 #include "ui-settings.h"
+#include "../sd-card/sd-card.h"
 lv_obj_t* ui_settings_screen;
 lv_obj_t* ui_settings_bluetooth_page;
 lv_obj_t* ui_settings_wifi_page;
@@ -8,7 +10,9 @@ lv_obj_t* ui_settings_sdcard_page;
 lv_obj_t* settings_active_menu = NULL;
 lv_obj_t* settings_active_page = NULL;
 bool ui_settings_initialized = false;
-#define SETTINGS_LINE_SPACE 45
+
+
+UI_SETTINGS ui_settings;
 void event_settings_submenu_cb(lv_event_t* e)
 {
 	if (!ui_settings_initialized) return;
@@ -58,17 +62,81 @@ void event_settings_edit_cb(lv_event_t* e)
 			lv_obj_clear_flag(keyboard, LV_OBJ_FLAG_HIDDEN);
 		}
 		
-	}
+	}	
 	else if (code == LV_EVENT_READY)
 	{
+		char* value = (char*)lv_event_get_user_data(e);
 		lv_obj_add_flag(keyboard, LV_OBJ_FLAG_HIDDEN);
+		strcpy(value, lv_textarea_get_text(obj));
 	}
 }
 
+void event_settings_switch_cb(lv_event_t* e)
+{
+	lv_obj_t * obj = lv_event_get_target(e);
+	uint8_t* data = (uint8_t*)lv_event_get_user_data(e);
+	bool state = lv_obj_has_state(obj, LV_STATE_CHECKED);
+	
+	if (data == &systemconfig.bluetooth.status)
+	{
+	
+	}
+	else if (data == &systemconfig.wifi.status)
+	{	
+	}
+	else if (data == &systemconfig.opc.status)
+	{
+		
+	}
+	else if (data == &systemconfig.sdcard.status)
+	{
+		if (state)
+		{
+			if (!systemconfig.sdcard.status) systemconfig.sdcard.status = sdcard_mount();
+			if (!systemconfig.sdcard.status) ui_show_messagebox(MESSAGEBOX_ERROR, "Falied mount sdcard.", 3000);
+		}
+		else
+		{
+			if (systemconfig.sdcard.status) sdcard_umount();
+			systemconfig.sdcard.status = false;
+		}
+		if (systemconfig.sdcard.status)		lv_obj_add_state(obj, LV_STATE_CHECKED);
+		else lv_obj_clear_state(obj, LV_STATE_CHECKED);
+	}
+	else
+	{
+		*data = state;
+	}
+}
+
+void event_settings_load_cb(lv_event_t* e)
+{
+	if (!load_configuration())
+	{
+		ui_show_messagebox(MESSAGEBOX_ERROR, "Can't load configuration from sd card.", 3000);
+	}
+	else
+	{
+		ui_show_messagebox(MESSAGEBOX_INFO, "Successful load configuration.", 3000);
+		ui_settings_update_configuratiion();
+	}
+}
+
+void event_settings_save_cb(lv_event_t* e)
+{
+	if (!save_configuration())
+	{
+		ui_show_messagebox(MESSAGEBOX_ERROR, "Can't save configuration from sd card.", 3000);
+	}
+	else
+	{
+		ui_show_messagebox(MESSAGEBOX_INFO, "Successful save configuration to sd card.", 3000);
+	}
+}
 void ui_settings_bluetooth_page_init()
 {
 	ui_settings_bluetooth_page = lv_obj_create(ui_settings_screen);
-	lv_obj_set_size(ui_settings_bluetooth_page, 375, 290);//480-105
+	lv_obj_set_size(ui_settings_bluetooth_page, 375, 256);//480-105
 	lv_obj_set_pos(ui_settings_bluetooth_page, 102, 32); 
 	lv_obj_set_style_pad_all(ui_settings_bluetooth_page, 10, LV_PART_MAIN);
 	lv_obj_t* obj = ui_create_label(ui_settings_bluetooth_page, "Bluetooth", &lv_font_montserrat_20);
@@ -79,36 +147,48 @@ void ui_settings_bluetooth_page_init()
 	lv_obj_set_pos(obj, 0, y+10);
 	obj = lv_switch_create(ui_settings_bluetooth_page);
 	lv_obj_set_pos(obj, 160, y);
+	if (systemconfig.bluetooth.status) lv_obj_add_state(obj, LV_STATE_CHECKED);
+	else lv_obj_add_state(obj, LV_STATE_CHECKED);
+	lv_obj_add_event_cb(obj, event_settings_switch_cb, LV_EVENT_VALUE_CHANGED, &systemconfig.bluetooth.status);
+	ui_settings.ui_bluetooth.status = obj;
+	
 	y += SETTINGS_LINE_SPACE;
 	obj = ui_create_label(ui_settings_bluetooth_page, "Autostart: ", &lv_font_montserrat_14);
 	lv_obj_set_pos(obj, 0, y+10);
 	obj = lv_switch_create(ui_settings_bluetooth_page);
 	lv_obj_set_pos(obj, 160, y);
+	if (systemconfig.bluetooth.autostart) lv_obj_add_state(obj, LV_STATE_CHECKED);
+	else lv_obj_add_state(obj, LV_STATE_CHECKED);
+	lv_obj_add_event_cb(obj, event_settings_switch_cb, LV_EVENT_VALUE_CHANGED, &systemconfig.bluetooth.autostart);
+	ui_settings.ui_bluetooth.autostart = obj;
 }
 
 void ui_settings_wifi_page_init()
 {
 	ui_settings_wifi_page = lv_obj_create(ui_settings_screen);
-	lv_obj_set_size(ui_settings_wifi_page, 375, 290); //480-105
+	lv_obj_set_size(ui_settings_wifi_page, 375, 256); //480-105
 	lv_obj_set_pos(ui_settings_wifi_page, 102, 32); 
 	lv_obj_set_style_pad_all(ui_settings_wifi_page, 10, LV_PART_MAIN);
 	lv_obj_t* obj = ui_create_label(ui_settings_wifi_page, "WIFI", &lv_font_montserrat_20);
 	lv_obj_set_align(obj, LV_ALIGN_TOP_MID);
 	
 	uint16_t x = 0, y = 40;
-	obj = ui_create_label(ui_settings_wifi_page, "Wifi SSID: ", &lv_font_montserrat_14);
+	obj = ui_create_label(ui_settings_wifi_page, "WIFI SSID: ", &lv_font_montserrat_14);
 	lv_obj_set_pos(obj, 0, y + 10);
 	
 	obj = lv_textarea_create(ui_settings_wifi_page);
 	lv_obj_set_style_border_color(obj, lv_color_hex(SETTINGS_TEXTAREA_BORDER_COLOR), LV_PART_MAIN);
 	lv_obj_set_style_border_width(obj, 1, LV_PART_MAIN);
-	lv_textarea_set_one_line(obj, true);	
+	lv_textarea_set_one_line(obj, true);
 	lv_obj_set_width(obj, 150);
 	lv_obj_set_pos(obj, 160, y);
-	lv_obj_add_event_cb(obj, event_settings_edit_cb, LV_EVENT_ALL, NULL);
+	lv_obj_add_event_cb(obj, event_settings_edit_cb, LV_EVENT_ALL, &systemconfig.wifi.ssid);
+	lv_textarea_set_text(obj, (const char*)systemconfig.wifi.ssid);
+	lv_obj_set_user_data(obj, systemconfig.wifi.ssid);
+	ui_settings.ui_wifi.ssid = obj;
 	
 	y += SETTINGS_LINE_SPACE;
-	obj = ui_create_label(ui_settings_wifi_page, "Wifi PASSWORD: ", &lv_font_montserrat_14);
+	obj = ui_create_label(ui_settings_wifi_page, "WIFI PASSWORD: ", &lv_font_montserrat_14);
 	lv_obj_set_pos(obj, 0, y + 10);
 	obj = lv_textarea_create(ui_settings_wifi_page);	
 	lv_obj_set_style_border_color(obj, lv_color_hex(SETTINGS_TEXTAREA_BORDER_COLOR), LV_PART_MAIN);
@@ -117,25 +197,57 @@ void ui_settings_wifi_page_init()
 	lv_textarea_set_password_mode(obj, true);
 	lv_obj_set_width(obj, 150);
 	lv_obj_set_pos(obj, 160, y);
-	lv_obj_add_event_cb(obj, event_settings_edit_cb, LV_EVENT_ALL, NULL);
+	lv_obj_add_event_cb(obj, event_settings_edit_cb, LV_EVENT_ALL, &systemconfig.wifi.password);
+	lv_textarea_set_text(obj, (const char*)systemconfig.wifi.password);
+	lv_obj_set_user_data(obj, systemconfig.wifi.password);
+	ui_settings.ui_wifi.password = obj;
+	
+	y += SETTINGS_LINE_SPACE;
+	obj = ui_create_label(ui_settings_wifi_page, "Auto connect: ", &lv_font_montserrat_14);
+	lv_obj_set_pos(obj, 0, y + 5);
+	obj = lv_switch_create(ui_settings_wifi_page);
+	lv_obj_set_pos(obj, 160, y);
+	if (systemconfig.wifi.autoconnect) lv_obj_add_state(obj, LV_STATE_CHECKED);
+	else lv_obj_add_state(obj, LV_STATE_CHECKED);
+	lv_obj_add_event_cb(obj, event_settings_switch_cb, LV_EVENT_VALUE_CHANGED, &systemconfig.wifi.autoconnect);
+	ui_settings.ui_wifi.autoconnect = obj;
 	
 	y += SETTINGS_LINE_SPACE;
 	obj = ui_create_label(ui_settings_wifi_page, "Status: ", &lv_font_montserrat_14);
 	lv_obj_set_pos(obj, 0, y + 10);
-	obj = lv_switch_create(ui_settings_wifi_page);
+	obj = lv_switch_create(ui_settings_wifi_page);	
 	lv_obj_set_pos(obj, 160, y);
+	if (systemconfig.wifi.autoconnect) lv_obj_add_state(obj, LV_STATE_CHECKED);
+	else lv_obj_add_state(obj, LV_STATE_CHECKED);	
+	lv_obj_add_event_cb(obj, event_settings_switch_cb, LV_EVENT_VALUE_CHANGED, &systemconfig.wifi.status);
+	ui_settings.ui_wifi.status = obj;
+	
 	
 	y += SETTINGS_LINE_SPACE;
-	obj = ui_create_label(ui_settings_wifi_page, "Autostart: ", &lv_font_montserrat_14);
+	obj = ui_create_label(ui_settings_wifi_page, "IP: ", &lv_font_montserrat_14);
 	lv_obj_set_pos(obj, 0, y + 5);
-	obj = lv_switch_create(ui_settings_wifi_page);
+	obj = lv_label_create(ui_settings_wifi_page);
 	lv_obj_set_pos(obj, 160, y);
+	lv_label_set_text(obj, (const char*)systemconfig.wifi.ip);
+	
+	ui_settings.ui_wifi.ip= obj;
+	
+	y += SETTINGS_LINE_SPACE;
+	obj = ui_create_label(ui_settings_wifi_page, "SUBNET: ", &lv_font_montserrat_14);
+	lv_obj_set_pos(obj, 0, y + 5);
+	obj = lv_label_create(ui_settings_wifi_page);
+	lv_obj_set_pos(obj, 160, y);
+	lv_label_set_text(obj, (const char*)systemconfig.wifi.subnet);
+	lv_obj_add_event_cb(obj, event_settings_switch_cb, LV_EVENT_VALUE_CHANGED, &systemconfig.wifi.autoconnect);
+	ui_settings.ui_wifi.subnet= obj;
+	
+	
 }
 
 void ui_settings_opc_page_init()
 {
 	ui_settings_opc_page = lv_obj_create(ui_settings_screen);
-	lv_obj_set_size(ui_settings_opc_page, 375, 290); //480-105
+	lv_obj_set_size(ui_settings_opc_page, 375, 256); //480-105
 	lv_obj_set_pos(ui_settings_opc_page, 102, 32); 
 	lv_obj_set_style_pad_all(ui_settings_opc_page, 10, LV_PART_MAIN);
 	lv_obj_t* obj = ui_create_label(ui_settings_opc_page, "OPC", &lv_font_montserrat_20);
@@ -150,7 +262,9 @@ void ui_settings_opc_page_init()
 	lv_textarea_set_one_line(obj, true);
 	lv_obj_set_width(obj, 150);
 	lv_obj_set_pos(obj, 160, y);
-	lv_obj_add_event_cb(obj, event_settings_edit_cb, LV_EVENT_ALL, NULL);
+	lv_obj_add_event_cb(obj, event_settings_edit_cb, LV_EVENT_ALL, &systemconfig.opc.username);
+	lv_textarea_set_text(obj, (const char*)systemconfig.opc.username);
+	ui_settings.ui_opc.name = obj;
 	
 	y += SETTINGS_LINE_SPACE;
 	obj = ui_create_label(ui_settings_opc_page, "User password: ", &lv_font_montserrat_14);
@@ -162,25 +276,35 @@ void ui_settings_opc_page_init()
 	lv_textarea_set_password_mode(obj, true);
 	lv_obj_set_width(obj, 150);
 	lv_obj_set_pos(obj, 160, y);
-	lv_obj_add_event_cb(obj, event_settings_edit_cb, LV_EVENT_ALL, NULL);
+	lv_obj_add_event_cb(obj, event_settings_edit_cb, LV_EVENT_ALL, &systemconfig.opc.userpassword);
+	lv_textarea_set_text(obj, (const char*)systemconfig.opc.userpassword);
+	ui_settings.ui_opc.password = obj;
 	
 	y += SETTINGS_LINE_SPACE;
 	obj = ui_create_label(ui_settings_opc_page, "Status: ", &lv_font_montserrat_14);
 	lv_obj_set_pos(obj, 0, y + 10);
 	obj = lv_switch_create(ui_settings_opc_page);
 	lv_obj_set_pos(obj, 160, y);
+	if (systemconfig.opc.status) lv_obj_add_state(obj, LV_STATE_CHECKED);
+	else lv_obj_add_state(obj, LV_STATE_CHECKED);
+	lv_obj_add_event_cb(obj, event_settings_switch_cb, LV_EVENT_VALUE_CHANGED, &systemconfig.opc.status);
+	ui_settings.ui_opc.status = obj;
 	
 	y += SETTINGS_LINE_SPACE;
 	obj = ui_create_label(ui_settings_opc_page, "Autostart: ", &lv_font_montserrat_14);
 	lv_obj_set_pos(obj, 0, y + 10);
 	obj = lv_switch_create(ui_settings_opc_page);
 	lv_obj_set_pos(obj, 160, y);
+	if (systemconfig.opc.autostart) lv_obj_add_state(obj, LV_STATE_CHECKED);
+	else lv_obj_add_state(obj, LV_STATE_CHECKED);
+	lv_obj_add_event_cb(obj, event_settings_switch_cb, LV_EVENT_VALUE_CHANGED, &systemconfig.opc.autostart);
+	ui_settings.ui_opc.autostart = obj;
 }
 
 void ui_settings_sdcard_page_init()
 {
 	ui_settings_sdcard_page = lv_obj_create(ui_settings_screen);
-	lv_obj_set_size(ui_settings_sdcard_page, 375, 290); //480-105
+	lv_obj_set_size(ui_settings_sdcard_page, 375, 256); //480-105
 	lv_obj_set_pos(ui_settings_sdcard_page, 102, 32); 
 	lv_obj_set_style_pad_all(ui_settings_sdcard_page, 10, LV_PART_MAIN);
 	lv_obj_t* obj = ui_create_label(ui_settings_sdcard_page, "SD Card", &lv_font_montserrat_20);
@@ -189,13 +313,22 @@ void ui_settings_sdcard_page_init()
 	uint16_t x = 0, y = 40;
 	obj = ui_create_label(ui_settings_sdcard_page, "Status: ", &lv_font_montserrat_14);
 	lv_obj_set_pos(obj, 0, y + 10);
-	obj = lv_switch_create(ui_settings_sdcard_page);
+	obj = lv_switch_create(ui_settings_sdcard_page);	
 	lv_obj_set_pos(obj, 160, y);
+	if (systemconfig.sdcard.status) lv_obj_add_state(obj, LV_STATE_CHECKED);
+	else lv_obj_add_state(obj, LV_STATE_CHECKED);
+	lv_obj_add_event_cb(obj, event_settings_switch_cb, LV_EVENT_VALUE_CHANGED, &systemconfig.sdcard.status);
+	ui_settings.ui_sdcard.status = obj;
+	
 	y += SETTINGS_LINE_SPACE;
 	obj = ui_create_label(ui_settings_sdcard_page, "Automount: ", &lv_font_montserrat_14);
 	lv_obj_set_pos(obj, 0, y + 10);
 	obj = lv_switch_create(ui_settings_sdcard_page);
 	lv_obj_set_pos(obj, 160, y);
+	if (systemconfig.sdcard.automount) lv_obj_add_state(obj, LV_STATE_CHECKED);
+	else lv_obj_add_state(obj, LV_STATE_CHECKED);
+	lv_obj_add_event_cb(obj, event_settings_switch_cb, LV_EVENT_VALUE_CHANGED, &systemconfig.sdcard.automount);
+	ui_settings.ui_sdcard.automount = obj;
 }
 
 void ui_settings_screen_init()
@@ -246,7 +379,44 @@ void ui_settings_screen_init()
 	lv_obj_add_flag(ui_settings_opc_page, LV_OBJ_FLAG_HIDDEN);
 	ui_settings_sdcard_page_init();
 	lv_obj_add_flag(ui_settings_sdcard_page, LV_OBJ_FLAG_HIDDEN);
-	ui_settings_initialized = true;
 	
+	obj = ui_create_button(ui_settings_screen, "Save Config", 133, 24, 3, BUTTON_BACKGROUND_COLOR, &lv_font_montserrat_14, event_settings_save_cb, NULL);
+	lv_obj_set_pos(obj, 102, 292);
+	obj = ui_create_button(ui_settings_screen, "Load default config", 239, 24, 3, BUTTON_BACKGROUND_COLOR, &lv_font_montserrat_14, event_settings_load_cb, NULL);
+	lv_obj_set_pos(obj, 238, 292);
+	
+	ui_settings_update_configuratiion();
+	ui_settings_initialized = true;
 }
 
+void ui_settings_update_configuratiion()
+{
+	if (systemconfig.bluetooth.autostart)	lv_obj_add_state(ui_settings.ui_bluetooth.autostart, LV_STATE_CHECKED);
+	else lv_obj_clear_state(ui_settings.ui_bluetooth.autostart, LV_STATE_CHECKED);
+	if (systemconfig.bluetooth.status)	lv_obj_add_state(ui_settings.ui_bluetooth.status, LV_STATE_CHECKED);
+	else lv_obj_clear_state(ui_settings.ui_bluetooth.status, LV_STATE_CHECKED);
+	
+	
+	if (systemconfig.wifi.autoconnect)	lv_obj_add_state(ui_settings.ui_wifi.autoconnect, LV_STATE_CHECKED);
+	else lv_obj_clear_state(ui_settings.ui_wifi.autoconnect, LV_STATE_CHECKED);
+	if (systemconfig.wifi.status)	lv_obj_add_state(ui_settings.ui_wifi.status, LV_STATE_CHECKED);
+	else lv_obj_clear_state(ui_settings.ui_wifi.status, LV_STATE_CHECKED);
+	lv_textarea_set_text(ui_settings.ui_wifi.ssid, (const char*)systemconfig.wifi.ssid);
+	lv_textarea_set_text(ui_settings.ui_wifi.password, (const char*)systemconfig.wifi.password);	
+	lv_label_set_text(ui_settings.ui_wifi.ip, (const char*)systemconfig.wifi.ip);
+	lv_label_set_text(ui_settings.ui_wifi.subnet, (const char*)systemconfig.wifi.subnet);
+
+	
+	if (systemconfig.opc.autostart)	lv_obj_add_state(ui_settings.ui_opc.autostart, LV_STATE_CHECKED);
+	else lv_obj_clear_state(ui_settings.ui_opc.autostart, LV_STATE_CHECKED);
+	if (systemconfig.opc.status)	lv_obj_add_state(ui_settings.ui_opc.status, LV_STATE_CHECKED);
+	else lv_obj_clear_state(ui_settings.ui_opc.status, LV_STATE_CHECKED);
+	lv_textarea_set_text(ui_settings.ui_opc.name, (const char*)systemconfig.opc.username);
+	lv_textarea_set_text(ui_settings.ui_opc.password, (const char*)systemconfig.opc.userpassword);
+	
+	
+	if (systemconfig.sdcard.automount)	lv_obj_add_state(ui_settings.ui_sdcard.automount, LV_STATE_CHECKED);
+	else lv_obj_clear_state(ui_settings.ui_sdcard.automount, LV_STATE_CHECKED);
+	if (systemconfig.sdcard.status)	lv_obj_add_state(ui_settings.ui_sdcard.status, LV_STATE_CHECKED);
+	else lv_obj_clear_state(ui_settings.ui_sdcard.status, LV_STATE_CHECKED);
+}
