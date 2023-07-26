@@ -151,3 +151,4 @@ bool save_configuration()
 	fclose(fp);
 	return true;
 }
+

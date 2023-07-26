@@ -2,11 +2,13 @@
 #include "ui.h"
 #include "ui-settings.h"
 #include "../sd-card/sd-card.h"
+#include "RevisionHistory.h"
 lv_obj_t* ui_settings_screen;
 lv_obj_t* ui_settings_bluetooth_page;
 lv_obj_t* ui_settings_wifi_page;
 lv_obj_t* ui_settings_opc_page;
 lv_obj_t* ui_settings_sdcard_page;
+lv_obj_t* ui_settings_system_page;
 lv_obj_t* settings_active_menu = NULL;
 lv_obj_t* settings_active_page = NULL;
 bool ui_settings_initialized = false;
@@ -43,6 +45,10 @@ void event_settings_submenu_cb(lv_event_t* e)
 	case SETTINGS_SUBMENU_SDCARD:
 		settings_active_page = ui_settings_sdcard_page;
 		lv_obj_clear_flag(ui_settings_sdcard_page, LV_OBJ_FLAG_HIDDEN);
+		break;
+	case SETTINGS_SUBMENU_SYSTEM:
+		settings_active_page = ui_settings_system_page;
+		lv_obj_clear_flag(ui_settings_system_page, LV_OBJ_FLAG_HIDDEN);
 		break;
 	default:
 		break;
@@ -331,6 +337,84 @@ void ui_settings_sdcard_page_init()
 	ui_settings.ui_sdcard.automount = obj;
 }
 
+void ui_settings_system_page_init()
+{
+	ui_settings_system_page = lv_obj_create(ui_settings_screen);
+	lv_obj_set_size(ui_settings_system_page, 375, 256); //480-105
+	lv_obj_set_pos(ui_settings_system_page, 102, 32); 
+	lv_obj_set_style_pad_all(ui_settings_system_page, 10, LV_PART_MAIN);
+	lv_obj_t* obj = ui_create_label(ui_settings_system_page, "SYSTEM", &lv_font_montserrat_20);
+	lv_obj_set_align(obj, LV_ALIGN_TOP_MID);
+	
+	uint16_t x = 0, y = 40, step = SETTINGS_LINE_SPACE -10;
+
+	obj = ui_create_label(ui_settings_system_page, "Revision: ", &lv_font_montserrat_14);
+	lv_obj_set_pos(obj, 0, y);
+	obj = ui_create_label(ui_settings_system_page, MajorStep, &lv_font_montserrat_14);	
+	lv_obj_set_pos(obj, 160, y);
+	
+	y += step;
+	obj = ui_create_label(ui_settings_system_page, "Release date: ", &lv_font_montserrat_14);
+	lv_obj_set_pos(obj, 0, y);
+	obj = ui_create_label(ui_settings_system_page, RevisionDate, &lv_font_montserrat_14);	
+	lv_obj_set_pos(obj, 160, y);
+	
+	y += step;
+	obj = ui_create_label(ui_settings_system_page, "CPU: ", &lv_font_montserrat_14);
+	lv_obj_set_pos(obj, 0, y);
+	
+	esp_chip_info_t chip_info;
+	esp_chip_info(&chip_info);
+	
+	// CPU Speed - 80Mhz / 160 Mhz / 240Mhz
+	rtc_cpu_freq_config_t conf;
+	rtc_clk_cpu_freq_get_config(&conf);
+
+	
+	char info[1024] = { 0 };
+	sprintf(info,
+		"%s Rev. %d\n%s %dMHz",
+		CONFIG_IDF_TARGET,
+		(int)chip_info.revision, 
+		chip_info.cores == 2 ? "Dual Core" : "Single Core",
+		(int)conf.freq_mhz);
+	obj = ui_create_label(ui_settings_system_page, info, &lv_font_montserrat_14);	
+	lv_obj_set_pos(obj, 160, y);
+	
+	
+	y += step + 10;
+	obj = ui_create_label(ui_settings_system_page, "Flash: ", &lv_font_montserrat_14);
+	lv_obj_set_pos(obj, 0, y);
+	uint32_t flash_size;
+	if (esp_flash_get_size(NULL, &flash_size) == ESP_OK)
+	{
+		sprintf(info,
+			"%dMB %s", 
+			(int)flash_size / (1024 * 1024),
+			(chip_info.features & CHIP_FEATURE_EMB_FLASH) ? "[embedded]" : "[external]");
+	}
+	else
+	{
+		strcpy(info, "");
+	}
+	obj = ui_create_label(ui_settings_system_page, info, &lv_font_montserrat_14);	
+	lv_obj_set_pos(obj, 160, y);
+	
+	y += step;
+	obj = ui_create_label(ui_settings_system_page, "Wifi: ", &lv_font_montserrat_14);
+	lv_obj_set_pos(obj, 0, y);
+	obj = ui_create_label(ui_settings_system_page, (char*)((chip_info.features & CHIP_FEATURE_WIFI_BGN) ? "2.4GHz WIFI" : "NA"), &lv_font_montserrat_14);	
+	lv_obj_set_pos(obj, 160, y);
+	
+	y += step;
+	obj = ui_create_label(ui_settings_system_page, "Bluetooth: ", &lv_font_montserrat_14);
+	lv_obj_set_pos(obj, 0, y);
+	sprintf(info, "%s%s", (chip_info.features & CHIP_FEATURE_BT) ? "/BT" : "", (chip_info.features & CHIP_FEATURE_BLE) ? "/BLE" : "");
+	obj = ui_create_label(ui_settings_system_page, info, &lv_font_montserrat_14);	
+	lv_obj_set_pos(obj, 160, y);
+}
+
+
 void ui_settings_screen_init()
 {
 	ui_settings_screen = ui_create_screen();	
@@ -370,6 +454,10 @@ void ui_settings_screen_init()
 	obj = ui_create_button(submenu, "SD CARD", LV_PCT(100), 30, 3, SUBMENU_NORMAL_ITEM_COLOR, &lv_font_montserrat_14, event_settings_submenu_cb, (void*)SETTINGS_SUBMENU_SDCARD);
 	lv_obj_set_user_data(obj, (void*)SETTINGS_SUBMENU_SDCARD);
 	y += step; lv_obj_set_pos(obj, 0, y);
+	
+	obj = ui_create_button(submenu, "SYSTEM", LV_PCT(100), 30, 3, SUBMENU_NORMAL_ITEM_COLOR, &lv_font_montserrat_14, event_settings_submenu_cb, (void*)SETTINGS_SUBMENU_SYSTEM);
+	lv_obj_set_user_data(obj, (void*)SETTINGS_SUBMENU_SYSTEM);
+	y += step; lv_obj_set_pos(obj, 0, y);
 
 	ui_settings_bluetooth_page_init();
 	settings_active_page = ui_settings_bluetooth_page;
@@ -379,6 +467,8 @@ void ui_settings_screen_init()
 	lv_obj_add_flag(ui_settings_opc_page, LV_OBJ_FLAG_HIDDEN);
 	ui_settings_sdcard_page_init();
 	lv_obj_add_flag(ui_settings_sdcard_page, LV_OBJ_FLAG_HIDDEN);
+	ui_settings_system_page_init();
+	lv_obj_add_flag(ui_settings_system_page, LV_OBJ_FLAG_HIDDEN);
 	
 	obj = ui_create_button(ui_settings_screen, "Save Config", 133, 24, 3, BUTTON_BACKGROUND_COLOR, &lv_font_montserrat_14, event_settings_save_cb, NULL);
 	lv_obj_set_pos(obj, 102, 292);
