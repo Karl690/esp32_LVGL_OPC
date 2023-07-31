@@ -1,7 +1,9 @@
 #include "main.h"
 #include "ui.h"
 #include "ui-settings.h"
+#include "../wifi/wifi.h"
 #include "../sd-card/sd-card.h"
+#include "../bluetooth/bluetooth.h"
 #include "RevisionHistory.h"
 lv_obj_t* ui_settings_screen;
 lv_obj_t* ui_settings_bluetooth_page;
@@ -85,11 +87,24 @@ void event_settings_switch_cb(lv_event_t* e)
 	
 	if (data == &systemconfig.bluetooth.status)
 	{
-	
+		if (state) {
+			systemconfig.bluetooth.status = ble_enable();
+		}
+		else ble_disable();
+		
+		if (systemconfig.bluetooth.status) lv_obj_add_state(ui_settings.ui_bluetooth.status, LV_STATE_CHECKED);
+		else lv_obj_clear_flag(ui_settings.ui_bluetooth.status, LV_STATE_CHECKED);
 	}
 	else if (data == &systemconfig.wifi.status)
 	{	
-	}
+		if (state) wifi_connect();
+		else wifi_disconnect();
+		if (systemconfig.wifi.status) lv_obj_add_state(ui_settings.ui_wifi.status, LV_STATE_CHECKED);
+		else lv_obj_clear_flag(ui_settings.ui_wifi.status, LV_STATE_CHECKED);
+		
+		lv_label_set_text(ui_settings.ui_wifi.ip, (const char*)systemconfig.wifi.ip);
+		lv_label_set_text(ui_settings.ui_wifi.subnet, (const char*)systemconfig.wifi.subnet);
+	}		
 	else if (data == &systemconfig.opc.status)
 	{
 		

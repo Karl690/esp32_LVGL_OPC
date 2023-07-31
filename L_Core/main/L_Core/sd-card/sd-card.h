@@ -11,6 +11,6 @@
 #define PIN_NUM_CLK   GPIO_NUM_39//CONFIG_EXAMPLE_PIN_CLK
 #define PIN_NUM_CS    GPIO_NUM_41//CONFIG_EXAMPLE_PIN_CS
 
-bool Init_Sdcard();
+bool sdcard_init();
 bool sdcard_mount();
 void sdcard_umount();

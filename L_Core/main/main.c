@@ -16,26 +16,32 @@ extern "C" void app_main(void)
 {
 	//esp_log_level_set(TAG, ESP_LOG_DEBUG); // enable DEBUG logs for this App
     //Initialize NVS
-	//esp_err_t ret = 
-	nvs_flash_init();
-//	if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-//		ESP_ERROR_CHECK(nvs_flash_erase());
-//		ret = nvs_flash_init();
-//	}
-	//ESP_ERROR_CHECK(ret);
+	esp_err_t ret = nvs_flash_init();
+	if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+		ESP_ERROR_CHECK(nvs_flash_erase());
+		ret = nvs_flash_init();
+	}
+	ESP_ERROR_CHECK(ret);
 	
 	IsInitialized = false;
-	if (Init_Sdcard())
+	if (sdcard_init())
 	{	
 		systemconfig.sdcard.automount = 1;
 		//first, mount sdcard to read the config file.
 		systemconfig.sdcard.status = sdcard_mount();	
 	}
 	
+	
 	load_configuration();
 	
-	InitWifi();
-	//Init_BluetoothLE();
+	wifi_init();
+	ble_init();
+	
+	
+	
+	if (systemconfig.wifi.autoconnect) wifi_connect();
+	//if (systemconfig.bluetooth.autostart) ble_enable();
+	
 	
 #ifdef USE_OPC
 	InitOPC();
@@ -44,6 +50,8 @@ extern "C" void app_main(void)
 	InitUI();
 	
 	K_Core_Main();
+	
+	
 	IsInitialized = true;
 }
 

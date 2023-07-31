@@ -10,7 +10,7 @@ esp_vfs_fat_sdmmc_mount_config_t mount_config = {
 	.allocation_unit_size = 16 * 1024
 };
 sdmmc_host_t host = SDSPI_HOST_DEFAULT();
-bool Init_Sdcard()
+bool sdcard_init()
 {
 	ESP_LOGI(TAG, "Initializing SD card");
 

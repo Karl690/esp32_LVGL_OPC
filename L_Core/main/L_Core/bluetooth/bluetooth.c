@@ -36,20 +36,7 @@ static const uint8_t spp_adv_data[23] = {
 	/* Complete Local Name in advertising */
 	0x0F,
 	 0x09,
-	'E',
-	'S',
-	'P',
-	'_',
-	'S',
-	'P',
-	'P',
-	'_',
-	'S',
-	'E',
-	'R',
-	 'V',
-	'E',
-	'R'
+	'E','S','P','_','S','P','P','_','S','E','R','V','E','R'
 };
 
 static uint16_t spp_mtu_size = 23;
@@ -777,39 +764,53 @@ static void gatts_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_
 }
 
 
-void Init_BluetoothLE()
+//init bluetooth device.
+void ble_init()
 {
-	esp_err_t ret;
 	esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
 	
 	ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT));
-	ret = esp_bt_controller_init(&bt_cfg);
-	if (ret) {
-		ESP_LOGE(GATTS_TABLE_TAG, "%s enable controller failed: %s\n", __func__, esp_err_to_name(ret));
-		return;
-	}
+	esp_bt_controller_init(&bt_cfg);
+}
+	
+//enabled bluetooth device
+bool ble_enable()
+{
+	esp_err_t ret;
 	ret = esp_bt_controller_enable(ESP_BT_MODE_BLE);
 	if (ret) {
 		ESP_LOGE(TAG, "%s enable controller failed: %s\n", __func__, esp_err_to_name(ret));
-		return;
+		return false;
 	}
 	
 	ESP_LOGI(TAG, "%s init bluetooth\n", __func__);
 	ret = esp_bluedroid_init();
 	if (ret) {
 		ESP_LOGE(TAG, "%s init bluetooth failed: %s\n", __func__, esp_err_to_name(ret));
-		return;
+		return false;
 	}
 	ret = esp_bluedroid_enable();
 	if (ret) {
 		ESP_LOGE(TAG, "%s enable bluetooth failed: %s\n", __func__, esp_err_to_name(ret));
-		return;
+		return false;
 	}
 
 	esp_ble_gatts_register_callback(gatts_event_handler);
 	esp_ble_gap_register_callback(gap_event_handler);
 	esp_ble_gatts_app_register(ESP_SPP_APP_ID);
+	
+	systemconfig.bluetooth.status = 1;
+	return true;
+}
 
-	//spp_task_init();
-
+//disable bluetooth device
+void ble_disable()
+{
+	esp_bluedroid_disable();
+	esp_bluedroid_deinit();
+	esp_bt_controller_disable();
+	esp_bt_controller_deinit();
+	
+	esp_ble_gatts_app_unregister(ESP_SPP_APP_ID);
+	systemconfig.bluetooth.status = 0;
 }

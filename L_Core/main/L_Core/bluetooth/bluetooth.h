@@ -40,5 +40,7 @@ enum {
 	SPP_IDX_NB,
 };
 
+void ble_init();
 
-void Init_BluetoothLE();
+bool ble_enable();
+void ble_disable();
