@@ -51,6 +51,8 @@ idf_component_register(
                 	L_Core/ui/images/fan.c
                 	L_Core/ui/images/heater.c
                 	L_Core/ui/images/mtr.c
+                	L_Core/server/server.c
+                	L_Core/ui/ui-server.c
                 INCLUDE_DIRS "."
                 REQUIRES
                 	LovyanGFX

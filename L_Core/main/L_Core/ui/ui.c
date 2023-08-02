@@ -16,7 +16,7 @@
 #include "ui-sdcard.h"
 #include "ui-settings.h"
 #include "ui-control.h"
-
+#include "ui-server.h"
 //#include "ui-opc.h"
 	
 lv_obj_t * keyboard;
@@ -157,6 +157,11 @@ void ui_transform_screen(SCREEN_TYPE screen)
 		lv_obj_set_parent(keyboard, ui_variables_screen);
 		lv_obj_set_parent(msgbox, ui_variables_screen);	
 		break;
+	case SCREEN_SERVER:
+		lv_scr_load_anim(ui_server_screen, LV_SCR_LOAD_ANIM_FADE_ON, 300, 0, false);
+		lv_obj_set_parent(keyboard, ui_server_screen);
+		lv_obj_set_parent(msgbox, ui_server_screen);	
+		break;
 	case SCREEN_SDCARD:
 		lv_scr_load_anim(ui_sdcard_screen, LV_SCR_LOAD_ANIM_FADE_ON, 300, 0, false);
 		lv_obj_set_parent(keyboard, ui_sdcard_screen);
@@ -185,6 +190,7 @@ void InitUI( void )
 	ui_splash_screen_init();
 	ui_home_screen_init();
 	ui_variables_screen_init();
+	ui_server_screen_init();
 	ui_sdcard_screen_init();
 	ui_settings_screen_init();
 	ui_control_screen_init();

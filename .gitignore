@@ -4,3 +4,5 @@ L_Core/build/
 L_Core/.vs/
 L_Core/L_Core.vgdbproj.falco.user
 
+LCoreClient/LCoreClient/obj/
+LCoreClient/.vs/

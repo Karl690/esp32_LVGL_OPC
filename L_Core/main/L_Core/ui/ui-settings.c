@@ -17,14 +17,14 @@ bool ui_settings_initialized = false;
 
 
 UI_SETTINGS ui_settings;
-void event_settings_submenu_cb(lv_event_t* e)
+void ui_settings_event_submenu_cb(lv_event_t* e)
 {
 	if (!ui_settings_initialized) return;
 	lv_obj_t * target = lv_event_get_target(e);	
 	SETTINGS_SUBMENU_TYPE type = (SETTINGS_SUBMENU_TYPE)(int) e->user_data;
 	if (settings_active_menu  == target) return;
-	if (settings_active_menu) lv_obj_set_style_bg_color(settings_active_menu, lv_color_hex(SUBMENU_NORMAL_ITEM_COLOR), LV_PART_MAIN);
-	lv_obj_set_style_bg_color(target, lv_color_hex(SUBMENU_ACTIVE_ITME_COLOR), LV_PART_MAIN);
+	if (settings_active_menu) lv_obj_set_style_bg_color(settings_active_menu, lv_color_hex(UI_MENU_NORMAL_ITEM_COLOR), LV_PART_MAIN);
+	lv_obj_set_style_bg_color(target, lv_color_hex(UI_MENU_ACTIVE_ITEM_COLOR), LV_PART_MAIN);
 	
 	if (settings_active_page) lv_obj_add_flag(settings_active_page, LV_OBJ_FLAG_HIDDEN);
 	switch (type)
@@ -58,7 +58,7 @@ void event_settings_submenu_cb(lv_event_t* e)
 	settings_active_menu = target;
 }
 
-void event_settings_edit_cb(lv_event_t* e)
+void ui_settings_event_edit_cb(lv_event_t* e)
 {
 	lv_event_code_t code = lv_event_get_code(e);
 	lv_obj_t * obj = lv_event_get_target(e);
@@ -79,7 +79,7 @@ void event_settings_edit_cb(lv_event_t* e)
 	}
 }
 
-void event_settings_switch_cb(lv_event_t* e)
+void ui_settings_event_switch_cb(lv_event_t* e)
 {
 	lv_obj_t * obj = lv_event_get_target(e);
 	uint8_t* data = (uint8_t*)lv_event_get_user_data(e);
@@ -93,14 +93,14 @@ void event_settings_switch_cb(lv_event_t* e)
 		else ble_disable();
 		
 		if (systemconfig.bluetooth.status) lv_obj_add_state(ui_settings.ui_bluetooth.status, LV_STATE_CHECKED);
-		else lv_obj_clear_flag(ui_settings.ui_bluetooth.status, LV_STATE_CHECKED);
+		else lv_obj_clear_state(ui_settings.ui_bluetooth.status, LV_STATE_CHECKED);
 	}
 	else if (data == &systemconfig.wifi.status)
 	{	
 		if (state) wifi_connect();
 		else wifi_disconnect();
 		if (systemconfig.wifi.status) lv_obj_add_state(ui_settings.ui_wifi.status, LV_STATE_CHECKED);
-		else lv_obj_clear_flag(ui_settings.ui_wifi.status, LV_STATE_CHECKED);
+		else lv_obj_clear_state(ui_settings.ui_wifi.status, LV_STATE_CHECKED);
 		
 		lv_label_set_text(ui_settings.ui_wifi.ip, (const char*)systemconfig.wifi.ip);
 		lv_label_set_text(ui_settings.ui_wifi.subnet, (const char*)systemconfig.wifi.subnet);
@@ -130,7 +130,7 @@ void event_settings_switch_cb(lv_event_t* e)
 	}
 }
 
-void event_settings_load_cb(lv_event_t* e)
+void ui_settings_event_load_cb(lv_event_t* e)
 {
 	if (!load_configuration())
 	{
@@ -143,7 +143,7 @@ void event_settings_load_cb(lv_event_t* e)
 	}
 }
 
-void event_settings_save_cb(lv_event_t* e)
+void ui_settings_event_save_cb(lv_event_t* e)
 {
 	if (!save_configuration())
 	{
@@ -170,7 +170,7 @@ void ui_settings_bluetooth_page_init()
 	lv_obj_set_pos(obj, 160, y);
 	if (systemconfig.bluetooth.status) lv_obj_add_state(obj, LV_STATE_CHECKED);
 	else lv_obj_add_state(obj, LV_STATE_CHECKED);
-	lv_obj_add_event_cb(obj, event_settings_switch_cb, LV_EVENT_VALUE_CHANGED, &systemconfig.bluetooth.status);
+	lv_obj_add_event_cb(obj, ui_settings_event_switch_cb, LV_EVENT_VALUE_CHANGED, &systemconfig.bluetooth.status);
 	ui_settings.ui_bluetooth.status = obj;
 	
 	y += SETTINGS_LINE_SPACE;
@@ -180,7 +180,7 @@ void ui_settings_bluetooth_page_init()
 	lv_obj_set_pos(obj, 160, y);
 	if (systemconfig.bluetooth.autostart) lv_obj_add_state(obj, LV_STATE_CHECKED);
 	else lv_obj_add_state(obj, LV_STATE_CHECKED);
-	lv_obj_add_event_cb(obj, event_settings_switch_cb, LV_EVENT_VALUE_CHANGED, &systemconfig.bluetooth.autostart);
+	lv_obj_add_event_cb(obj, ui_settings_event_switch_cb, LV_EVENT_VALUE_CHANGED, &systemconfig.bluetooth.autostart);
 	ui_settings.ui_bluetooth.autostart = obj;
 }
 
@@ -198,12 +198,12 @@ void ui_settings_wifi_page_init()
 	lv_obj_set_pos(obj, 0, y + 10);
 	
 	obj = lv_textarea_create(ui_settings_wifi_page);
-	lv_obj_set_style_border_color(obj, lv_color_hex(SETTINGS_TEXTAREA_BORDER_COLOR), LV_PART_MAIN);
+	lv_obj_set_style_border_color(obj, lv_color_hex(UI_BACKGROUND_COLOR), LV_PART_MAIN);
 	lv_obj_set_style_border_width(obj, 1, LV_PART_MAIN);
 	lv_textarea_set_one_line(obj, true);
 	lv_obj_set_width(obj, 150);
 	lv_obj_set_pos(obj, 160, y);
-	lv_obj_add_event_cb(obj, event_settings_edit_cb, LV_EVENT_ALL, &systemconfig.wifi.ssid);
+	lv_obj_add_event_cb(obj, ui_settings_event_edit_cb, LV_EVENT_ALL, &systemconfig.wifi.ssid);
 	lv_textarea_set_text(obj, (const char*)systemconfig.wifi.ssid);
 	lv_obj_set_user_data(obj, systemconfig.wifi.ssid);
 	ui_settings.ui_wifi.ssid = obj;
@@ -212,13 +212,13 @@ void ui_settings_wifi_page_init()
 	obj = ui_create_label(ui_settings_wifi_page, "WIFI PASSWORD: ", &lv_font_montserrat_14);
 	lv_obj_set_pos(obj, 0, y + 10);
 	obj = lv_textarea_create(ui_settings_wifi_page);	
-	lv_obj_set_style_border_color(obj, lv_color_hex(SETTINGS_TEXTAREA_BORDER_COLOR), LV_PART_MAIN);
+	lv_obj_set_style_border_color(obj, lv_color_hex(UI_BACKGROUND_COLOR), LV_PART_MAIN);
 	lv_obj_set_style_border_width(obj, 1, LV_PART_MAIN);
 	lv_textarea_set_one_line(obj, true);
 	lv_textarea_set_password_mode(obj, true);
 	lv_obj_set_width(obj, 150);
 	lv_obj_set_pos(obj, 160, y);
-	lv_obj_add_event_cb(obj, event_settings_edit_cb, LV_EVENT_ALL, &systemconfig.wifi.password);
+	lv_obj_add_event_cb(obj, ui_settings_event_edit_cb, LV_EVENT_ALL, &systemconfig.wifi.password);
 	lv_textarea_set_text(obj, (const char*)systemconfig.wifi.password);
 	lv_obj_set_user_data(obj, systemconfig.wifi.password);
 	ui_settings.ui_wifi.password = obj;
@@ -230,7 +230,7 @@ void ui_settings_wifi_page_init()
 	lv_obj_set_pos(obj, 160, y);
 	if (systemconfig.wifi.autoconnect) lv_obj_add_state(obj, LV_STATE_CHECKED);
 	else lv_obj_add_state(obj, LV_STATE_CHECKED);
-	lv_obj_add_event_cb(obj, event_settings_switch_cb, LV_EVENT_VALUE_CHANGED, &systemconfig.wifi.autoconnect);
+	lv_obj_add_event_cb(obj, ui_settings_event_switch_cb, LV_EVENT_VALUE_CHANGED, &systemconfig.wifi.autoconnect);
 	ui_settings.ui_wifi.autoconnect = obj;
 	
 	y += SETTINGS_LINE_SPACE;
@@ -240,7 +240,7 @@ void ui_settings_wifi_page_init()
 	lv_obj_set_pos(obj, 160, y);
 	if (systemconfig.wifi.autoconnect) lv_obj_add_state(obj, LV_STATE_CHECKED);
 	else lv_obj_add_state(obj, LV_STATE_CHECKED);	
-	lv_obj_add_event_cb(obj, event_settings_switch_cb, LV_EVENT_VALUE_CHANGED, &systemconfig.wifi.status);
+	lv_obj_add_event_cb(obj, ui_settings_event_switch_cb, LV_EVENT_VALUE_CHANGED, &systemconfig.wifi.status);
 	ui_settings.ui_wifi.status = obj;
 	
 	
@@ -259,7 +259,7 @@ void ui_settings_wifi_page_init()
 	obj = lv_label_create(ui_settings_wifi_page);
 	lv_obj_set_pos(obj, 160, y);
 	lv_label_set_text(obj, (const char*)systemconfig.wifi.subnet);
-	lv_obj_add_event_cb(obj, event_settings_switch_cb, LV_EVENT_VALUE_CHANGED, &systemconfig.wifi.autoconnect);
+	lv_obj_add_event_cb(obj, ui_settings_event_switch_cb, LV_EVENT_VALUE_CHANGED, &systemconfig.wifi.autoconnect);
 	ui_settings.ui_wifi.subnet= obj;
 	
 	
@@ -278,12 +278,12 @@ void ui_settings_opc_page_init()
 	obj = ui_create_label(ui_settings_opc_page, "User name: ", &lv_font_montserrat_14);
 	lv_obj_set_pos(obj, 0, y + 10);
 	obj = lv_textarea_create(ui_settings_opc_page);
-	lv_obj_set_style_border_color(obj, lv_color_hex(SETTINGS_TEXTAREA_BORDER_COLOR), LV_PART_MAIN);
+	lv_obj_set_style_border_color(obj, lv_color_hex(UI_BACKGROUND_COLOR), LV_PART_MAIN);
 	lv_obj_set_style_border_width(obj, 1, LV_PART_MAIN);
 	lv_textarea_set_one_line(obj, true);
 	lv_obj_set_width(obj, 150);
 	lv_obj_set_pos(obj, 160, y);
-	lv_obj_add_event_cb(obj, event_settings_edit_cb, LV_EVENT_ALL, &systemconfig.opc.username);
+	lv_obj_add_event_cb(obj, ui_settings_event_edit_cb, LV_EVENT_ALL, &systemconfig.opc.username);
 	lv_textarea_set_text(obj, (const char*)systemconfig.opc.username);
 	ui_settings.ui_opc.name = obj;
 	
@@ -291,13 +291,13 @@ void ui_settings_opc_page_init()
 	obj = ui_create_label(ui_settings_opc_page, "User password: ", &lv_font_montserrat_14);
 	lv_obj_set_pos(obj, 0, y + 10);
 	obj = lv_textarea_create(ui_settings_opc_page);
-	lv_obj_set_style_border_color(obj, lv_color_hex(SETTINGS_TEXTAREA_BORDER_COLOR), LV_PART_MAIN);
+	lv_obj_set_style_border_color(obj, lv_color_hex(UI_BACKGROUND_COLOR), LV_PART_MAIN);
 	lv_obj_set_style_border_width(obj, 1, LV_PART_MAIN);
 	lv_textarea_set_one_line(obj, true);
 	lv_textarea_set_password_mode(obj, true);
 	lv_obj_set_width(obj, 150);
 	lv_obj_set_pos(obj, 160, y);
-	lv_obj_add_event_cb(obj, event_settings_edit_cb, LV_EVENT_ALL, &systemconfig.opc.userpassword);
+	lv_obj_add_event_cb(obj, ui_settings_event_edit_cb, LV_EVENT_ALL, &systemconfig.opc.userpassword);
 	lv_textarea_set_text(obj, (const char*)systemconfig.opc.userpassword);
 	ui_settings.ui_opc.password = obj;
 	
@@ -308,7 +308,7 @@ void ui_settings_opc_page_init()
 	lv_obj_set_pos(obj, 160, y);
 	if (systemconfig.opc.status) lv_obj_add_state(obj, LV_STATE_CHECKED);
 	else lv_obj_add_state(obj, LV_STATE_CHECKED);
-	lv_obj_add_event_cb(obj, event_settings_switch_cb, LV_EVENT_VALUE_CHANGED, &systemconfig.opc.status);
+	lv_obj_add_event_cb(obj, ui_settings_event_switch_cb, LV_EVENT_VALUE_CHANGED, &systemconfig.opc.status);
 	ui_settings.ui_opc.status = obj;
 	
 	y += SETTINGS_LINE_SPACE;
@@ -318,7 +318,7 @@ void ui_settings_opc_page_init()
 	lv_obj_set_pos(obj, 160, y);
 	if (systemconfig.opc.autostart) lv_obj_add_state(obj, LV_STATE_CHECKED);
 	else lv_obj_add_state(obj, LV_STATE_CHECKED);
-	lv_obj_add_event_cb(obj, event_settings_switch_cb, LV_EVENT_VALUE_CHANGED, &systemconfig.opc.autostart);
+	lv_obj_add_event_cb(obj, ui_settings_event_switch_cb, LV_EVENT_VALUE_CHANGED, &systemconfig.opc.autostart);
 	ui_settings.ui_opc.autostart = obj;
 }
 
@@ -338,7 +338,7 @@ void ui_settings_sdcard_page_init()
 	lv_obj_set_pos(obj, 160, y);
 	if (systemconfig.sdcard.status) lv_obj_add_state(obj, LV_STATE_CHECKED);
 	else lv_obj_add_state(obj, LV_STATE_CHECKED);
-	lv_obj_add_event_cb(obj, event_settings_switch_cb, LV_EVENT_VALUE_CHANGED, &systemconfig.sdcard.status);
+	lv_obj_add_event_cb(obj, ui_settings_event_switch_cb, LV_EVENT_VALUE_CHANGED, &systemconfig.sdcard.status);
 	ui_settings.ui_sdcard.status = obj;
 	
 	y += SETTINGS_LINE_SPACE;
@@ -348,7 +348,7 @@ void ui_settings_sdcard_page_init()
 	lv_obj_set_pos(obj, 160, y);
 	if (systemconfig.sdcard.automount) lv_obj_add_state(obj, LV_STATE_CHECKED);
 	else lv_obj_add_state(obj, LV_STATE_CHECKED);
-	lv_obj_add_event_cb(obj, event_settings_switch_cb, LV_EVENT_VALUE_CHANGED, &systemconfig.sdcard.automount);
+	lv_obj_add_event_cb(obj, ui_settings_event_switch_cb, LV_EVENT_VALUE_CHANGED, &systemconfig.sdcard.automount);
 	ui_settings.ui_sdcard.automount = obj;
 }
 
@@ -452,25 +452,25 @@ void ui_settings_screen_init()
 	lv_obj_set_style_pad_all(submenu, 2, LV_PART_MAIN);
 	
 	int y = 2, step = 35;
-	lv_obj_t* obj = ui_create_button(submenu, "Bluetooth", LV_PCT(100), 30, 3, SUBMENU_ACTIVE_ITME_COLOR, &lv_font_montserrat_14, event_settings_submenu_cb, (void*)SETTINGS_SUBMENU_BLUETOOTH);
+	lv_obj_t* obj = ui_create_button(submenu, "Bluetooth", LV_PCT(100), 30, 3, UI_MENU_ACTIVE_ITEM_COLOR, &lv_font_montserrat_14, ui_settings_event_submenu_cb, (void*)SETTINGS_SUBMENU_BLUETOOTH);
 	lv_obj_set_user_data(obj, (void*)SETTINGS_SUBMENU_BLUETOOTH);
 	lv_obj_set_pos(obj, 0, y);
 	settings_active_menu = obj;
-	obj = ui_create_button(submenu, "WIFI", LV_PCT(100), 30, 3, SUBMENU_NORMAL_ITEM_COLOR, &lv_font_montserrat_14, event_settings_submenu_cb, (void*)SETTINGS_SUBMENU_WIFI);
+	obj = ui_create_button(submenu, "WIFI", LV_PCT(100), 30, 3, UI_MENU_NORMAL_ITEM_COLOR, &lv_font_montserrat_14, ui_settings_event_submenu_cb, (void*)SETTINGS_SUBMENU_WIFI);
 	lv_obj_set_user_data(obj, (void*)SETTINGS_SUBMENU_BLUETOOTH);
 	y += step; 	lv_obj_set_pos(obj, 0, y);
-	obj = ui_create_button(submenu, "OPC", LV_PCT(100), 30, 3, SUBMENU_NORMAL_ITEM_COLOR, &lv_font_montserrat_14, event_settings_submenu_cb, (void*)SETTINGS_SUBMENU_OPC);
+	obj = ui_create_button(submenu, "OPC", LV_PCT(100), 30, 3, UI_MENU_NORMAL_ITEM_COLOR, &lv_font_montserrat_14, ui_settings_event_submenu_cb, (void*)SETTINGS_SUBMENU_OPC);
 	lv_obj_set_user_data(obj, (void*)SETTINGS_SUBMENU_OPC);
 	y += step; lv_obj_set_pos(obj, 0, y);
-	obj = ui_create_button(submenu, "SERIAL", LV_PCT(100), 30, 3, SUBMENU_NORMAL_ITEM_COLOR, &lv_font_montserrat_14, event_settings_submenu_cb, (void*)SETTINGS_SUBMENU_SERIAL);
+	obj = ui_create_button(submenu, "SERIAL", LV_PCT(100), 30, 3, UI_MENU_NORMAL_ITEM_COLOR, &lv_font_montserrat_14, ui_settings_event_submenu_cb, (void*)SETTINGS_SUBMENU_SERIAL);
 	lv_obj_set_user_data(obj, (void*)SETTINGS_SUBMENU_SERIAL);
 	y += step; lv_obj_set_pos(obj, 0, y);
 	
-	obj = ui_create_button(submenu, "SD CARD", LV_PCT(100), 30, 3, SUBMENU_NORMAL_ITEM_COLOR, &lv_font_montserrat_14, event_settings_submenu_cb, (void*)SETTINGS_SUBMENU_SDCARD);
+	obj = ui_create_button(submenu, "SD CARD", LV_PCT(100), 30, 3, UI_MENU_NORMAL_ITEM_COLOR, &lv_font_montserrat_14, ui_settings_event_submenu_cb, (void*)SETTINGS_SUBMENU_SDCARD);
 	lv_obj_set_user_data(obj, (void*)SETTINGS_SUBMENU_SDCARD);
 	y += step; lv_obj_set_pos(obj, 0, y);
 	
-	obj = ui_create_button(submenu, "SYSTEM", LV_PCT(100), 30, 3, SUBMENU_NORMAL_ITEM_COLOR, &lv_font_montserrat_14, event_settings_submenu_cb, (void*)SETTINGS_SUBMENU_SYSTEM);
+	obj = ui_create_button(submenu, "SYSTEM", LV_PCT(100), 30, 3, UI_MENU_NORMAL_ITEM_COLOR, &lv_font_montserrat_14, ui_settings_event_submenu_cb, (void*)SETTINGS_SUBMENU_SYSTEM);
 	lv_obj_set_user_data(obj, (void*)SETTINGS_SUBMENU_SYSTEM);
 	y += step; lv_obj_set_pos(obj, 0, y);
 
@@ -485,9 +485,9 @@ void ui_settings_screen_init()
 	ui_settings_system_page_init();
 	lv_obj_add_flag(ui_settings_system_page, LV_OBJ_FLAG_HIDDEN);
 	
-	obj = ui_create_button(ui_settings_screen, "Save Config", 133, 24, 3, BUTTON_BACKGROUND_COLOR, &lv_font_montserrat_14, event_settings_save_cb, NULL);
+	obj = ui_create_button(ui_settings_screen, "Save Config", 133, 24, 3, BUTTON_BACKGROUND_COLOR, &lv_font_montserrat_14, ui_settings_event_save_cb, NULL);
 	lv_obj_set_pos(obj, 102, 292);
-	obj = ui_create_button(ui_settings_screen, "Load default config", 239, 24, 3, BUTTON_BACKGROUND_COLOR, &lv_font_montserrat_14, event_settings_load_cb, NULL);
+	obj = ui_create_button(ui_settings_screen, "Load default config", 239, 24, 3, BUTTON_BACKGROUND_COLOR, &lv_font_montserrat_14, ui_settings_event_load_cb, NULL);
 	lv_obj_set_pos(obj, 238, 292);
 	
 	ui_settings_update_configuratiion();

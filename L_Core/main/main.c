@@ -3,6 +3,7 @@
 #include "L_Core/wifi/wifi.h"
 #include "L_Core/bluetooth/bluetooth.h"
 #include "L_Core/sd-card/sd-card.h"
+#include "L_Core/server/server.h"
 #ifdef USE_OPC
 #include "L_Core/open62541/opc.h"
 #endif
@@ -37,9 +38,10 @@ extern "C" void app_main(void)
 	wifi_init();
 	ble_init();
 	
-	
-	
-	if (systemconfig.wifi.autoconnect) wifi_connect();
+	if (systemconfig.wifi.autoconnect) {
+		wifi_connect();
+		if (systemconfig.wifi.status) server_start();
+	}
 	//if (systemconfig.bluetooth.autostart) ble_enable();
 	
 	

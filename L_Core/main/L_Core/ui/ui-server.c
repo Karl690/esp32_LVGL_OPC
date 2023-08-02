@@ -1,0 +1,101 @@
+#include "ui.h"
+#include "ui-sdcard.h"
+#include <dirent.h> 
+#include <stdio.h>
+#include "main.h"
+
+#include "../server/server.h"
+
+lv_obj_t* ui_server_screen;
+
+
+void ui_server_event_switch_cb(lv_event_t* e)
+{
+	lv_obj_t * obj = lv_event_get_target(e);
+	bool state = lv_obj_has_state(obj, LV_STATE_CHECKED);
+	if (state)
+	{
+		if (!server_start()) lv_obj_clear_state(obj, LV_STATE_CHECKED);
+	}
+	else
+	{
+		server_stop();
+		//lv_obj_clear_state(obj, LV_STATE_CHECKED);
+	}
+}
+
+void ui_server_event_edit_cb(lv_event_t* e)
+{
+	lv_event_code_t code = lv_event_get_code(e);
+	lv_obj_t * obj = lv_event_get_target(e);
+	if (code == LV_EVENT_CLICKED || code == LV_EVENT_FOCUSED)
+	{
+		if (keyboard != NULL)
+		{
+			lv_keyboard_set_textarea(keyboard, obj);
+			lv_obj_clear_flag(keyboard, LV_OBJ_FLAG_HIDDEN);
+		}
+		
+	}	
+	else if (code == LV_EVENT_READY)
+	{
+		lv_obj_add_flag(keyboard, LV_OBJ_FLAG_HIDDEN);
+	}
+}
+
+void ui_server_event_button_cb(lv_event_t* e)
+{
+	lv_obj_t* text = (lv_obj_t*)lv_event_get_user_data(e);	
+	const char* msg = lv_textarea_get_text(text);
+	server_send_broadcast((uint8_t*)msg, strlen(msg));
+}
+void ui_server_screen_init(void)
+{
+	ui_server_screen = ui_create_screen();	
+	lv_obj_t* titlebar = ui_create_titlebar(ui_server_screen, TITLEBAR_BACKGROUND_COLOR);
+	
+	lv_obj_t* title_label = lv_label_create(titlebar);	
+	lv_obj_set_width(title_label, LV_SIZE_CONTENT);
+	lv_obj_set_height(title_label, LV_SIZE_CONTENT);
+	lv_label_set_recolor(title_label, true);
+	lv_obj_set_style_text_color(title_label, lv_color_hex(0xFFFFFF), LV_PART_MAIN);
+	lv_label_set_text(title_label, "SOCKET SERVER");
+	lv_obj_set_style_text_font(title_label, &lv_font_montserrat_16, LV_PART_MAIN | LV_STATE_DEFAULT);	
+	lv_obj_align(title_label, LV_ALIGN_CENTER, 0, 0);
+	
+	lv_obj_t* panel = lv_obj_create(ui_server_screen);
+	lv_obj_set_size(panel, LV_PCT(100), 285);
+	lv_obj_set_pos(panel, 0, 33);
+	
+	
+	uint16_t x = 10, y = 10;
+	
+	lv_obj_t* obj = ui_create_label(panel, "IP: ", &lv_font_montserrat_14);
+	lv_obj_set_pos(obj, 0, y + 10);
+	obj = ui_create_label(panel, (char*)systemconfig.wifi.ip, &lv_font_montserrat_14);
+	lv_obj_set_pos(obj, 160, y);
+	
+	
+	y += 33;
+	obj = ui_create_label(panel, "Status: ", &lv_font_montserrat_14);
+	lv_obj_set_pos(obj, 0, y + 10);
+	obj = lv_switch_create(panel);
+	lv_obj_set_pos(obj, 160, y);
+	if (servier_is_status()) lv_obj_add_state(obj, LV_STATE_CHECKED);
+	else lv_obj_add_state(obj, LV_STATE_CHECKED);
+	lv_obj_add_event_cb(obj, ui_server_event_switch_cb, LV_EVENT_VALUE_CHANGED, NULL);
+	
+	y += 40;
+	lv_obj_t* txt = lv_textarea_create(panel);
+	lv_obj_set_size(txt, 300, LV_SIZE_CONTENT);
+	lv_obj_set_pos(txt, x, y);
+	lv_textarea_set_one_line(txt, true);
+	lv_obj_set_style_border_width(obj, 1, LV_PART_MAIN);
+	lv_obj_set_style_border_color(obj, lv_color_hex(UI_TEXTAREA_BORDER_COLOR), LV_PART_MAIN);
+	lv_obj_add_event_cb(txt, ui_server_event_edit_cb, LV_EVENT_ALL, NULL);
+	
+	obj = ui_create_button(panel, "Send", 60, 33, 2, 0xff0000, &lv_font_montserrat_14, ui_server_event_button_cb, txt);
+	lv_obj_set_pos(obj, 320, y);
+	
+}
+
