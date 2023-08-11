@@ -6,3 +6,6 @@ L_Core/L_Core.vgdbproj.falco.user
 
 LCoreClient/LCoreClient/obj/
 LCoreClient/.vs/
+LCoreClient/ESPScreenLib/bin/
+LCoreClient/ESPScreenLib/obj/
+LCoreClient/LCoreClient/bin/

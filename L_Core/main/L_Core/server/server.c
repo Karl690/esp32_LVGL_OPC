@@ -1,4 +1,5 @@
 #include "main.h"
+#include "../ui/ui.h"
 #include "server.h"
 #include <unistd.h>
 #include <stdbool.h>
@@ -7,38 +8,39 @@
 #include <sys/socket.h>
 #include <pthread.h>
 
-#include <map>
+#include "parse.h"
 
 
-
-#define MAX_CLIENT_NUM 2
+#define MAX_CLIENT_NUM 1
 #define SOCKET_CLIENT_BUFFER_SIZE 1024
-pthread_mutex_t mutex;
-pthread_t threadAccept = 0;
+pthread_t accept_thread;
 int listenfd;
 typedef struct client_socket {
 	int socket_fd;
 	struct sockaddr_in client_address;
-	pthread_t thread;
+	pthread_t client_thread;
 	uint8_t buf[SOCKET_CLIENT_BUFFER_SIZE];
 } client_socket;
 
 client_socket clientList[MAX_CLIENT_NUM];
-static void* server_client_handler(void* param)
+void* server_client_handler(void* param)
 {
 	client_socket *clientsocket = (client_socket *)param;
 	int socket_fd = clientsocket->socket_fd;
-	struct sockaddr_in client_address = clientsocket->client_address;
+	//struct sockaddr_in client_address = clientsocket->client_address;
 	
 	uint8_t* buffer = clientsocket->buf;
 	int bytes_read;
 	while ((bytes_read = recv(socket_fd, buffer, SOCKET_CLIENT_BUFFER_SIZE, 0)) > 0)
 	{
+		parse_command((char*)buffer);
 		send(socket_fd, "OK", 2, 0);
 	}
-	clientsocket->socket_fd = 0;
-	
+	clientsocket->socket_fd = 0;	
+	//clientsocket->client_thread = NULL;
+
 	close(socket_fd);
+	pthread_exit(0);
 	return NULL;
 }
 
@@ -68,12 +70,11 @@ int16_t server_send_buffer(int socketid, uint8_t* buf, uint16_t size)
 	return written;
 }
 
-static void* server_accept_handler(void* param)
+void* server_accept_handler(void* param)
 {
 	socklen_t client_address_len;	
 	int socketid;
-	client_socket* client;
-	pthread_t pthread;
+	client_socket* client;	
 	while (1)
 	{	
 		client = server_find_free_client();
@@ -85,7 +86,7 @@ static void* server_accept_handler(void* param)
 		if (socketid == -1)
 		{
 			perror("accept");
-			continue;
+			break;
 		}
 		if (!client)
 		{
@@ -99,20 +100,19 @@ static void* server_accept_handler(void* param)
 		/* Create thread to serve connection to client. */
 		client->client_address = client_address;
 		client->socket_fd = socketid;
-		if (pthread_create(&pthread, NULL, server_client_handler, (void *)client) != 0) {
-			perror("pthread_create");
-			continue;
-		}
-		client->thread = pthread;
+		
+		//xTaskCreate(&server_client_handler, "server_client_handler", 2048, client, 5, &client->taskHandler);
+		pthread_create(&client->client_thread, NULL, server_client_handler, client);
 	}
+	
+	pthread_exit(0);
 	return NULL;
 }
 
 bool server_start()
-{
+{	
 	struct sockaddr_in serv_addr; 
-//	pthread_mutex_init(&mutex, NULL);
-	threadAccept = 0;
+
 	listenfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (listenfd <  0) 
 	{
@@ -127,7 +127,7 @@ bool server_start()
 
 	int yes = 1;
 	if (setsockopt(listenfd, SOL_SOCKET,SO_REUSEADDR,(void*)&yes,sizeof(yes)) < 0) {
-			return false;
+		return false;
 	}
 	int rv = bind(listenfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)); 
 
@@ -138,8 +138,10 @@ bool server_start()
 	}
 
 	listen(listenfd, 10); 
-
-	pthread_create(&threadAccept, NULL, server_accept_handler, (void *) NULL);
+	
+	
+	//xTaskCreate(&server_accept_handler, "server_accept_handler", 2048, NULL, 5, &taskAccept);
+	pthread_create(&accept_thread, NULL, server_accept_handler, NULL);
 	return true;
 }
 
@@ -154,27 +156,23 @@ void server_send_broadcast(uint8_t* buf, int size)
 
 void server_client_close(int socketid)
 {
-	client_socket* client = server_find_client(socketid);
-	if (client && client->thread > 0)
-	{
-		pthread_cancel(client->thread);
-		close(client->socket_fd);
-		client->socket_fd = 0;	
-	}
+	close(socketid);
+	socketid = 0;
+	
 }
 void server_stop()
-{
-	if (threadAccept == 0) return;
+{	
 	for (int i = 0; i < MAX_CLIENT_NUM; i++)
 	{
 		if (clientList[i].socket_fd > 0) server_client_close(clientList[i].socket_fd);
 	}
 	close(listenfd);
-	pthread_cancel(threadAccept);
-	threadAccept = 0;
+	shutdown(listenfd, SHUT_RDWR);
+	listenfd = 0;
+	//accept_thread = 0;
 }
 
 bool servier_is_status()
 {
-	return threadAccept == 0 ? false : true;
+	return listenfd == 0 ? false : true;
 }

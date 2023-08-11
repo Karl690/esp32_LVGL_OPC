@@ -21,7 +21,6 @@
 
 
 #include "L_Core/devices/conf_WT32SCO1-Plus.h"
-using namespace std;
 
 extern const char *TAG;
 extern SYSTEMCONFIG systemconfig;

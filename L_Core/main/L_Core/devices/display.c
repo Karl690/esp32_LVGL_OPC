@@ -1,5 +1,5 @@
 #include "display.h"
-
+#include "../server/server.h"
 /*** Setup screen resolution for LVGL ***/
 static const uint16_t screenWidth = 480;// TFT_WIDTH;
 static const uint16_t screenHeight = 320;// TFT_HEIGHT;
@@ -10,9 +10,18 @@ static lv_disp_t *disp;
 static lv_theme_t *theme_current;
 static lv_color_t bg_theme_color;
 
+uint8_t* dispaly_snapshot_buffer;
+
 static LGFX lcd; // declare display variable
 
 static TaskHandle_t g_lvgl_task_handle;
+
+bool force_touch = 0;
+bool force_touched = 0;
+uint16_t force_touchx, force_touchy;
+
+bool display_screenshot = false;
+bool display_screenshot_completed = false;
 
 
 esp_err_t InitLCDAndLVGL()
@@ -34,11 +43,11 @@ esp_err_t InitLCDAndLVGL()
 	
 	/* LVGL : Setting up buffer to use for display */
 #if defined(LVGL_DOUBLE_BUFFER)
-	    // EXT_RAM_BSS_ATTR lv_color_t * buf1 = (lv_color_t *)malloc(screenWidth * BUFF_SIZE * sizeof(lv_color_t));
-	    // EXT_RAM_BSS_ATTR lv_color_t * buf2 = (lv_color_t *)malloc(screenWidth * BUFF_SIZE * sizeof(lv_color_t));
+	    EXT_RAM_BSS_ATTR lv_color_t * buf1 = (lv_color_t *)malloc(screenWidth * BUFF_SIZE * sizeof(lv_color_t));
+	    EXT_RAM_BSS_ATTR lv_color_t * buf2 = (lv_color_t *)malloc(screenWidth * BUFF_SIZE * sizeof(lv_color_t));
 
-	lv_color_t * buf1 = (lv_color_t *)heap_caps_malloc(screenWidth * BUFF_SIZE * sizeof(lv_color_t), MALLOC_CAP_DMA);
-	lv_color_t * buf2 = (lv_color_t *)heap_caps_malloc(screenWidth * BUFF_SIZE * sizeof(lv_color_t), MALLOC_CAP_DMA);
+	//lv_color_t * buf1 = (lv_color_t *)heap_caps_malloc(screenWidth * BUFF_SIZE * sizeof(lv_color_t), MALLOC_CAP_DMA);
+	//lv_color_t * buf2 = (lv_color_t *)heap_caps_malloc(screenWidth * BUFF_SIZE * sizeof(lv_color_t), MALLOC_CAP_DMA);
 
 	lv_disp_draw_buf_init(&draw_buf, buf1, buf2, screenWidth * BUFF_SIZE);    
 #else
@@ -86,15 +95,19 @@ esp_err_t InitLCDAndLVGL()
 	//    //bg_theme_color = theme_current->flags & LV_USE_THEME_DEFAULT ? DARK_COLOR_CARD : LIGHT_COLOR_CARD;
 	//    bg_theme_color = theme_current->flags & LV_USE_THEME_DEFAULT ? lv_palette_darken(LV_PALETTE_GREY, 5) : lv_color_hex(0xBFBFBD);
 
-	int err = xTaskCreatePinnedToCore(gui_task, "lv gui", 1024 * 16, NULL, 10, &g_lvgl_task_handle, 0);
+	int err = xTaskCreatePinnedToCore(gui_task, "lv gui", 1024 * 4, NULL, 10, &g_lvgl_task_handle, 0);
 	if (!err)
 	{
 		//ESP_LOGE(TAG, "Create task for LVGL failed");
 		if (lv_periodic_timer) esp_timer_delete(lv_periodic_timer);
 		return ESP_FAIL;
 	}
+	
+	//allocate the buf for snapshot.
+	dispaly_snapshot_buffer = (uint8_t*)heap_caps_malloc(SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(lv_color_t), MALLOC_CAP_SPIRAM);	
 	return ESP_OK;
 }
+
 
 // Display callback to flush the buffer to screen
 void display_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color_p)
@@ -110,12 +123,21 @@ void display_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color
 
 	/* With DMA */
 	// TODO: Yet to do performance test
+	
 	lcd.startWrite();
 	lcd.setAddrWindow(area->x1, area->y1, w, h);
 	lcd.pushImageDMA(area->x1, area->y1, area->x2 - area->x1 + 1, area->y2 - area->y1 + 1, (lgfx::swap565_t *)&color_p->full);
 	lcd.endWrite();
-
 	lv_disp_flush_ready(disp);
+	if (display_screenshot)
+	{	
+		size_t len = (area->x2 - area->x1 + 1) * (area->y2 - area->y1 + 1); /* Number of pixels */
+		len *= sizeof(lv_color_t);
+		memcpy(dispaly_snapshot_buffer + area->y1 * w * sizeof(lv_color_t), color_p, len);
+		
+		if (area->y2 + 1 >= SCREEN_HEIGHT) display_screenshot_completed = true;
+		else display_screenshot_completed = false;
+	}
 }
 
 /* Setting up tick task for lvgl */
@@ -139,12 +161,26 @@ void gui_task(void *args)
 	}
 }
 
+
 // Touchpad callback to read the touchpad
 void touchpad_read(lv_indev_drv_t *indev_driver, lv_indev_data_t *data)
 {
-	uint16_t touchX, touchY;
-	bool touched = lcd.getTouch(&touchX, &touchY);
-
+	uint16_t touchX = 0, touchY = 0;
+	bool touched = 0;
+	if (force_touch) 
+	{
+		// Manually issue a touch event
+		touched = force_touched;
+		touchX = force_touchx;
+		touchY = force_touchy;
+		
+	}
+	else
+	{
+		touched = lcd.getTouch(&touchX, &touchY);
+	}
+	
+	
 	if (!touched)
 	{
 		data->state = LV_INDEV_STATE_REL;
@@ -157,4 +193,5 @@ void touchpad_read(lv_indev_drv_t *indev_driver, lv_indev_data_t *data)
 		data->point.x = touchX;
 		data->point.y = touchY;
 	}
+	force_touch = false;
 }

@@ -17,7 +17,7 @@
 #include "ui-settings.h"
 #include "ui-control.h"
 #include "ui-server.h"
-//#include "ui-opc.h"
+#include "ui-pct.h"
 	
 lv_obj_t * keyboard;
 lv_obj_t* msgbox;
@@ -90,7 +90,7 @@ lv_obj_t* ui_create_button(lv_obj_t* parent,
 	lv_obj_set_height(label, LV_SIZE_CONTENT); /// 1
 	lv_obj_set_align(label, LV_ALIGN_CENTER);
 	lv_label_set_recolor(label, true);
-	lv_label_set_text(label, text);
+	lv_label_set_text_fmt(label, text);
 	lv_obj_set_style_text_font(label, font, LV_PART_MAIN | LV_STATE_DEFAULT);
 	
 	lv_obj_add_event_cb(button, event_button_handler, LV_EVENT_CLICKED, event_data);	
@@ -172,6 +172,11 @@ void ui_transform_screen(SCREEN_TYPE screen)
 		lv_obj_set_parent(keyboard, ui_control_screen);
 		lv_obj_set_parent(msgbox, ui_control_screen);
 		break;
+	case SCREEN_PCT:
+		lv_scr_load_anim(ui_pct_screen, LV_SCR_LOAD_ANIM_FADE_ON, 300, 0, false);
+		lv_obj_set_parent(keyboard, ui_pct_screen);
+		lv_obj_set_parent(msgbox, ui_pct_screen);
+		break;
 	default:
 		break;
 	}
@@ -194,6 +199,7 @@ void InitUI( void )
 	ui_sdcard_screen_init();
 	ui_settings_screen_init();
 	ui_control_screen_init();
+	ui_pct_screen_init();
 	
 	keyboard = lv_keyboard_create(ui_home_screen);
 	lv_obj_add_flag(keyboard, LV_OBJ_FLAG_HIDDEN);

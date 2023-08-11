@@ -76,8 +76,8 @@ void ui_home_screen_init(void)
 	lv_obj_set_pos(obj, x, y);
 	
 	x += BUTTON_WIDTH + gap_x;
-	obj = ui_home_create_button(ui_home_screen, &btnhome_04, NULL, "Quality");
-	lv_obj_add_event_cb(obj, ui_home_event_tranform_screen_cb, LV_EVENT_CLICKED, (void*)SCREEN_QUALITY);
+	obj = ui_home_create_button(ui_home_screen, &btnhome_04, &settings, "PCT");
+	lv_obj_add_event_cb(obj, ui_home_event_tranform_screen_cb, LV_EVENT_CLICKED, (void*)SCREEN_PCT);
 	lv_obj_set_pos(obj, x, y);
 	
 	x = 20;
