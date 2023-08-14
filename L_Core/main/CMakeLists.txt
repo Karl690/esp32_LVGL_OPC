@@ -55,7 +55,16 @@ idf_component_register(
                 	L_Core/ui/ui-server.c
                 	L_Core/server/parse.c
                 	L_Core/ui/ui-pct.c
-                    L_Core/pct/pct.c
+                	L_Core/pct/pct.c
+                	L_Core/ui/font/mono_bold_16.c
+                	L_Core/ui/font/mono_bold_24.c
+                	L_Core/ui/font/mono_bold_28.c
+                	L_Core/ui/font/mono_bold_32.c
+                	L_Core/ui/font/mono_digital_20.c
+                	L_Core/ui/font/mono_digital_24.c
+                	L_Core/ui/font/mono_regualr_12.c
+                	L_Core/ui/font/mono_regualr_16.c
+                	L_Core/ui/font/mono_regualr_20.c
                 INCLUDE_DIRS "."
                 REQUIRES
                 	LovyanGFX

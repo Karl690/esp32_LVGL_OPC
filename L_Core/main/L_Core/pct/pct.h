@@ -11,9 +11,9 @@ typedef struct
 	uint16_t	power_level;			//Range: 00000-00100, Normal: 00100
 	uint16_t	min_qualify_power_array_1; //Range: 00000-00500, Normal: 00100
 	uint16_t	min_qualify_power_array_2; //Range: 00000-00500, Normal: 00100
-	uint16_t		transducer_type; //Range: 00000-00001, Normal: 00000, 
+	uint16_t	transducer_type; //Range: 00000-00001, Normal: 00000, 
 										//00000 = RTD; accurate sensing during the process.	00001 = Embedded thermocouple; non - intrusive temperature measurement.
-	uint16_t		remote_interface_type; //Range: 00000-00001, Normal: 00000, 	
+	uint16_t	remote_interface_type; //Range: 00000-00001, Normal: 00000, 	
 										//00000 = Normal 00001 = Quick Off
 	uint16_t	heater_power_factor; //Range: 00200-00900, Normal: 00900,  recommanded
 }PCT_PROGRAMMING_INFO;
@@ -32,7 +32,7 @@ typedef struct
 	uint16_t	transmission_character_pause; //Range: 00000-00500, value: 00003 , default setting
 	uint16_t	transmission_message_pause; //Range: 00000-00500, value: 00010 , default setting
 	uint16_t	transmission_retry_pause; //Range: 00000-00031, value: 000005, default setting
-	uint16_t		dupe_block;	//Range: 00000-00001, value: 00001=Enables checking of incomming system byte values to validate the message
+	uint16_t	dupe_block;	//Range: 00000-00001, value: 00001=Enables checking of incomming system byte values to validate the message
 }PCT_SECS_INFO;
 
 typedef struct

@@ -2,6 +2,7 @@
 #include "ui-pct.h"
 #include <dirent.h> 
 #include <stdio.h>
+#include <stdbool.h>
 #include <pthread.h>
 #include "main.h"
 #include "../pct/pct.h"
@@ -78,18 +79,18 @@ UI_PCT_DISPLAY_INFO ui_pct_status_displays[] = {
 };
 
 UI_PCT_DISPLAY_INFO ui_pct_diagnostic_displays[] = { 
-	{ "ARRAY1=%03d ARRAY2=%03d PTEMP=%02d ATEMP=%02d", "LIQUID=%03d OT=%01d CONTACTOR=%03d DUTY=%03d", NULL},
-	{ "FRQ1 PRG=%05d ACT=%05d DAC=%04d LOCK=%01d", "FRQ2 PRG=%05d ACT=%05d DAC=%04d LOCK=%01d", NULL},
-	{ "ARAY1 FPOWER=%05d", "ARAY2 FPOWER=%05d", NULL},
-	{ "XT1A=%05d XT2A=%05d XT3A=%05d XT4A=%05d", "XT5A=%05d XT6A=%05d XT7A=%05d XT8A=%05d", NULL},
-	{ "XT1B=%05d XT2B=%05d XT3B=%05d XT4B=%05d", "XT5B=%05d XT6B=%05d XT7B=%05d XT8B=%05d", NULL},
-	{ "PWR1=%05d PWR2=%05d PWR3=%05d PWR4=%05d", "PWR5=%05d PWR6=%05d PWR7=%05d PWR8=%05d", NULL},
-	{ "PWR1=%05d PWR2=%05d PWR3=%05d PWR4=%05d", "PWR5=%05d PWR6=%05d PWR7=%05d PWR8=%05d", NULL},
-	{ "OVERTEMP SET=%04d OT-TC=%04d OT-SENSE=%01d", "LIQUID LEVEL=%01d RTD=%04d TEMP=%03d CF=%01d", NULL},
-	{ "PTEMP=%03d ATEMP=%03d PFACT=%05d DUTY=%03d", "ADJUSTED FACTOR=%05d DELTA FACTOR=%05d", NULL},
-	{ "ALARM=%01d LL INTERLOCK=%02d LLSENSE=%04d", "RAW LIQUID LEVEL INPUT %04d", NULL},
-	{ "MUXTIMER=%02d MUX=%01d DAC3=%04d DAC4=%04d", "POWER=%01d FREQ=%05d MUXTIME=%05d", NULL},
-	{ "HYPERSONIC SOFTWARE VER FTUNE1JB 05-12-98", "PCT SYSTEMS TEL#510-657-4412 FAX-0112", NULL}
+	{ "ARRAY1=%03d ARRAY2=%03d PTEMP=%02d ATEMP=%02d LIQUID=%03d OT=%01d CONTACTOR=%03d DUTY=%03d", "", NULL},
+	{ "FRQ1 PRG=%05d ACT=%05d DAC=%04d LOCK=%01d FRQ2 PRG=%05d ACT=%05d DAC=%04d LOCK=%01d", "", NULL},
+	{ "ARAY1 FPOWER=%05d ARAY2 FPOWER=%05d", "", NULL},
+	{ "XT1A=%05d XT2A=%05d XT3A=%05d XT4A=%05d XT5A=%05d XT6A=%05d XT7A=%05d XT8A=%05d", "", NULL},
+	{ "XT1B=%05d XT2B=%05d XT3B=%05d XT4B=%05d XT5B=%05d XT6B=%05d XT7B=%05d XT8B=%05d", "", NULL},
+	{ "PWR1=%05d PWR2=%05d PWR3=%05d PWR4=%05d PWR5=%05d PWR6=%05d PWR7=%05d PWR8=%05d", "", NULL},
+	{ "PWR1=%05d PWR2=%05d PWR3=%05d PWR4=%05d PWR5=%05d PWR6=%05d PWR7=%05d PWR8=%05d", "", NULL},
+	{ "OVERTEMP SET=%04d OT-TC=%04d OT-SENSE=%01d LIQUID LEVEL=%01d RTD=%04d TEMP=%03d CF=%01d", "", NULL},
+	{ "PTEMP=%03d ATEMP=%03d PFACT=%05d DUTY=%03d ADJUSTED FACTOR=%05d DELTA FACTOR=%05d", "", NULL},
+	{ "ALARM=%01d LL INTERLOCK=%02d LLSENSE=%04d RAW LIQUID LEVEL INPUT %04d", "", NULL},
+	{ "MUXTIMER=%02d MUX=%01d DAC3=%04d DAC4=%04d POWER=%01d FREQ=%05d MUXTIME=%05d", "",NULL},
+	{ "HYPERSONIC SOFTWARE VER FTUNE1JB 05-12-98 PCT SYSTEMS TEL#510-657-4412 FAX-0112", "",NULL}
 };
 
 int8_t	  ui_pct_prog_display_index = 0;
@@ -110,20 +111,19 @@ lv_obj_t* ui_pct_panel_01_value;
 lv_obj_t* ui_pct_panel_02_line_01;
 lv_obj_t* ui_pct_panel_02_line_02;
 
-lv_obj_t* ui_pct_btn_prog;
-lv_obj_t* ui_pct_btn_diag;
 
 lv_obj_t* ui_pct_btn_prog_left;
 lv_obj_t* ui_pct_btn_prog_right;
 
 lv_obj_t* ui_pct_keyboard[UI_PCT_KEYBOARD_RIGHT+1];
 
-char digit[10];
+#define MAX_DIGIT_LEN 8
+char digit[MAX_DIGIT_LEN];
 uint8_t ui_pct_active_display = UI_PCT_DISPLAY_STATUS;
 uint8_t ui_pct_active_prog_array_size = 0;
 
 UI_PCT_DISPLAY_INFO* prog_display = NULL;
-uint16_t prog_value = 0;
+float prog_value = 0;
 
 uint8_t ui_pct_active_status = UI_PCT_STATUS_RIQUID_LEVEL;
 
@@ -156,139 +156,188 @@ void ui_pct_update_diagnostic_display()
 	//lv_label_set_text(ui_pct_panel_02_value, "");	
 }
 
-void ui_pct_update_prog_display()
+void ui_pct_update_program_display()
 {	
-	switch (ui_pct_prog_display_index)
-	{
-	case UI_PCT_PROG_PARAM_DISPLAY:				
-		prog_display = ui_pct_prog_param_displays; 
-		ui_pct_active_prog_array_size = sizeof(ui_pct_prog_param_displays) / sizeof(UI_PCT_DISPLAY_INFO);
-		break;
-	case UI_PCT_LEVEL_SENSOR_DISPLAY:			
-		prog_display = ui_pct_level_senser_displays; 
-		ui_pct_active_prog_array_size = sizeof(ui_pct_level_senser_displays) / sizeof(UI_PCT_DISPLAY_INFO);
-		break;
-	case UI_PCT_SECS_INFTERFACE_DISPLAY:		
-		prog_display = ui_pct_secs_displays; 
-		ui_pct_active_prog_array_size = sizeof(ui_pct_secs_displays) / sizeof(UI_PCT_DISPLAY_INFO);
-		break;
-	case UI_PCT_FREQUENCY_DISPLAY:				
-		prog_display = ui_pct_frequency_displays; 
-		ui_pct_active_prog_array_size = sizeof(ui_pct_frequency_displays) / sizeof(UI_PCT_DISPLAY_INFO);
-		break;
-	case UI_PCT_PROGRAMMING_TRANSDUCER_DISPLAY:	
-		prog_display = ui_pct_transducer_displays;
-		ui_pct_active_prog_array_size = sizeof(ui_pct_transducer_displays) / sizeof(UI_PCT_DISPLAY_INFO);
-		break;		
-	}
+//	switch (ui_pct_prog_display_index)
+//	{
+//	case UI_PCT_PROG_PARAM_DISPLAY:				
+//		prog_display = ui_pct_prog_param_displays; 
+//		ui_pct_active_prog_array_size = sizeof(ui_pct_prog_param_displays) / sizeof(UI_PCT_DISPLAY_INFO);
+//		break;
+//	case UI_PCT_LEVEL_SENSOR_DISPLAY:			
+//		prog_display = ui_pct_level_senser_displays; 
+//		ui_pct_active_prog_array_size = sizeof(ui_pct_level_senser_displays) / sizeof(UI_PCT_DISPLAY_INFO);
+//		break;
+//	case UI_PCT_SECS_INFTERFACE_DISPLAY:		
+//		prog_display = ui_pct_secs_displays; 
+//		ui_pct_active_prog_array_size = sizeof(ui_pct_secs_displays) / sizeof(UI_PCT_DISPLAY_INFO);
+//		break;
+//	case UI_PCT_FREQUENCY_DISPLAY:				
+//		prog_display = ui_pct_frequency_displays; 
+//		ui_pct_active_prog_array_size = sizeof(ui_pct_frequency_displays) / sizeof(UI_PCT_DISPLAY_INFO);
+//		break;
+//	case UI_PCT_PROGRAMMING_TRANSDUCER_DISPLAY:	
+//		prog_display = ui_pct_transducer_displays;
+//		ui_pct_active_prog_array_size = sizeof(ui_pct_transducer_displays) / sizeof(UI_PCT_DISPLAY_INFO);
+//		break;		
+//	}
 	
-	lv_label_set_text(ui_pct_panel_01_line_01, "");
-	lv_label_set_text(ui_pct_panel_01_line_02, "");
-	lv_label_set_text(ui_pct_panel_01_value, "");
-	
-	if (prog_display && strlen((const char*)prog_display[ui_pct_prog_display_variable_index].line_one) > 0)
-	{
-		lv_label_set_text(ui_pct_panel_01_line_01, (const char*)prog_display[ui_pct_prog_display_variable_index].line_one);
-		lv_label_set_text(ui_pct_panel_01_line_02, (const char*)prog_display[ui_pct_prog_display_variable_index].line_two);
-		sprintf(digit, "%05d", *(int*)prog_display[ui_pct_prog_display_variable_index].value);	
-		lv_label_set_text(ui_pct_panel_01_value, (const char*)digit);
-		prog_value = *prog_display[ui_pct_prog_display_variable_index].value;
-	}
+//	lv_label_set_text(ui_pct_panel_01_line_01, "");
+//	lv_label_set_text(ui_pct_panel_01_line_02, "");
+//	lv_label_set_text(ui_pct_panel_01_value, "");
+//	
+	lv_label_set_text(ui_pct_panel_01_line_01, (const char*)ui_pct_prog_param_displays[ui_pct_prog_display_variable_index].line_one);
+	lv_label_set_text(ui_pct_panel_01_line_02, (const char*)ui_pct_prog_param_displays[ui_pct_prog_display_variable_index].line_two);
+	sprintf(digit, "%05d", *(int*)ui_pct_prog_param_displays[ui_pct_prog_display_variable_index].value);	
+	lv_label_set_text(ui_pct_panel_01_value, (const char*)digit);
 }
-
-
-void ui_pct_update_display_status()
-{
-	switch (ui_pct_active_display)
-	{
-	case UI_PCT_DISPLAY_STATUS:
-		lv_label_set_text(ui_pct_panel_title_01, "PROGRAM STATUS");
-		lv_obj_set_style_border_width(ui_pct_panel_01, 1, LV_PART_MAIN);
-		lv_obj_set_style_border_width(ui_pct_panel_02, 0, LV_PART_MAIN);
-		lv_obj_set_style_bg_color(ui_pct_btn_prog, lv_color_hex(UI_PCT_BTN_BG_NORMAL_COLOR), LV_PART_MAIN);
-		lv_obj_set_style_bg_color(ui_pct_btn_diag, lv_color_hex(UI_PCT_BTN_BG_NORMAL_COLOR), LV_PART_MAIN);
-		lv_obj_add_flag(ui_pct_btn_prog_left, LV_OBJ_FLAG_HIDDEN);
-		lv_obj_add_flag(ui_pct_btn_prog_right, LV_OBJ_FLAG_HIDDEN);
-		ui_pct_prog_display_variable_index = 0;
-		ui_pct_prog_display_index = 0;
-		ui_pct_update_status_display();
-		ui_pct_keyboard_enable(false);
-		break;
-	case UI_PCT_DISPLAY_PROG:
-		lv_label_set_text(ui_pct_panel_title_01, "PROGRAM PARAMETERS");
-		lv_obj_set_style_border_width(ui_pct_panel_01, 1, LV_PART_MAIN);
-		lv_obj_set_style_border_width(ui_pct_panel_02, 0, LV_PART_MAIN);
-		lv_obj_set_style_bg_color(ui_pct_btn_prog, lv_color_hex(UI_PCT_BTN_BG_ACTIVE_COLOR), LV_PART_MAIN);
-		lv_obj_set_style_bg_color(ui_pct_btn_diag, lv_color_hex(UI_PCT_BTN_BG_NORMAL_COLOR), LV_PART_MAIN);
-		lv_obj_clear_flag(ui_pct_btn_prog_left, LV_OBJ_FLAG_HIDDEN);
-		lv_obj_clear_flag(ui_pct_btn_prog_right, LV_OBJ_FLAG_HIDDEN);
-		ui_pct_prog_display_variable_index = 0;
-		ui_pct_prog_display_index = 0;
-		ui_pct_update_prog_display();
-		ui_pct_keyboard_enable(true);
-		break;
-	case UI_PCT_DISPLAY_DIAG:
-		lv_obj_set_style_border_width(ui_pct_panel_01, 0, LV_PART_MAIN);
-		lv_obj_set_style_border_width(ui_pct_panel_02, 1, LV_PART_MAIN);
-		lv_obj_set_style_bg_color(ui_pct_btn_prog, lv_color_hex(UI_PCT_BTN_BG_NORMAL_COLOR), LV_PART_MAIN);
-		lv_obj_set_style_bg_color(ui_pct_btn_diag, lv_color_hex(UI_PCT_BTN_BG_ACTIVE_COLOR), LV_PART_MAIN);
-		lv_obj_add_flag(ui_pct_btn_prog_left, LV_OBJ_FLAG_HIDDEN);
-		lv_obj_add_flag(ui_pct_btn_prog_right, LV_OBJ_FLAG_HIDDEN);
-		ui_pct_update_diagnostic_display();
-		ui_pct_keyboard_enable(false);
-		break;
-	}
-}
-
 
 
 void ui_pct_event_prog_direction_cb(lv_event_t* e)
 {
-	if (ui_pct_active_display != UI_PCT_DISPLAY_PROG) return;
+//	if (ui_pct_active_display != UI_PCT_DISPLAY_PROG) return;
 	uint8_t code = (uint8_t)(int)lv_event_get_user_data(e);
 	
-	ui_pct_prog_display_variable_index = 0;
-	if (code) //right
+	switch (code)
 	{
-		if (ui_pct_prog_display_index + 1 <= UI_PCT_PROGRAMMING_TRANSDUCER_DISPLAY) {
-			ui_pct_prog_display_index++;
-			lv_label_set_text(ui_pct_panel_title_01, ui_pct_prog_titles[ui_pct_prog_display_index]);
-			ui_pct_update_prog_display();
+	case 0: //PROG LEFT
+		if (ui_pct_prog_display_variable_index - 1 >= 0) {
+			ui_pct_prog_display_variable_index--;
+			ui_pct_update_program_display();
 		}
-	}else //left
-	{
-		if (ui_pct_prog_display_index - 1 >= 0) {
-			ui_pct_prog_display_index--;
-			lv_label_set_text(ui_pct_panel_title_01, ui_pct_prog_titles[ui_pct_prog_display_index]);
-			ui_pct_update_prog_display();
-		}		
+		break;
+	case 1: //PROG RIGHT
+		if (ui_pct_prog_display_variable_index + 1 < sizeof(ui_pct_diagnostic_displays) / sizeof(UI_PCT_DISPLAY_INFO)) {
+			ui_pct_prog_display_variable_index++;
+			ui_pct_update_program_display();
+		}
+		break;
+	case 2: //DIAG LEFT
+		if (ui_pct_diag_display_variable_index - 1 >= 0) {
+			ui_pct_diag_display_variable_index--;
+			ui_pct_update_diagnostic_display();
+		}
+		break;
+	case 3: //DIAG RIGHT
+		if (ui_pct_diag_display_variable_index + 1 < sizeof(ui_pct_diagnostic_displays) / sizeof(UI_PCT_DISPLAY_INFO)) {
+			ui_pct_diag_display_variable_index++;
+			ui_pct_update_diagnostic_display();
+		}
+		break;
+		
 	}
+	
+//	ui_pct_prog_display_variable_index = 0;
+//	if (code) //right
+//	{
+//		if (ui_pct_prog_display_index + 1 <= UI_PCT_PROGRAMMING_TRANSDUCER_DISPLAY) {
+//			ui_pct_prog_display_index++;
+//			lv_label_set_text(ui_pct_panel_title_01, ui_pct_prog_titles[ui_pct_prog_display_index]);
+//			ui_pct_update_prog_display();
+//		}
+//	}else //left
+//	{
+//		if (ui_pct_prog_display_index - 1 >= 0) {
+//			ui_pct_prog_display_index--;
+//			lv_label_set_text(ui_pct_panel_title_01, ui_pct_prog_titles[ui_pct_prog_display_index]);
+//			ui_pct_update_prog_display();
+//		}		
+//	}
 	
 }
 
+bool ui_pct_is_float_prog()
+{
+	char* sz = lv_label_get_text(ui_pct_panel_01_value);
+	if (strstr(sz, ".")) return true;
+	return false;
+}
+uint8_t ui_pct_get_index_of_non_zero_value()
+{
+	char* sz = lv_label_get_text(ui_pct_panel_01_value);
+	int len = strlen(sz);
+	int c = 0;
+	for (int i = 0; i < len; i++)
+	{
+		if (sz[i] == 0 || sz[i] == '.') c++;
+		else break;
+	}
+	return c;
+}
 void ui_pct_prog_display_update_value(uint8_t keycode)
 {
+	prog_value = atof(lv_label_get_text(ui_pct_panel_01_value));
+	strcpy(digit, lv_label_get_text(ui_pct_panel_01_value));
+	int len = strlen(digit);
 	//uint16_t value = *(uint16_t*)prog_display[ui_pct_prog_display_variable_index].value;
 	if (keycode >= UI_PCT_KEYBOARD_0 && keycode <= UI_PCT_KEYBOARD_9)
 	{
-		if (prog_value / 10000 > 0) return;
-		prog_value = prog_value * 10 + keycode;
+		if (ui_pct_is_float_prog())
+		{
+			digit[len] = '0' + keycode;
+			prog_value = atof(digit);
+		}
+		else
+		{
+			prog_value = prog_value * 10 + keycode;
+		}
 	}
 	else if (keycode == UI_PCT_KEYBOARD_BACKSPACE)
 	{
-		prog_value /= 10;
+		if (!ui_pct_is_float_prog())
+		{
+			if(len -1 >=0) digit[len-1] = 0;
+			prog_value = atoi(digit);
+			sprintf(digit, "%05d", (int)prog_value);
+		}
+		else
+		{
+			prog_value = prog_value / 10;
+			sprintf(digit, "%05.f", prog_value);
+		}
+		
+		lv_label_set_text(ui_pct_panel_01_value, digit);
+		return;
+		
 	}
 	else if (keycode == UI_PCT_KEYBOARD_ESC)
 	{
 		prog_value = 0;
 	}
-	else if (keycode == UI_PCT_KEYBOARD_ENTER)
+	else if (keycode == UI_PCT_KEYBOARD_DOT)
 	{
-		*(uint16_t*)prog_display[ui_pct_prog_display_variable_index].value = prog_value;
-		ui_show_messagebox(MESSAGEBOX_INFO, "Set the value successful.", 2000);
+		if (!ui_pct_is_float_prog() && len + 1 < MAX_DIGIT_LEN) {		
+			digit[len] = '.';
+			lv_label_set_text(ui_pct_panel_01_value, digit);
+		}
+		return;
 	}
-	sprintf(digit, "%05d", prog_value);	
+	else if (keycode == UI_PCT_KEYBOARD_ENTER)
+	{	
+		if (ui_pct_is_float_prog()) {
+			*(float*)ui_pct_prog_param_displays[ui_pct_prog_display_variable_index].value = prog_value;
+		}
+		else {
+			*(uint16_t*)ui_pct_prog_param_displays[ui_pct_prog_display_variable_index].value = (uint16_t)prog_value;
+		}
+		ui_show_messagebox(MESSAGEBOX_INFO, "Set the value successful.", 2000);
+		return;
+	}	
+	if (((prog_value - (int)prog_value)) > 0)
+	{
+		sprintf(digit, "%05.f", prog_value);
+		len = strlen(digit);
+		if (len >= MAX_DIGIT_LEN) digit[MAX_DIGIT_LEN] = 0;
+	}
+	else
+	{
+		sprintf(digit, "%05d", (int)prog_value);
+		len = strlen(digit);
+		if (len > 5) digit[5] = 0;
+	}
+	
 	lv_label_set_text(ui_pct_panel_01_value, digit);
+	
 	
 }
 void ui_pct_event_button_cb(lv_event_t* e)
@@ -307,53 +356,12 @@ void ui_pct_event_button_cb(lv_event_t* e)
 	case UI_PCT_KEYBOARD_8:
 	case UI_PCT_KEYBOARD_9:		
 	case UI_PCT_KEYBOARD_ESC:
+	case UI_PCT_KEYBOARD_DOT:
 	case UI_PCT_KEYBOARD_BACKSPACE:
 	case UI_PCT_KEYBOARD_ENTER:
-		if (ui_pct_active_display == UI_PCT_DISPLAY_PROG)		ui_pct_prog_display_update_value(code);
-		break;
-	case UI_PCT_KEYBOARD_LEFT:
-		if (ui_pct_active_display == UI_PCT_DISPLAY_PROG)
-		{
-			if (ui_pct_prog_display_variable_index - 1 >= 0) {
-				ui_pct_prog_display_variable_index--;
-				ui_pct_update_prog_display();
-			}
-		}
-		else if (ui_pct_active_display == UI_PCT_DISPLAY_DIAG)
-		{
-			if (ui_pct_diag_display_variable_index - 1 >= 0) {				
-				ui_pct_diag_display_variable_index--;
-				ui_pct_update_diagnostic_display();
-			}
-		}
-		break;
-	case UI_PCT_KEYBOARD_RIGHT:
-		if (ui_pct_active_display == UI_PCT_DISPLAY_PROG)
-		{
-			if (ui_pct_prog_display_variable_index + 1 < ui_pct_active_prog_array_size) {
-				ui_pct_prog_display_variable_index++;
-				ui_pct_update_prog_display();
-			}
-		}
-		else if (ui_pct_active_display == UI_PCT_DISPLAY_DIAG)
-		{
-			if (ui_pct_diag_display_variable_index + 1 < sizeof(ui_pct_diagnostic_displays) / sizeof(UI_PCT_DISPLAY_INFO)) {
-				ui_pct_diag_display_variable_index++;
-				ui_pct_update_diagnostic_display();
-			}
-		}
-		
+		ui_pct_prog_display_update_value(code);
 		break;
 	case UI_PCT_KEYBOARD_PROG:
-		if (ui_pct_active_display == UI_PCT_DISPLAY_PROG) 
-			ui_pct_active_display = UI_PCT_DISPLAY_STATUS;
-		else ui_pct_active_display = UI_PCT_DISPLAY_PROG;
-		ui_pct_update_display_status();
-		break;
-	case UI_PCT_KEYBOARD_DIAG:
-		if (ui_pct_active_display == UI_PCT_DISPLAY_DIAG) ui_pct_active_display = UI_PCT_DISPLAY_STATUS;
-		else ui_pct_active_display = UI_PCT_DISPLAY_DIAG;
-		ui_pct_update_display_status();
 		break;
 	}
 }
@@ -362,40 +370,32 @@ void ui_pct_event_button_cb(lv_event_t* e)
 
 void ui_pct_screen_init(void)
 {	
+	int item_size = 45;
+	const lv_font_t* font = &mono_bold_24;
 	ui_pct_screen = ui_create_screen();	
-	lv_obj_t* titlebar = ui_create_titlebar(ui_pct_screen, TITLEBAR_BACKGROUND_COLOR);
-	
-	lv_obj_t* title_label = lv_label_create(titlebar);	
-	lv_obj_set_width(title_label, LV_SIZE_CONTENT);
-	lv_obj_set_height(title_label, LV_SIZE_CONTENT);
-	lv_label_set_recolor(title_label, true);
-	lv_obj_set_style_text_color(title_label, lv_color_hex(0xFFFFFF), LV_PART_MAIN);
-	lv_label_set_text(title_label, "PCT");
-	lv_obj_set_style_text_font(title_label, &lv_font_montserrat_16, LV_PART_MAIN | LV_STATE_DEFAULT);	
-	lv_obj_align(title_label, LV_ALIGN_CENTER, 0, 0);
 	
 	LV_IMG_DECLARE(img_mark);
 	
 	lv_obj_t * obj = lv_img_create(ui_pct_screen);
 	lv_img_set_src(obj, &img_mark);
 	lv_img_set_zoom(obj, 100);
-	lv_obj_set_pos(obj, -30, 10);
+	lv_obj_set_pos(obj, -30, -20);
 	
 	
-	obj = ui_create_label(ui_pct_screen,"MEGASONIC\nHYPERCLEAN", &lv_font_montserrat_20);	
-	lv_obj_set_pos(obj, 100, 40);
+	obj = ui_create_label(ui_pct_screen,"MEGASONIC HYPERCLEAN", &mono_bold_32);	
+	lv_obj_set_pos(obj, 100, 5);
 	
-	obj = ui_create_button(ui_pct_screen, "#6DFF13 " LV_SYMBOL_LEFT " #", 26, 26, 2, UI_PCT_PANEL_BG_COLOR, &lv_font_montserrat_14, ui_pct_event_prog_direction_cb, (void*)0);
-	lv_obj_set_pos(obj, 5, 100);
+	obj = ui_create_button(ui_pct_screen, "#6DFF13  " LV_SYMBOL_LEFT " #", item_size, item_size, 2, UI_PCT_PANEL_BG_COLOR, &lv_font_montserrat_16, ui_pct_event_prog_direction_cb, (void*)0);
+	lv_obj_set_pos(obj, 5, 65);
 	ui_pct_btn_prog_left = obj; 
-	obj = ui_create_button(ui_pct_screen, "#6DFF13 " LV_SYMBOL_RIGHT " #", 26, 26, 2, UI_PCT_PANEL_BG_COLOR, &lv_font_montserrat_14, ui_pct_event_prog_direction_cb, (void*)1);
-	lv_obj_set_pos(obj, 310, 100);
+	obj = ui_create_button(ui_pct_screen, "#6DFF13  " LV_SYMBOL_RIGHT " #", item_size, item_size, 2, UI_PCT_PANEL_BG_COLOR, &lv_font_montserrat_16, ui_pct_event_prog_direction_cb, (void*)1);
+	lv_obj_set_pos(obj, 290, 65);
 	ui_pct_btn_prog_right = obj;
 	
-	ui_pct_panel_title_01 = ui_create_label(ui_pct_screen, "PROCESS PARAMETERS", &lv_font_montserrat_16);
+	ui_pct_panel_title_01 = ui_create_label(ui_pct_screen, "PROCESS PARAMETERS", &mono_bold_24);
 	lv_obj_set_style_text_align(ui_pct_panel_title_01, LV_TEXT_ALIGN_CENTER, 0);
-	lv_obj_set_size(ui_pct_panel_title_01, 280, 30);
-	lv_obj_set_pos(ui_pct_panel_title_01, 40, 105);
+	lv_obj_set_size(ui_pct_panel_title_01, 240, 30);
+	lv_obj_set_pos(ui_pct_panel_title_01, 50, 75);
 	
 	lv_obj_t* panel = lv_obj_create(ui_pct_screen);
 	lv_obj_clear_flag(panel, LV_OBJ_FLAG_SCROLLABLE);
@@ -403,33 +403,40 @@ void ui_pct_screen_init(void)
 	lv_obj_set_style_border_color(panel, lv_color_hex(UI_PCT_PANEL_BORDER_COLOR), LV_PART_MAIN);
 	lv_obj_set_style_border_width(panel, 1, LV_PART_MAIN);
 	lv_obj_set_style_pad_all(panel, 0, LV_PART_MAIN);
-	lv_obj_set_pos(panel, 5, 135);
+	lv_obj_set_pos(panel, 5, 115);
 	lv_obj_set_size(panel, 330, 70);
 	
 	ui_pct_panel_01 = panel;
 	
-	obj = ui_create_label(panel, "ENTER NEW PROCESS NUMBER IF DESIRED", &lv_font_montserrat_14);
+	obj = ui_create_label(panel, "ENTER NEW PROCESS NUMBER IF DESIRED", &mono_regualr_16);
 	lv_obj_set_style_text_color(obj, lv_color_hex(UI_PCT_PANEL_FG_COLOR), LV_PART_MAIN);
 	lv_obj_set_size(obj, 310, 40);
 	lv_obj_set_pos(obj, 5, 5);
 	ui_pct_panel_01_line_01 = obj;
 	
-	obj = ui_create_label(panel, "(0 = N.O. SWITCH 1 = N.C. SWITCH)", &lv_font_montserrat_14);
+	obj = ui_create_label(panel, "(0 = N.O. SWITCH 1 = N.C. SWITCH)", &mono_regualr_16);
 	lv_obj_set_style_text_color(obj, lv_color_hex(UI_PCT_PANEL_FG_COLOR), LV_PART_MAIN);
 	lv_obj_set_size(obj, 240, 40);
 	lv_obj_set_pos(obj, 5, 35);
 	ui_pct_panel_01_line_02 = obj;
 	
-	obj = ui_create_label(panel, "00001", &lv_font_montserrat_20);
+	obj = ui_create_label(panel, "00001", &mono_digital_24);
 	lv_obj_set_style_text_color(obj, lv_color_hex(UI_PCT_PANEL_FG_COLOR), LV_PART_MAIN);
-	lv_obj_set_pos(obj, 255, 40);
+	lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_RIGHT, 0);
+	lv_obj_set_size(obj, 80, LV_SIZE_CONTENT);
+	lv_obj_set_pos(obj, 240, 40);
 	ui_pct_panel_01_value = obj;
 	
-	
-	ui_pct_panel_title_02 = ui_create_label(ui_pct_screen, "DIAGNOSTIC", &lv_font_montserrat_16);	
+	ui_pct_panel_title_02 = ui_create_label(ui_pct_screen, "DIAGNOSTIC", &mono_bold_24);	
 	lv_obj_set_style_text_align(ui_pct_panel_title_02, LV_TEXT_ALIGN_CENTER, 0);
-	lv_obj_set_size(ui_pct_panel_title_02, 280, 30);
-	lv_obj_set_pos(ui_pct_panel_title_02, 40, 220);
+	lv_obj_set_size(ui_pct_panel_title_02, 240, 30);
+	lv_obj_set_pos(ui_pct_panel_title_02, 50, 205);
+	
+	obj = ui_create_button(ui_pct_screen, "#6DFF13  " LV_SYMBOL_LEFT " #", item_size, item_size, 2, UI_PCT_PANEL_BG_COLOR, &lv_font_montserrat_16, ui_pct_event_prog_direction_cb, (void*)2);
+	lv_obj_set_pos(obj, 5, 190);
+	ui_pct_btn_prog_left = obj; 
+	obj = ui_create_button(ui_pct_screen, "#6DFF13  " LV_SYMBOL_RIGHT " #", item_size, item_size, 2, UI_PCT_PANEL_BG_COLOR, &lv_font_montserrat_16, ui_pct_event_prog_direction_cb, (void*)3);
+	lv_obj_set_pos(obj, 290, 190);
 	
 	panel = lv_obj_create(ui_pct_screen);
 	lv_obj_clear_flag(panel, LV_OBJ_FLAG_SCROLLABLE);
@@ -441,13 +448,13 @@ void ui_pct_screen_init(void)
 	lv_obj_set_size(panel, 330, 80);
 	ui_pct_panel_02 = panel;
 	
-	obj = ui_create_label(panel, "PROGRAMMED TEMP=000 ACTUAL TEMP=000", &lv_font_montserrat_14);
+	obj = ui_create_label(panel, "PROGRAMMED TEMP=000 ACTUAL TEMP=000",&mono_regualr_16);
 	lv_obj_set_style_text_color(obj, lv_color_hex(UI_PCT_PANEL_FG_COLOR), LV_PART_MAIN);
 	lv_obj_set_size(obj, 270, 40);
 	lv_obj_set_pos(obj, 5, 5);
 	ui_pct_panel_02_line_01 = obj;
 	
-	obj = ui_create_label(panel, "LIQUID=160 OT=0 CONTACTOR=030 DUTY=000", &lv_font_montserrat_14);
+	obj = ui_create_label(panel, "LIQUID=160 OT=0 CONTACTOR=030 DUTY=000", &mono_regualr_16);
 	lv_obj_set_style_text_color(obj, lv_color_hex(UI_PCT_PANEL_FG_COLOR), LV_PART_MAIN);
 	lv_obj_set_size(obj, 270, 40);
 	lv_obj_set_pos(obj, 5, 40);
@@ -461,53 +468,47 @@ void ui_pct_screen_init(void)
 	lv_obj_set_style_radius(panel, 0, LV_PART_MAIN);
 	lv_obj_set_pos(panel, 340, 40);
 	lv_obj_set_size(panel, 190, 280);
-	int item_size = 45;
+	
 	int step = item_size + 2;
-	const lv_font_t* font = &lv_font_montserrat_20;
-	obj = ui_create_button(panel, "#6DFF13 0 #", item_size, item_size, 2, UI_PCT_BTN_BG_NORMAL_COLOR, font, ui_pct_event_button_cb, (void*)UI_PCT_KEYBOARD_0);
+	
+	obj = ui_create_button(panel, "#6DFF13  0 #", item_size, item_size, 2, UI_PCT_BTN_BG_NORMAL_COLOR, font, ui_pct_event_button_cb, (void*)UI_PCT_KEYBOARD_0);
 	lv_obj_set_pos(obj, 0, step * 4);		ui_pct_keyboard[UI_PCT_KEYBOARD_0] = obj;
-	obj = ui_create_button(panel, "#6DFF13 1 #", item_size, item_size, 2, UI_PCT_BTN_BG_NORMAL_COLOR, font, ui_pct_event_button_cb, (void*)UI_PCT_KEYBOARD_1);
+	obj = ui_create_button(panel, "#6DFF13  1 #", item_size, item_size, 2, UI_PCT_BTN_BG_NORMAL_COLOR, font, ui_pct_event_button_cb, (void*)UI_PCT_KEYBOARD_1);
 	lv_obj_set_pos(obj, 0, step * 3);		ui_pct_keyboard[UI_PCT_KEYBOARD_1] = obj;
-	obj = ui_create_button(panel, "#6DFF13 2 #", item_size, item_size, 2, UI_PCT_BTN_BG_NORMAL_COLOR, font, ui_pct_event_button_cb, (void*)UI_PCT_KEYBOARD_2);
+	obj = ui_create_button(panel, "#6DFF13  2 #", item_size, item_size, 2, UI_PCT_BTN_BG_NORMAL_COLOR, font, ui_pct_event_button_cb, (void*)UI_PCT_KEYBOARD_2);
 	lv_obj_set_pos(obj, step, step*3);		ui_pct_keyboard[UI_PCT_KEYBOARD_2] = obj;
-	obj = ui_create_button(panel, "#6DFF13 3 #", item_size, item_size, 2, UI_PCT_BTN_BG_NORMAL_COLOR, font, ui_pct_event_button_cb, (void*)UI_PCT_KEYBOARD_3);
+	obj = ui_create_button(panel, "#6DFF13  3 #", item_size, item_size, 2, UI_PCT_BTN_BG_NORMAL_COLOR, font, ui_pct_event_button_cb, (void*)UI_PCT_KEYBOARD_3);
 	lv_obj_set_pos(obj, step*2, step * 3);	ui_pct_keyboard[UI_PCT_KEYBOARD_3] = obj;
-	obj = ui_create_button(panel, "#6DFF13 4 #", item_size, item_size, 2, UI_PCT_BTN_BG_NORMAL_COLOR, font, ui_pct_event_button_cb, (void*)UI_PCT_KEYBOARD_4);
+	obj = ui_create_button(panel, "#6DFF13  4 #", item_size, item_size, 2, UI_PCT_BTN_BG_NORMAL_COLOR, font, ui_pct_event_button_cb, (void*)UI_PCT_KEYBOARD_4);
 	lv_obj_set_pos(obj, 0, step*2);			ui_pct_keyboard[UI_PCT_KEYBOARD_4] = obj;
-	obj = ui_create_button(panel, "#6DFF13 5 #", item_size, item_size, 2, UI_PCT_BTN_BG_NORMAL_COLOR, font, ui_pct_event_button_cb, (void*)UI_PCT_KEYBOARD_5);
+	obj = ui_create_button(panel, "#6DFF13  5 #", item_size, item_size, 2, UI_PCT_BTN_BG_NORMAL_COLOR, font, ui_pct_event_button_cb, (void*)UI_PCT_KEYBOARD_5);
 	lv_obj_set_pos(obj, step, step*2);		ui_pct_keyboard[UI_PCT_KEYBOARD_5] = obj;
-	obj = ui_create_button(panel, "#6DFF13 6 #", item_size, item_size, 2, UI_PCT_BTN_BG_NORMAL_COLOR, font, ui_pct_event_button_cb, (void*)UI_PCT_KEYBOARD_6);
+	obj = ui_create_button(panel, "#6DFF13  6 #", item_size, item_size, 2, UI_PCT_BTN_BG_NORMAL_COLOR, font, ui_pct_event_button_cb, (void*)UI_PCT_KEYBOARD_6);
 	lv_obj_set_pos(obj, step*2, step*2);	ui_pct_keyboard[UI_PCT_KEYBOARD_6] = obj;
-	obj = ui_create_button(panel, "#6DFF13 7 #", item_size, item_size, 2, UI_PCT_BTN_BG_NORMAL_COLOR, font, ui_pct_event_button_cb, (void*)UI_PCT_KEYBOARD_7);
+	obj = ui_create_button(panel, "#6DFF13  7 #", item_size, item_size, 2, UI_PCT_BTN_BG_NORMAL_COLOR, font, ui_pct_event_button_cb, (void*)UI_PCT_KEYBOARD_7);
 	lv_obj_set_pos(obj, 0, step);			ui_pct_keyboard[UI_PCT_KEYBOARD_7] = obj;
-	obj = ui_create_button(panel, "#6DFF13 8 #", item_size, item_size, 2, UI_PCT_BTN_BG_NORMAL_COLOR, font, ui_pct_event_button_cb, (void*)UI_PCT_KEYBOARD_8);
+	obj = ui_create_button(panel, "#6DFF13  8 #", item_size, item_size, 2, UI_PCT_BTN_BG_NORMAL_COLOR, font, ui_pct_event_button_cb, (void*)UI_PCT_KEYBOARD_8);
 	lv_obj_set_pos(obj, step, step);		ui_pct_keyboard[UI_PCT_KEYBOARD_8] = obj;
-	obj = ui_create_button(panel, "#6DFF13 9 #", item_size, item_size, 2, UI_PCT_BTN_BG_NORMAL_COLOR, font, ui_pct_event_button_cb, (void*)UI_PCT_KEYBOARD_9);
+	obj = ui_create_button(panel, "#6DFF13  9 #", item_size, item_size, 2, UI_PCT_BTN_BG_NORMAL_COLOR, font, ui_pct_event_button_cb, (void*)UI_PCT_KEYBOARD_9);
 	lv_obj_set_pos(obj, step*2, step);		ui_pct_keyboard[UI_PCT_KEYBOARD_9] = obj;
 	
-	obj = ui_create_button(panel, "#6DFF13 " LV_SYMBOL_LEFT" #", item_size, item_size, 2, UI_PCT_PANEL_BG_COLOR, font, ui_pct_event_button_cb, (void*)UI_PCT_KEYBOARD_LEFT);
+	obj = ui_create_button(panel, "#6DFF13  . #", item_size, item_size, 2, UI_PCT_PANEL_BG_COLOR, font, ui_pct_event_button_cb, (void*)UI_PCT_KEYBOARD_DOT);
 	lv_obj_set_pos(obj, step, step * 4);	ui_pct_keyboard[UI_PCT_KEYBOARD_LEFT] = obj;
 	
-	obj = ui_create_button(panel, "#6DFF13 " LV_SYMBOL_RIGHT " #", item_size, item_size, 2, UI_PCT_PANEL_BG_COLOR, font, ui_pct_event_button_cb, (void*)UI_PCT_KEYBOARD_RIGHT);
+	obj = ui_create_button(panel, "#6DFF13 " LV_SYMBOL_BACKSPACE " #", item_size, item_size, 2, UI_PCT_PANEL_BG_COLOR, &lv_font_montserrat_14, ui_pct_event_button_cb, (void*)UI_PCT_KEYBOARD_BACKSPACE);
 	lv_obj_set_pos(obj, step * 2, step * 4);	ui_pct_keyboard[UI_PCT_KEYBOARD_RIGHT] = obj;
 	
 	
 	
-	obj = ui_create_button(panel, "#6DFF13 C #", item_size, item_size, 2, UI_PCT_BTN_BG_NORMAL_COLOR, font, ui_pct_event_button_cb, (void*)UI_PCT_KEYBOARD_ESC);
-	lv_obj_set_pos(obj, 0, step * 5);	ui_pct_keyboard[UI_PCT_KEYBOARD_ESC] = obj;
-	obj = ui_create_button(panel, "#6DFF13 " LV_SYMBOL_BACKSPACE " #", item_size, item_size, 2, UI_PCT_BTN_BG_NORMAL_COLOR, font, ui_pct_event_button_cb, (void*)UI_PCT_KEYBOARD_BACKSPACE);
-	lv_obj_set_pos(obj, step, step * 5);	ui_pct_keyboard[UI_PCT_KEYBOARD_BACKSPACE] = obj;
-	obj = ui_create_button(panel, "#6DFF13 " LV_SYMBOL_OK " #", item_size, item_size, 2, UI_PCT_BTN_BG_NORMAL_COLOR, font, ui_pct_event_button_cb, (void*)UI_PCT_KEYBOARD_ENTER);
-	lv_obj_set_pos(obj, step * 2, step * 5);	ui_pct_keyboard[UI_PCT_KEYBOARD_ENTER] = obj;
+	obj = ui_create_button(panel, " #6DFF13 ENTER #", step * 3 - 2, item_size, 2, UI_PCT_BTN_BG_NORMAL_COLOR, font, ui_pct_event_button_cb, (void*)UI_PCT_KEYBOARD_ENTER);
+	lv_obj_set_pos(obj, 0, step * 5);	ui_pct_keyboard[UI_PCT_KEYBOARD_ENTER] = obj;
 	
-	obj = ui_create_button(panel, "#6DFF13 PROG #", (step * 3 /2) - 2, item_size, 2, UI_PCT_BTN_BG_NORMAL_COLOR, font, ui_pct_event_button_cb, (void*)UI_PCT_KEYBOARD_PROG);
+	obj = ui_create_button(panel, " #6DFF13 PROG #", (step * 2) - 2, item_size, 2, UI_PCT_BTN_BG_NORMAL_COLOR, font, ui_pct_event_button_cb, (void*)UI_PCT_KEYBOARD_PROG);
 	lv_obj_set_pos(obj, 0, 0);		ui_pct_keyboard[UI_PCT_KEYBOARD_PROG] = obj;
-	ui_pct_btn_prog = obj;
-	obj = ui_create_button(panel, "#6DFF13 DIAG #", (step * 3 / 2) - 2, item_size, 2, UI_PCT_BTN_BG_NORMAL_COLOR, font, ui_pct_event_button_cb, (void*)UI_PCT_KEYBOARD_DIAG);
-	lv_obj_set_pos(obj, (step * 3 / 2), 0);	ui_pct_keyboard[UI_PCT_KEYBOARD_DIAG] = obj;
-	ui_pct_btn_diag = obj;
+	obj = ui_create_button(panel, " #6DFF13 ESC #", item_size, item_size, 2, UI_PCT_BTN_BG_NORMAL_COLOR, font, ui_pct_event_button_cb, (void*)UI_PCT_KEYBOARD_ESC);
+	lv_obj_set_pos(obj, step * 2, 0);	ui_pct_keyboard[UI_PCT_KEYBOARD_ESC] = obj;
 	
-	ui_pct_update_display_status();
+	ui_pct_update_program_display();
 	ui_pct_update_diagnostic_display();
 }
 

@@ -84,11 +84,16 @@ lv_obj_t* ui_create_button(lv_obj_t* parent,
 	lv_obj_set_style_radius(button, radius, LV_PART_MAIN | LV_STATE_DEFAULT);
 	lv_obj_set_style_bg_color(button, lv_color_hex(color), LV_PART_MAIN | LV_STATE_DEFAULT);
 	lv_obj_set_style_bg_opa(button, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+	lv_obj_set_style_pad_all(button, 2, LV_PART_MAIN);
 	
 	lv_obj_t* label = lv_label_create(button);	
-	lv_obj_set_width(label, LV_SIZE_CONTENT); /// 1
+	lv_obj_set_width(label, w-4); /// 1
+	lv_obj_set_x(label, 0);
 	lv_obj_set_height(label, LV_SIZE_CONTENT); /// 1
 	lv_obj_set_align(label, LV_ALIGN_CENTER);
+	
+	lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, 0);
+	
 	lv_label_set_recolor(label, true);
 	lv_label_set_text_fmt(label, text);
 	lv_obj_set_style_text_font(label, font, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -132,6 +137,7 @@ void ui_create_messagebox()
 	msgbox = lv_obj_create(lv_scr_act());
 	lv_obj_clear_flag(msgbox, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_CLICKABLE); /// Flags
 	lv_obj_set_style_border_width(msgbox, 0, LV_PART_MAIN);
+	lv_obj_set_style_bg_opa(msgbox, 128, LV_PART_MAIN);
 	lv_obj_set_size(msgbox, LV_PCT(60), 50);
 	msgbox_label = ui_create_label(msgbox, "", &font_en_16);
 	lv_obj_center(msgbox);	
@@ -213,5 +219,5 @@ void InitUI( void )
 	vTaskDelay(pdMS_TO_TICKS(5000));
 	//lv_scr_load(ui_variables_screen);
 	//lv_scr_load_anim(ui_home_screen, LV_SCR_LOAD_ANIM_FADE_ON, 300, 0, false);
-	ui_transform_screen(SCREEN_HOME);
+	ui_transform_screen(SCREEN_PCT);
 }
