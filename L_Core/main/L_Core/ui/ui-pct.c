@@ -618,7 +618,7 @@ void ui_pct_screen_init(void)
 	lv_obj_set_style_text_color(obj, lv_color_hex(UI_PCT_PANEL_FG_COLOR), LV_PART_MAIN);
 	lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_RIGHT, 0);
 	lv_obj_set_size(obj, 80, LV_SIZE_CONTENT);
-	lv_obj_set_pos(obj, 240, 45);
+	lv_obj_set_pos(obj, 240, 40);
 	ui_pct_panel_01_value = obj;
 	
 	ui_pct_panel_title_02 = ui_create_label(ui_pct_screen, "DIAGNOSTIC", &mono_bold_24);	
