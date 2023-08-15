@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <pthread.h>
 #include "main.h"
+#include "RevisionHistory.h"
 #include "../pct/pct.h"
 
 char ui_pct_prog_titles[][40] = { 
@@ -79,18 +80,18 @@ UI_PCT_DISPLAY_INFO ui_pct_status_displays[] = {
 };
 
 UI_PCT_DISPLAY_INFO ui_pct_diagnostic_displays[] = { 
-	{ "ARRAY1=%03d ARRAY2=%03d PTEMP=%02d ATEMP=%02d LIQUID=%03d OT=%01d CONTACTOR=%03d DUTY=%03d", "", NULL},
-	{ "FRQ1 PRG=%05d ACT=%05d DAC=%04d LOCK=%01d FRQ2 PRG=%05d ACT=%05d DAC=%04d LOCK=%01d", "", NULL},
+	{ "ARRAY1=%03d ARRAY2=%03d PTEMP=%02d ATEMP=%02d", "LIQUID=%03d OT=%01d CONTACTOR=%03d DUTY=%03d", NULL},
+	{ "FRQ1 PRG=%05d ACT=%05d DAC=%04d LOCK=%01d", "FRQ2 PRG=%05d ACT=%05d DAC=%04d LOCK=%01d", NULL},
 	{ "ARAY1 FPOWER=%05d ARAY2 FPOWER=%05d", "", NULL},
-	{ "XT1A=%05d XT2A=%05d XT3A=%05d XT4A=%05d XT5A=%05d XT6A=%05d XT7A=%05d XT8A=%05d", "", NULL},
-	{ "XT1B=%05d XT2B=%05d XT3B=%05d XT4B=%05d XT5B=%05d XT6B=%05d XT7B=%05d XT8B=%05d", "", NULL},
-	{ "PWR1=%05d PWR2=%05d PWR3=%05d PWR4=%05d PWR5=%05d PWR6=%05d PWR7=%05d PWR8=%05d", "", NULL},
-	{ "PWR1=%05d PWR2=%05d PWR3=%05d PWR4=%05d PWR5=%05d PWR6=%05d PWR7=%05d PWR8=%05d", "", NULL},
-	{ "OVERTEMP SET=%04d OT-TC=%04d OT-SENSE=%01d LIQUID LEVEL=%01d RTD=%04d TEMP=%03d CF=%01d", "", NULL},
-	{ "PTEMP=%03d ATEMP=%03d PFACT=%05d DUTY=%03d ADJUSTED FACTOR=%05d DELTA FACTOR=%05d", "", NULL},
-	{ "ALARM=%01d LL INTERLOCK=%02d LLSENSE=%04d RAW LIQUID LEVEL INPUT %04d", "", NULL},
-	{ "MUXTIMER=%02d MUX=%01d DAC3=%04d DAC4=%04d POWER=%01d FREQ=%05d MUXTIME=%05d", "",NULL},
-	{ "HYPERSONIC SOFTWARE VER FTUNE1JB 05-12-98 PCT SYSTEMS TEL#510-657-4412 FAX-0112", "",NULL}
+	{ "XT1A=%05d XT2A=%05d XT3A=%05d XT4A=%05d", "XT5A=%05d XT6A=%05d XT7A=%05d XT8A=%05d", NULL},
+	{ "XT1B=%05d XT2B=%05d XT3B=%05d XT4B=%05d", "XT5B=%05d XT6B=%05d XT7B=%05d XT8B=%05d", NULL},
+	{ "PWR1=%05d PWR2=%05d PWR3=%05d PWR4=%05d", "PWR5=%05d PWR6=%05d PWR7=%05d PWR8=%05d", NULL},
+	{ "PWR1=%05d PWR2=%05d PWR3=%05d PWR4=%05d", "PWR5=%05d PWR6=%05d PWR7=%05d PWR8=%05d", NULL},
+	{ "OVERTEMP SET=%04d OT-TC=%04d OT-SENSE=%01d", "LIQUID LEVEL=%01d RTD=%04d TEMP=%03d CF=%01d", NULL},
+	{ "PTEMP=%03d ATEMP=%03d PFACT=%05d DUTY=%03d", "ADJUSTED FACTOR=%05d DELTA FACTOR=%05d", NULL},
+	{ "ALARM=%01d LL INTERLOCK=%02d LLSENSE=%04d", "RAW LIQUID LEVEL INPUT %04d", NULL},
+	{ "MUXTIMER=%02d MUX=%01d DAC3=%04d DAC4=%04d", "POWER=%01d FREQ=%05d MUXTIME=%05d", NULL},
+	{ "HYPERSONIC SOFTWARE VER FTUNE1JB 05-12-98", "PCT SYSTEMS TEL#510-657-4412 FAX-0112", NULL}
 };
 
 int8_t	  ui_pct_prog_display_index = 0;
@@ -118,7 +119,7 @@ lv_obj_t* ui_pct_btn_prog_right;
 lv_obj_t* ui_pct_keyboard[UI_PCT_KEYBOARD_RIGHT+1];
 
 #define MAX_DIGIT_LEN 8
-char digit[MAX_DIGIT_LEN];
+char digit[100];
 uint8_t ui_pct_active_display = UI_PCT_DISPLAY_STATUS;
 uint8_t ui_pct_active_prog_array_size = 0;
 
@@ -188,7 +189,7 @@ void ui_pct_update_program_display()
 //	
 	lv_label_set_text(ui_pct_panel_01_line_01, (const char*)ui_pct_prog_param_displays[ui_pct_prog_display_variable_index].line_one);
 	lv_label_set_text(ui_pct_panel_01_line_02, (const char*)ui_pct_prog_param_displays[ui_pct_prog_display_variable_index].line_two);
-	sprintf(digit, "%05d", *(int*)ui_pct_prog_param_displays[ui_pct_prog_display_variable_index].value);	
+	sprintf(digit, "%05d", *ui_pct_prog_param_displays[ui_pct_prog_display_variable_index].value);	
 	lv_label_set_text(ui_pct_panel_01_value, (const char*)digit);
 }
 
@@ -246,9 +247,8 @@ void ui_pct_event_prog_direction_cb(lv_event_t* e)
 	
 }
 
-bool ui_pct_is_float_prog()
+bool ui_pct_is_float_prog(char* sz)
 {
-	char* sz = lv_label_get_text(ui_pct_panel_01_value);
 	if (strstr(sz, ".")) return true;
 	return false;
 }
@@ -264,49 +264,63 @@ uint8_t ui_pct_get_index_of_non_zero_value()
 	}
 	return c;
 }
+void ui_pct_fix_float_string(float val, char* sz)
+{
+	// #####.##
+	uint16_t p1 = floor(val);
+	uint16_t p2 = (val - p1 + 0.0001) * 100;
+	char c1[10], c2[10];
+	sprintf(c1, "%d", p1);
+	sprintf(c2, "%d", p2);
+	int padding_zero = 0;
+	if (c2[1] == '0') {
+		c2[1] = 0;
+		padding_zero = 1;
+	}
+	int l = strlen(c1);
+	if (l <= 4) padding_zero += 4 - l;
+	for (uint8_t c = 0; c < padding_zero; c++) sz[c] = '0';
+	sprintf(sz + padding_zero, "%s.%s", c1, c2);	
+}
 void ui_pct_prog_display_update_value(uint8_t keycode)
 {
 	prog_value = atof(lv_label_get_text(ui_pct_panel_01_value));
 	strcpy(digit, lv_label_get_text(ui_pct_panel_01_value));
 	int len = strlen(digit);
+	char buf_float[10] = { 0 };
 	//uint16_t value = *(uint16_t*)prog_display[ui_pct_prog_display_variable_index].value;
 	if (keycode >= UI_PCT_KEYBOARD_0 && keycode <= UI_PCT_KEYBOARD_9)
 	{
-		if (ui_pct_is_float_prog())
-		{
-			digit[len] = '0' + keycode;
-			prog_value = atof(digit);
-		}
-		else
-		{
-			prog_value = prog_value * 10 + keycode;
-		}
+		if (len + 1 < MAX_DIGIT_LEN || digit[0] == '0') digit[len] = '0' + keycode;
+		if (ui_pct_is_float_prog(digit)) prog_value = atof(digit);
+		else prog_value = atoi(digit);
 	}
 	else if (keycode == UI_PCT_KEYBOARD_BACKSPACE)
 	{
-		if (!ui_pct_is_float_prog())
+		if (ui_pct_is_float_prog(digit))
 		{
 			if(len -1 >=0) digit[len-1] = 0;
-			prog_value = atoi(digit);
-			sprintf(digit, "%05d", (int)prog_value);
+			if (len - 2 >= 0 && digit[len - 2] == '.')
+			{
+				lv_label_set_text(ui_pct_panel_01_value, digit);
+				return;
+			}
+			if (ui_pct_is_float_prog(digit)) prog_value = atof(digit);
+			else prog_value = atoi(digit);
 		}
 		else
 		{
-			prog_value = prog_value / 10;
-			sprintf(digit, "%05.f", prog_value);
+			prog_value = floor(prog_value / 10);			
 		}
-		
-		lv_label_set_text(ui_pct_panel_01_value, digit);
-		return;
-		
 	}
 	else if (keycode == UI_PCT_KEYBOARD_ESC)
 	{
+		memset(digit, 0, MAX_DIGIT_LEN);
 		prog_value = 0;
 	}
 	else if (keycode == UI_PCT_KEYBOARD_DOT)
 	{
-		if (!ui_pct_is_float_prog() && len + 1 < MAX_DIGIT_LEN) {		
+		if (!ui_pct_is_float_prog(digit) && len + 1 < MAX_DIGIT_LEN) {		
 			digit[len] = '.';
 			lv_label_set_text(ui_pct_panel_01_value, digit);
 		}
@@ -314,7 +328,7 @@ void ui_pct_prog_display_update_value(uint8_t keycode)
 	}
 	else if (keycode == UI_PCT_KEYBOARD_ENTER)
 	{	
-		if (ui_pct_is_float_prog()) {
+		if (ui_pct_is_float_prog(digit)) {
 			*(float*)ui_pct_prog_param_displays[ui_pct_prog_display_variable_index].value = prog_value;
 		}
 		else {
@@ -323,9 +337,9 @@ void ui_pct_prog_display_update_value(uint8_t keycode)
 		ui_show_messagebox(MESSAGEBOX_INFO, "Set the value successful.", 2000);
 		return;
 	}	
-	if (((prog_value - (int)prog_value)) > 0)
+	if (ui_pct_is_float_prog(digit))
 	{
-		sprintf(digit, "%05.f", prog_value);
+		ui_pct_fix_float_string(prog_value, digit);
 		len = strlen(digit);
 		if (len >= MAX_DIGIT_LEN) digit[MAX_DIGIT_LEN] = 0;
 	}
@@ -384,6 +398,8 @@ void ui_pct_screen_init(void)
 	
 	obj = ui_create_label(ui_pct_screen,"MEGASONIC HYPERCLEAN", &mono_bold_32);	
 	lv_obj_set_pos(obj, 100, 5);
+	obj = ui_create_label(ui_pct_screen, SYSTEMVERSION, &mono_regualr_16);	
+	lv_obj_set_pos(obj, 100, 40);
 	
 	obj = ui_create_button(ui_pct_screen, "#6DFF13  " LV_SYMBOL_LEFT " #", item_size, item_size, 2, UI_PCT_PANEL_BG_COLOR, &lv_font_montserrat_16, ui_pct_event_prog_direction_cb, (void*)0);
 	lv_obj_set_pos(obj, 5, 65);
@@ -450,13 +466,13 @@ void ui_pct_screen_init(void)
 	
 	obj = ui_create_label(panel, "PROGRAMMED TEMP=000 ACTUAL TEMP=000",&mono_regualr_16);
 	lv_obj_set_style_text_color(obj, lv_color_hex(UI_PCT_PANEL_FG_COLOR), LV_PART_MAIN);
-	lv_obj_set_size(obj, 270, 40);
+	lv_obj_set_size(obj, 310, 40);
 	lv_obj_set_pos(obj, 5, 5);
 	ui_pct_panel_02_line_01 = obj;
 	
 	obj = ui_create_label(panel, "LIQUID=160 OT=0 CONTACTOR=030 DUTY=000", &mono_regualr_16);
 	lv_obj_set_style_text_color(obj, lv_color_hex(UI_PCT_PANEL_FG_COLOR), LV_PART_MAIN);
-	lv_obj_set_size(obj, 270, 40);
+	lv_obj_set_size(obj, 310, 40);
 	lv_obj_set_pos(obj, 5, 40);
 	ui_pct_panel_02_line_02 = obj;
 	

@@ -192,19 +192,24 @@ void event_go_home_cb(lv_event_t* e)
 {
 	ui_transform_screen(SCREEN_HOME);
 }
-
+float b = 43.555;
 void InitUI( void )
 {
+	char sz[100] = { 0 };
+	sprintf(sz, "%.2f", 2.442f);
+	float a = 423.233;
+	sprintf(sz, "%05.02f", a);
     lv_disp_t *dispp = lv_disp_get_default();
+	sprintf(sz, "%05.02f", b);
     lv_theme_t *theme = lv_theme_default_init(dispp, lv_palette_main(LV_PALETTE_BLUE), lv_palette_main(LV_PALETTE_RED), true, LV_FONT_DEFAULT);
     lv_disp_set_theme(dispp, theme);
 	ui_splash_screen_init();
-	ui_home_screen_init();
-	ui_variables_screen_init();
-	ui_server_screen_init();
-	ui_sdcard_screen_init();
-	ui_settings_screen_init();
-	ui_control_screen_init();
+	//ui_home_screen_init();
+	//ui_variables_screen_init();
+	//ui_server_screen_init();
+	//ui_sdcard_screen_init();
+	//ui_settings_screen_init();
+	//ui_control_screen_init();
 	ui_pct_screen_init();
 	
 	keyboard = lv_keyboard_create(ui_home_screen);
