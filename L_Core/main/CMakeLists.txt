@@ -65,6 +65,7 @@ idf_component_register(
                 	L_Core/ui/font/mono_regualr_12.c
                 	L_Core/ui/font/mono_regualr_16.c
                 	L_Core/ui/font/mono_regualr_20.c
+                	L_Core/ui/font/mono_regualr_14.c
                 INCLUDE_DIRS "."
                 REQUIRES
                 	LovyanGFX

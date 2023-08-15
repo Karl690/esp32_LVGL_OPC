@@ -19,7 +19,7 @@ UI_PCT_DISPLAY_INFO ui_pct_prog_param_displays[] = {
 	{"PROCESS TEMPERATURE (IN DEGREES C)", "", &pct_progamming_info.process_temperature},
 	{"MINIMUM TEMPERATURE TO START A PROCESS", "(IN DEGREES C)", &pct_progamming_info.min_temperature},
 	{"MAXIMUM TEMPERATURE TO START A PROCESS", "(IN DEGREES C)", &pct_progamming_info.max_temperature},
-	{"ENTER PROCESS TIME IN SECONDS", "IE 10 MINUTES = 600 SECONDS", &pct_progamming_info.process_time},
+	{"ENTER PROCESS TIME IN SECONDS", "IE 10 MINUTES=600 SECONDS", &pct_progamming_info.process_time},
 	{"ENTER POWER IN PERCENT (IE 1 TO 100%) ", "(ANYTHING OVER 100 IS SAME AS 100)", &pct_progamming_info.power_level},
 	{"ENTER MINIMUM POWER VALUE TO QUALIFY", "ARRAY1 PROCESS (100 TO 500 TYPICAL)", &pct_progamming_info.min_qualify_power_array_1},
 	{"ENTER MINIMUM POWER VALUE TO QUALIFY", "ARRAY2 PROCESS (100 TO 500 TYPICAL)", &pct_progamming_info.min_qualify_power_array_2},
@@ -80,18 +80,18 @@ UI_PCT_DISPLAY_INFO ui_pct_status_displays[] = {
 };
 
 UI_PCT_DISPLAY_INFO ui_pct_diagnostic_displays[] = { 
-	{ "ARRAY1=%03d ARRAY2=%03d PTEMP=%02d ATEMP=%02d", "LIQUID=%03d OT=%01d CONTACTOR=%03d DUTY=%03d", NULL},
-	{ "FRQ1 PRG=%05d ACT=%05d DAC=%04d LOCK=%01d", "FRQ2 PRG=%05d ACT=%05d DAC=%04d LOCK=%01d", NULL},
-	{ "ARAY1 FPOWER=%05d ARAY2 FPOWER=%05d", "", NULL},
-	{ "XT1A=%05d XT2A=%05d XT3A=%05d XT4A=%05d", "XT5A=%05d XT6A=%05d XT7A=%05d XT8A=%05d", NULL},
-	{ "XT1B=%05d XT2B=%05d XT3B=%05d XT4B=%05d", "XT5B=%05d XT6B=%05d XT7B=%05d XT8B=%05d", NULL},
-	{ "PWR1=%05d PWR2=%05d PWR3=%05d PWR4=%05d", "PWR5=%05d PWR6=%05d PWR7=%05d PWR8=%05d", NULL},
-	{ "PWR1=%05d PWR2=%05d PWR3=%05d PWR4=%05d", "PWR5=%05d PWR6=%05d PWR7=%05d PWR8=%05d", NULL},
-	{ "OVERTEMP SET=%04d OT-TC=%04d OT-SENSE=%01d", "LIQUID LEVEL=%01d RTD=%04d TEMP=%03d CF=%01d", NULL},
-	{ "PTEMP=%03d ATEMP=%03d PFACT=%05d DUTY=%03d", "ADJUSTED FACTOR=%05d DELTA FACTOR=%05d", NULL},
-	{ "ALARM=%01d LL INTERLOCK=%02d LLSENSE=%04d", "RAW LIQUID LEVEL INPUT %04d", NULL},
-	{ "MUXTIMER=%02d MUX=%01d DAC3=%04d DAC4=%04d", "POWER=%01d FREQ=%05d MUXTIME=%05d", NULL},
-	{ "HYPERSONIC SOFTWARE VER FTUNE1JB 05-12-98", "PCT SYSTEMS TEL#510-657-4412 FAX-0112", NULL}
+	/* 0 */ { "ARRAY1=%03d ARRAY2=%03d PTEMP=%02d ATEMP=%02d", "LIQUID=%03d OT=%01d CONTACTOR=%03d DUTY=%03d", NULL},
+	/* 1 */ { "FRQ1 PRG=%05d ACT=%05d DAC=%04d LOCK=%01d", "FRQ2 PRG=%05d ACT=%05d DAC=%04d LOCK=%01d", NULL},
+	/* 2 */ { "ARAY1 FPOWER=%05d", "ARAY2 FPOWER=%05d", NULL},
+	/* 3 */ { "XT1A=%05d XT2A=%05d XT3A=%05d XT4A=%05d", "XT5A=%05d XT6A=%05d XT7A=%05d XT8A=%05d", NULL},
+	/* 4 */ { "XT1B=%05d XT2B=%05d XT3B=%05d XT4B=%05d", "XT5B=%05d XT6B=%05d XT7B=%05d XT8B=%05d", NULL},
+	/* 5 */ { "PWR1=%05d PWR2=%05d PWR3=%05d PWR4=%05d", "PWR5=%05d PWR6=%05d PWR7=%05d PWR8=%05d", NULL},
+	/* 6 */ { "PWR1=%05d PWR2=%05d PWR3=%05d PWR4=%05d", "PWR5=%05d PWR6=%05d PWR7=%05d PWR8=%05d", NULL},
+	/* 7 */ { "OVERTEMP SET=%04d OT-TC=%04d OT-SENSE=%01d", "LIQUID LEVEL=%01d RTD=%04d TEMP=%03d CF=%01d", NULL},
+	/* 8 */ { "PTEMP=%03d ATEMP=%03d PFACT=%05d DUTY=%03d", "ADJUSTED FACTOR=%05d DELTA FACTOR=%05d", NULL},
+	/* 9 */ { "ALARM=%01d LL INTERLOCK=%02d LLSENSE=%04d", "RAW LIQUID LEVEL INPUT %04d", NULL},
+	/* 10 */ { "MUXTIMER=%02d MUX=%01d DAC3=%04d DAC4=%04d", "POWER=%01d FREQ=%05d MUXTIME=%05d", NULL},
+	/* 11 */ { "HYPERSONIC SOFTWARE VER FTUNE1JB 05-12-98", "PCT SYSTEMS TEL 510-657-4412 FAX-0112", NULL}
 };
 
 int8_t	  ui_pct_prog_display_index = 0;
@@ -152,9 +152,187 @@ void ui_pct_update_status_display()
 
 void ui_pct_update_diagnostic_display()	
 {
-	lv_label_set_text(ui_pct_panel_02_line_01, (const char*)ui_pct_diagnostic_displays[ui_pct_diag_display_variable_index].line_one);
-	lv_label_set_text(ui_pct_panel_02_line_02, (const char*)ui_pct_diagnostic_displays[ui_pct_diag_display_variable_index].line_two);		
-	//lv_label_set_text(ui_pct_panel_02_value, "");	
+	switch (ui_pct_diag_display_variable_index)
+	{
+	case 0: //Temperature diagnostic
+		sprintf(digit,
+			(char*)ui_pct_diagnostic_displays[ui_pct_diag_display_variable_index].line_one, 
+			pct_diagnostic_info.temp_array1,
+			pct_diagnostic_info.temp_array2, 
+			pct_diagnostic_info.temp_ptemp,
+			pct_diagnostic_info.temp_atemp);
+		lv_label_set_text(ui_pct_panel_02_line_01, (const char*)digit);
+		
+		sprintf(digit,
+			(char*)ui_pct_diagnostic_displays[ui_pct_diag_display_variable_index].line_two, 
+			pct_diagnostic_info.temp_liquid,
+			pct_diagnostic_info.temp_ot, 
+			pct_diagnostic_info.temp_contactor,
+			pct_diagnostic_info.temp_duty);
+		lv_label_set_text(ui_pct_panel_02_line_02, (const char*)digit);		
+		break;
+	case 1: // Frequncey synthesizers
+		sprintf(digit,
+			(char*)ui_pct_diagnostic_displays[ui_pct_diag_display_variable_index].line_one, 
+			pct_diagnostic_info.freq1_prg,
+			pct_diagnostic_info.freq1_act, 
+			pct_diagnostic_info.freq1_dac,
+			pct_diagnostic_info.freq1_lock);
+		lv_label_set_text(ui_pct_panel_02_line_01, (const char*)digit);
+		
+		sprintf(digit,
+			(char*)ui_pct_diagnostic_displays[ui_pct_diag_display_variable_index].line_two, 
+			pct_diagnostic_info.freq2_prg,
+			pct_diagnostic_info.freq2_act, 
+			pct_diagnostic_info.freq2_dac,
+			pct_diagnostic_info.freq2_act);
+		lv_label_set_text(ui_pct_panel_02_line_02, (const char*)digit);		
+		break;
+	case 2: // Power Sensors
+		sprintf(digit,
+			(char*)ui_pct_diagnostic_displays[ui_pct_diag_display_variable_index].line_one, 
+			pct_diagnostic_info.array1_fpower);
+		lv_label_set_text(ui_pct_panel_02_line_01, (const char*)digit);
+		
+		sprintf(digit,
+			(char*)ui_pct_diagnostic_displays[ui_pct_diag_display_variable_index].line_two, 
+			pct_diagnostic_info.array2_fpower);
+		lv_label_set_text(ui_pct_panel_02_line_02, (const char*)digit);		
+		break;
+	case 3: // Array 1 Frequencies
+		sprintf(digit,
+			(char*)ui_pct_diagnostic_displays[ui_pct_diag_display_variable_index].line_one, 
+			pct_diagnostic_info.xt1a,
+			pct_diagnostic_info.xt2a, 
+			pct_diagnostic_info.xt3a,
+			pct_diagnostic_info.xt4a);
+		lv_label_set_text(ui_pct_panel_02_line_01, (const char*)digit);
+		
+		sprintf(digit,
+			(char*)ui_pct_diagnostic_displays[ui_pct_diag_display_variable_index].line_two, 
+			pct_diagnostic_info.xt5a,
+			pct_diagnostic_info.xt6a, 
+			pct_diagnostic_info.xt7a,
+			pct_diagnostic_info.xt8a);
+		lv_label_set_text(ui_pct_panel_02_line_02, (const char*)digit);		
+		break;
+	case 4: // Array 2 Frequencies
+		sprintf(digit,
+			(char*)ui_pct_diagnostic_displays[ui_pct_diag_display_variable_index].line_one, 
+			pct_diagnostic_info.xt1b,
+			pct_diagnostic_info.xt2b, 
+			pct_diagnostic_info.xt3b,
+			pct_diagnostic_info.xt4b);
+		lv_label_set_text(ui_pct_panel_02_line_01, (const char*)digit);
+		
+		sprintf(digit,
+			(char*)ui_pct_diagnostic_displays[ui_pct_diag_display_variable_index].line_two, 
+			pct_diagnostic_info.xt5b,
+			pct_diagnostic_info.xt6b, 
+			pct_diagnostic_info.xt7b,
+			pct_diagnostic_info.xt8b);
+		lv_label_set_text(ui_pct_panel_02_line_02, (const char*)digit);		
+		break;
+	case 5: // Power-Trans Array 2
+		sprintf(digit,
+			(char*)ui_pct_diagnostic_displays[ui_pct_diag_display_variable_index].line_one, 
+			pct_diagnostic_info.array1_pwr1,
+			pct_diagnostic_info.array1_pwr2, 
+			pct_diagnostic_info.array1_pwr3,
+			pct_diagnostic_info.array1_pwr4);
+		lv_label_set_text(ui_pct_panel_02_line_01, (const char*)digit);
+		
+		sprintf(digit,
+			(char*)ui_pct_diagnostic_displays[ui_pct_diag_display_variable_index].line_two, 
+			pct_diagnostic_info.array1_pwr5,
+			pct_diagnostic_info.array1_pwr6, 
+			pct_diagnostic_info.array1_pwr7,
+			pct_diagnostic_info.array1_pwr8);
+		lv_label_set_text(ui_pct_panel_02_line_02, (const char*)digit);		
+		break;
+	case 6: // Power-Trans Array 2
+		sprintf(digit,
+			(char*)ui_pct_diagnostic_displays[ui_pct_diag_display_variable_index].line_one, 
+			pct_diagnostic_info.array2_pwr1,
+			pct_diagnostic_info.array2_pwr2, 
+			pct_diagnostic_info.array2_pwr3,
+			pct_diagnostic_info.array2_pwr4);
+		lv_label_set_text(ui_pct_panel_02_line_01, (const char*)digit);
+		
+		sprintf(digit,
+			(char*)ui_pct_diagnostic_displays[ui_pct_diag_display_variable_index].line_two, 
+			pct_diagnostic_info.array2_pwr5,
+			pct_diagnostic_info.array2_pwr6, 
+			pct_diagnostic_info.array2_pwr7,
+			pct_diagnostic_info.array2_pwr8);
+		lv_label_set_text(ui_pct_panel_02_line_02, (const char*)digit);		
+		break;
+	case 7: // RTD/TC/LL Status (RTD/Thermocouple/Liquid Level Status)
+		sprintf(digit,
+			(char*)ui_pct_diagnostic_displays[ui_pct_diag_display_variable_index].line_one, 
+			pct_diagnostic_info.overtemp_set,
+			pct_diagnostic_info.overtemp_ot_tc, 
+			pct_diagnostic_info.overtemp_ot_sense);
+		lv_label_set_text(ui_pct_panel_02_line_01, (const char*)digit);
+		
+		sprintf(digit,
+			(char*)ui_pct_diagnostic_displays[ui_pct_diag_display_variable_index].line_two, 
+			pct_diagnostic_info.liquid_level,
+			pct_diagnostic_info.liquid_rtd, 
+			pct_diagnostic_info.liquid_temp,
+			pct_diagnostic_info.liquid_cf);
+		lv_label_set_text(ui_pct_panel_02_line_02, (const char*)digit);		
+		break;
+	case 8: // Heater Status
+		sprintf(digit,
+			(char*)ui_pct_diagnostic_displays[ui_pct_diag_display_variable_index].line_one, 
+			pct_diagnostic_info.heater_ptemp,
+			pct_diagnostic_info.heater_atemp, 
+			pct_diagnostic_info.heater_pfact,
+			pct_diagnostic_info.heater_duty);
+		lv_label_set_text(ui_pct_panel_02_line_01, (const char*)digit);
+		
+		sprintf(digit,
+			(char*)ui_pct_diagnostic_displays[ui_pct_diag_display_variable_index].line_two, 
+			pct_diagnostic_info.heater_adj_factor,
+			pct_diagnostic_info.heater_factor, 
+			pct_diagnostic_info.heater_delta_factor);
+		lv_label_set_text(ui_pct_panel_02_line_02, (const char*)digit);		
+		break;
+	case 9: // Liquid level Status
+		sprintf(digit,
+			(char*)ui_pct_diagnostic_displays[ui_pct_diag_display_variable_index].line_one, 
+			pct_diagnostic_info.liquid_alarm,
+			pct_diagnostic_info.liquid_ll_interlock, 
+			pct_diagnostic_info.liquid_llsense);
+		lv_label_set_text(ui_pct_panel_02_line_01, (const char*)digit);
+		
+		sprintf(digit,
+			(char*)ui_pct_diagnostic_displays[ui_pct_diag_display_variable_index].line_two, 
+			pct_diagnostic_info.liquid_input);
+		lv_label_set_text(ui_pct_panel_02_line_02, (const char*)digit);		
+		break;
+	case 10: // MUX Status
+		sprintf(digit,
+			(char*)ui_pct_diagnostic_displays[ui_pct_diag_display_variable_index].line_one, 
+			pct_diagnostic_info.muxtimer,
+			pct_diagnostic_info.mux, 
+			pct_diagnostic_info.dac3,
+			pct_diagnostic_info.dac4);
+		lv_label_set_text(ui_pct_panel_02_line_01, (const char*)digit);
+		
+		sprintf(digit,
+			(char*)ui_pct_diagnostic_displays[ui_pct_diag_display_variable_index].line_two, 
+			pct_diagnostic_info.mux_power,
+			pct_diagnostic_info.mux_freq,
+			pct_diagnostic_info.mux_time);
+		lv_label_set_text(ui_pct_panel_02_line_02, (const char*)digit);		
+		break;
+	case 11: // ID DISPLAY		
+		lv_label_set_text(ui_pct_panel_02_line_01, (const char*)(char*)ui_pct_diagnostic_displays[ui_pct_diag_display_variable_index].line_one);
+		lv_label_set_text(ui_pct_panel_02_line_02, (const char*)(char*)ui_pct_diagnostic_displays[ui_pct_diag_display_variable_index].line_two);
+		break;
+	}
 }
 
 void ui_pct_update_program_display()
@@ -424,23 +602,23 @@ void ui_pct_screen_init(void)
 	
 	ui_pct_panel_01 = panel;
 	
-	obj = ui_create_label(panel, "ENTER NEW PROCESS NUMBER IF DESIRED", &mono_regualr_16);
+	obj = ui_create_label(panel, "ENTER NEW PROCESS NUMBER IF DESIRED", &mono_regualr_14);
 	lv_obj_set_style_text_color(obj, lv_color_hex(UI_PCT_PANEL_FG_COLOR), LV_PART_MAIN);
 	lv_obj_set_size(obj, 310, 40);
-	lv_obj_set_pos(obj, 5, 5);
+	lv_obj_set_pos(obj, 5, 15);
 	ui_pct_panel_01_line_01 = obj;
 	
-	obj = ui_create_label(panel, "(0 = N.O. SWITCH 1 = N.C. SWITCH)", &mono_regualr_16);
+	obj = ui_create_label(panel, "(0 = N.O. SWITCH 1 = N.C. SWITCH)", &mono_regualr_14);
 	lv_obj_set_style_text_color(obj, lv_color_hex(UI_PCT_PANEL_FG_COLOR), LV_PART_MAIN);
-	lv_obj_set_size(obj, 240, 40);
-	lv_obj_set_pos(obj, 5, 35);
+	lv_obj_set_size(obj, 250, 40);
+	lv_obj_set_pos(obj, 5, 40);
 	ui_pct_panel_01_line_02 = obj;
 	
 	obj = ui_create_label(panel, "00001", &mono_digital_24);
 	lv_obj_set_style_text_color(obj, lv_color_hex(UI_PCT_PANEL_FG_COLOR), LV_PART_MAIN);
 	lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_RIGHT, 0);
 	lv_obj_set_size(obj, 80, LV_SIZE_CONTENT);
-	lv_obj_set_pos(obj, 240, 40);
+	lv_obj_set_pos(obj, 240, 45);
 	ui_pct_panel_01_value = obj;
 	
 	ui_pct_panel_title_02 = ui_create_label(ui_pct_screen, "DIAGNOSTIC", &mono_bold_24);	
@@ -464,15 +642,15 @@ void ui_pct_screen_init(void)
 	lv_obj_set_size(panel, 330, 80);
 	ui_pct_panel_02 = panel;
 	
-	obj = ui_create_label(panel, "PROGRAMMED TEMP=000 ACTUAL TEMP=000",&mono_regualr_16);
+	obj = ui_create_label(panel, "PROGRAMMED TEMP=000 ACTUAL TEMP=000",&mono_regualr_14);
 	lv_obj_set_style_text_color(obj, lv_color_hex(UI_PCT_PANEL_FG_COLOR), LV_PART_MAIN);
 	lv_obj_set_size(obj, 310, 40);
-	lv_obj_set_pos(obj, 5, 5);
+	lv_obj_set_pos(obj, 5, 15);
 	ui_pct_panel_02_line_01 = obj;
 	
-	obj = ui_create_label(panel, "LIQUID=160 OT=0 CONTACTOR=030 DUTY=000", &mono_regualr_16);
+	obj = ui_create_label(panel, "LIQUID=160 OT=0 CONTACTOR=030 DUTY=000", &mono_regualr_14);
 	lv_obj_set_style_text_color(obj, lv_color_hex(UI_PCT_PANEL_FG_COLOR), LV_PART_MAIN);
-	lv_obj_set_size(obj, 310, 40);
+	lv_obj_set_size(obj, 310, 50);
 	lv_obj_set_pos(obj, 5, 40);
 	ui_pct_panel_02_line_02 = obj;
 	
