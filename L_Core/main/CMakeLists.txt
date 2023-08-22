@@ -15,6 +15,7 @@ idf_component_register(
                 	K_Core/K_Core.c
                 	K_Core/taskmanager.c
                 	K_Core/display/DisplayList.c
+                    K_Core/serial/serial.c
                 	L_Core/ui/ui-opc.c
                 	L_Core/ui/ui-splash.c
                 	K_Core/adc/adc.c
@@ -81,5 +82,5 @@ idf_component_register(
                 	bt
                 	fatfs
                 	sdmmc)            
-component_compile_options(-fexceptions -x c++)
+component_compile_options(-fexceptions -x c++ -O0)
 set_property(TARGET ${COMPONENT_TARGET} PROPERTY CXX_STANDARD 17)

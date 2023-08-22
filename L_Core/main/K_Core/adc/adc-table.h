@@ -28,4 +28,4 @@ extern AdcTableStruct const RtdTable_50K[] __attribute__((aligned(4)));
 extern AdcTableStruct const RtdTable_1K[] __attribute__((aligned(4)));
 extern AdcTableStruct const RtdTable_100[] __attribute__((aligned(4)));
 
-int16_t convertRtdDataFromRawADCValue(const AdcTableStruct* adcTable, uint16_t raw);
+int16_t adc_convert_rtddata_from_rawvalue(const AdcTableStruct* adcTable, uint16_t raw);

@@ -167,7 +167,7 @@ AdcTableStruct const RtdTable_100[] __attribute__((aligned(4))) =
 	// in reality, to get to MAX_ADC, would take about 10 billion degrees.
 };
 
-int16_t convertRtdDataFromRawADCValue(const AdcTableStruct* adcTable, uint16_t raw)
+int16_t adc_convert_rtddata_from_rawvalue(const AdcTableStruct* adcTable, uint16_t raw)
 {
 	uint8_t leftIndex = 0, rightIndex = 0;
 	while (adcTable[rightIndex].adcRaw != MAX_ADC12)

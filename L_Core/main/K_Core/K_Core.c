@@ -7,13 +7,15 @@
 #include "display/DisplayList.h"
 #include "RevisionHistory.h"
 #include "adc/adc.h"
+#include "serial/serial.h"
 DisplayVariableInfo *ActiveVariableInfo = NULL;
 void forground_task(void* arg);
 void K_Core_Main()
 {
 	// Init_RCC();
-	Init_GPIO();
-	Init_ADC();
+	gpio_init();
+	adc_init();
+	serial_init();
 	
 	// InitSerialBuffers();
 	// Init_Uart();
@@ -27,8 +29,9 @@ void K_Core_Main()
 	//xTaskCreatePinnedToCore(forground_task, "forground_task", 1024 * 2, NULL, 10, NULL, 1);
 	while (1)
 	{	
+
 		vTaskDelay(50);
-		//ui_opc_update_variableList();
+	
 	}
 }
 

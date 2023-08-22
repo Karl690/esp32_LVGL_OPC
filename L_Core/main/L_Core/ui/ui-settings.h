@@ -43,10 +43,16 @@ typedef struct
 
 typedef struct
 {
+	lv_obj_t* latest_data;
+} UI_SERIAL;
+
+typedef struct
+{
 	UI_WIFI ui_wifi;
 	UI_BLUETOOTH ui_bluetooth;
 	UI_OPC ui_opc;
 	UI_SDCARD ui_sdcard;
+	UI_SERIAL ui_serial;
 }UI_SETTINGS;
 
 extern lv_obj_t* ui_settings_screen;

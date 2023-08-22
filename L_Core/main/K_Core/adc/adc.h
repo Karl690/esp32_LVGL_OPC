@@ -27,6 +27,6 @@ typedef struct {
 } adcStruct;
 
 extern adcStruct ADC_Channel[ADC_CHANNEL_NUM];
-void Init_ADC();
-void ProcessGetAdcRawData();
-void SmoothDataUsingOlympicVotingAverage(void);
+void adc_init();
+void adc_get_process_rawdata();
+void adc_smoothDataUsing_olympic_votingaverage(void);

@@ -204,12 +204,12 @@ void InitUI( void )
     lv_theme_t *theme = lv_theme_default_init(dispp, lv_palette_main(LV_PALETTE_BLUE), lv_palette_main(LV_PALETTE_RED), true, LV_FONT_DEFAULT);
     lv_disp_set_theme(dispp, theme);
 	ui_splash_screen_init();
-	//ui_home_screen_init();
-	//ui_variables_screen_init();
-	//ui_server_screen_init();
-	//ui_sdcard_screen_init();
-	//ui_settings_screen_init();
-	//ui_control_screen_init();
+	ui_home_screen_init();
+	ui_variables_screen_init();
+	ui_server_screen_init();
+	ui_sdcard_screen_init();
+	ui_settings_screen_init();
+	ui_control_screen_init();
 	ui_pct_screen_init();
 	
 	keyboard = lv_keyboard_create(ui_home_screen);

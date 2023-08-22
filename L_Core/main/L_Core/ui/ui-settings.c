@@ -4,12 +4,14 @@
 #include "../wifi/wifi.h"
 #include "../sd-card/sd-card.h"
 #include "../bluetooth/bluetooth.h"
+#include "../../K_Core/serial/serial.h"
 #include "RevisionHistory.h"
 lv_obj_t* ui_settings_screen;
 lv_obj_t* ui_settings_bluetooth_page;
 lv_obj_t* ui_settings_wifi_page;
 lv_obj_t* ui_settings_opc_page;
 lv_obj_t* ui_settings_sdcard_page;
+lv_obj_t* ui_settings_serial_page;
 lv_obj_t* ui_settings_system_page;
 lv_obj_t* settings_active_menu = NULL;
 lv_obj_t* settings_active_page = NULL;
@@ -42,7 +44,8 @@ void ui_settings_event_submenu_cb(lv_event_t* e)
 		lv_obj_clear_flag(ui_settings_opc_page, LV_OBJ_FLAG_HIDDEN);
 		break;
 	case SETTINGS_SUBMENU_SERIAL:
-		//lv_obj_clear_flag(ui_settings_bluetooth_page, LV_OBJ_FLAG_HIDDEN);
+		settings_active_page = ui_settings_serial_page;
+		lv_obj_clear_flag(ui_settings_serial_page, LV_OBJ_FLAG_HIDDEN);
 		break;
 	case SETTINGS_SUBMENU_SDCARD:
 		settings_active_page = ui_settings_sdcard_page;
@@ -152,6 +155,14 @@ void ui_settings_event_save_cb(lv_event_t* e)
 	else
 	{
 		ui_show_messagebox(MESSAGEBOX_INFO, "Successful save configuration to sd card.", 3000);
+	}
+}
+
+void ui_settings_update_data_timer_cb(lv_timer_t * timer)
+{
+	if (strcmp(lv_label_get_text(ui_settings.ui_serial.latest_data), (char*)serial_last_read_buffer))
+	{
+		lv_label_set_text(ui_settings.ui_serial.latest_data, (char*)serial_last_read_buffer);
 	}
 }
 void ui_settings_bluetooth_page_init()
@@ -352,6 +363,24 @@ void ui_settings_sdcard_page_init()
 	ui_settings.ui_sdcard.automount = obj;
 }
 
+
+void ui_settings_serial_page_init()
+{
+	ui_settings_serial_page = lv_obj_create(ui_settings_screen);
+	lv_obj_set_size(ui_settings_serial_page, 375, 256); //480-105
+	lv_obj_set_pos(ui_settings_serial_page, 102, 32); 
+	lv_obj_set_style_pad_all(ui_settings_serial_page, 10, LV_PART_MAIN);
+	lv_obj_t* obj = ui_create_label(ui_settings_serial_page, "Serial", &lv_font_montserrat_20);
+	lv_obj_set_align(obj, LV_ALIGN_TOP_MID);
+	
+	uint16_t x = 0, y = 40;
+	
+	obj = ui_create_label(ui_settings_serial_page, "latest read data: ", &lv_font_montserrat_14);
+	lv_obj_set_pos(obj, 0, y + 10);
+	obj = ui_create_label(ui_settings_serial_page, "", &lv_font_montserrat_14);
+	lv_obj_set_pos(obj, 160, y); ui_settings.ui_serial.latest_data = obj;
+}
+
 void ui_settings_system_page_init()
 {
 	ui_settings_system_page = lv_obj_create(ui_settings_screen);
@@ -482,6 +511,8 @@ void ui_settings_screen_init()
 	lv_obj_add_flag(ui_settings_opc_page, LV_OBJ_FLAG_HIDDEN);
 	ui_settings_sdcard_page_init();
 	lv_obj_add_flag(ui_settings_sdcard_page, LV_OBJ_FLAG_HIDDEN);
+	ui_settings_serial_page_init();
+	lv_obj_add_flag(ui_settings_serial_page, LV_OBJ_FLAG_HIDDEN);
 	ui_settings_system_page_init();
 	lv_obj_add_flag(ui_settings_system_page, LV_OBJ_FLAG_HIDDEN);
 	
@@ -492,6 +523,8 @@ void ui_settings_screen_init()
 	
 	ui_settings_update_configuratiion();
 	ui_settings_initialized = true;
+	
+	lv_timer_t * timer = lv_timer_create(ui_settings_update_data_timer_cb, 500, NULL);
 }
 
 void ui_settings_update_configuratiion()

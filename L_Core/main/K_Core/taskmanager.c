@@ -3,6 +3,7 @@
 #include "taskmanager.h"
 #include "L_Core/ui/ui.h"
 #include "adc/adc.h"
+#include "serial/serial.h"
 esp_timer_handle_t systickTimer;
 
 
@@ -13,9 +14,8 @@ const PFUNC F1000HZ[NUM_1000HZ] =
 {
 	Spare,
 	// keep as last call in this array
-	Spare,
-	//canProcessTxQueueNoReturn,
-	Spare,
+	Spare, //serial_uart_check_rxtx
+	serial_rs485_check_rxtx,
 	Spare,
 	Spare,
 	Spare,
@@ -26,7 +26,7 @@ const PFUNC F1000HZ[NUM_1000HZ] =
 const PFUNC F100HZ[NUM_100HZ] =
 {
 	Spare,
-	ProcessGetAdcRawData,
+	adc_get_process_rawdata,
 	Spare,
 	Spare,
 	Spare,
@@ -105,6 +105,7 @@ void Spare(void)
 void BlinkHeartBeat(void)
 {	
 	HeartBeat++;
+	AddSerialStringToBuffer(&Com485.TxBuffer, "sss12345");
 }
 
 
@@ -115,7 +116,6 @@ void taskamanger_task(void* arg)
 void Init_TaskManager()
 {
 	//xTaskCreatePinnedToCore(taskamanger_task, "taskamanger_task", 1024 * 2, NULL, 10, NULL, 0);
-	
 	esp_timer_create_args_t systickTimerArgs = {
 		.callback = func_SystickCallback,
 		.arg = NULL,

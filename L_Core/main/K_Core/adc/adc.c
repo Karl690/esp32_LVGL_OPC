@@ -21,7 +21,7 @@ uint16_t ADC_Work_Channel_Index = 0; //used to walk thru the channels and update
 
 uint16_t adc_raw_value = 0;
 uint16_t adc_voltage = 0;
-void Init_ADC()
+void adc_init()
 {
 	adc1_config_width(ADC_WIDTH_BIT_12);
 	for (int i = 0; i < ADC_CHANNEL_NUM; i++)
@@ -36,7 +36,7 @@ void Init_ADC()
 	}
 }
 
-void ProcessGetAdcRawData()
+void adc_get_process_rawdata()
 {
 	ADC_ChannelDef *adcChannelDef = &AdcChannelTable[ADC_Work_Channel_Index];
 	adcStruct *ADC_Work_Channel = &ADC_Channel[ADC_Work_Channel_Index];
@@ -48,16 +48,16 @@ void ProcessGetAdcRawData()
 	{
 		adc2_get_raw((adc2_channel_t)adcChannelDef->Channel, ADC_WIDTH_BIT_12, (int*)&ADC_Work_Channel->adcRaw);
 	}
-	SmoothDataUsingOlympicVotingAverage();
+	adc_smoothDataUsing_olympic_votingaverage();
 	
-	ADC_Work_Channel->convAvg = convertRtdDataFromRawADCValue(adcChannelDef->ConvertionTable, ADC_Work_Channel->adcAvg);
+	ADC_Work_Channel->convAvg = adc_convert_rtddata_from_rawvalue(adcChannelDef->ConvertionTable, ADC_Work_Channel->adcAvg);
 	
 	ADC_Work_Channel_Index++;
 	if (ADC_Work_Channel_Index >= ADC_CHANNEL_NUM) ADC_Work_Channel_Index = 0; //keep in range
 }
 
 
-void SmoothDataUsingOlympicVotingAverage(void)
+void adc_smoothDataUsing_olympic_votingaverage(void)
 {
 	adcStruct* ADC_Work_Channel = &ADC_Channel[ADC_Work_Channel_Index];
 	//ADC_Work_Channel->adcRaw = RawADCDataBuffer[ADC_Work_Channel_Index]; //update last reading

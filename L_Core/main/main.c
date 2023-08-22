@@ -36,7 +36,7 @@ extern "C" void app_main(void)
 	load_configuration();
 	
 	wifi_init();
-	ble_init();
+	//ble_init();
 	
 	if (systemconfig.wifi.autoconnect) {
 		wifi_connect();

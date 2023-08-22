@@ -554,6 +554,7 @@ void ui_pct_event_button_cb(lv_event_t* e)
 		ui_pct_prog_display_update_value(code);
 		break;
 	case UI_PCT_KEYBOARD_PROG:
+		ui_transform_screen(SCREEN_SETTINGS);
 		break;
 	}
 }
