@@ -14,8 +14,8 @@ const PFUNC F1000HZ[NUM_1000HZ] =
 {
 	Spare,
 	// keep as last call in this array
-	Spare, //serial_uart_check_rxtx
-	serial_rs485_check_rxtx,
+	Spare,  //serial_uart_check_rxtx,
+	Spare, //serial_rs485_check_rxtx,
 	Spare,
 	Spare,
 	Spare,
@@ -27,8 +27,8 @@ const PFUNC F100HZ[NUM_100HZ] =
 {
 	Spare,
 	adc_get_process_rawdata,
-	Spare,
-	Spare,
+	serial_uart_check_rxtx, //Spare,
+	serial_rs485_check_rxtx, //Spare,
 	Spare,
 	Spare,
 	Spare,
@@ -105,7 +105,8 @@ void Spare(void)
 void BlinkHeartBeat(void)
 {	
 	HeartBeat++;
-	AddSerialStringToBuffer(&Com485.TxBuffer, "sss12345");
+	//AddSerialStringToBuffer(&ComUart.TxBuffer, "a");
+	//AddSerialStringToBuffer(&Com485.TxBuffer, "b");
 }
 
 

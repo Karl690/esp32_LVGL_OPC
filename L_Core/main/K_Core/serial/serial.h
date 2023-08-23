@@ -34,8 +34,8 @@
 #define SERIAL_485_RXD_PIN	(GPIO_NUM_1)
 #define SERIAL_485_RTS_PIN	(GPIO_NUM_2)
 
-#define SERIAL_UART_TXD_PIN  (GPIO_NUM_10)  //GPIO_NUM_43= U0TXD
-#define SERIAL_UART_RXD_PIN (GPIO_NUM_11)   //GPIO_NUM_44= U0RXD
+#define SERIAL_UART_TXD_PIN  (GPIO_NUM_14)  //GPIO_NUM_43= U0TXD
+#define SERIAL_UART_RXD_PIN (GPIO_NUM_21)   //GPIO_NUM_44= U0RXD
 
 #define SERIAL_UART UART_NUM_1
 #define SERIAL_RS485 UART_NUM_2
@@ -112,7 +112,8 @@ typedef struct {
 
 extern COMPORT ComUart;
 extern COMPORT Com485;
-extern uint8_t serial_last_read_buffer[256];
+extern uint8_t serial_uart_last_read_buffer[256];
+extern uint8_t serial_rs485_last_read_buffer[256];
 void serial_init();
 void serial_rs485_check_rxtx();
 void serial_uart_check_rxtx();

@@ -158,12 +158,14 @@ void ui_settings_event_save_cb(lv_event_t* e)
 	}
 }
 
+char tempString[256] = { 0 };
 void ui_settings_update_data_timer_cb(lv_timer_t * timer)
 {
-	if (strcmp(lv_label_get_text(ui_settings.ui_serial.latest_data), (char*)serial_last_read_buffer))
-	{
-		lv_label_set_text(ui_settings.ui_serial.latest_data, (char*)serial_last_read_buffer);
-	}
+	sprintf(tempString, "0x%02X 0x%02X 0x%02X 0x%02X", serial_uart_last_read_buffer[0], serial_uart_last_read_buffer[1], serial_uart_last_read_buffer[2], serial_uart_last_read_buffer[3]);
+	lv_label_set_text(ui_settings.ui_serial.uart_latest_data, (char*)tempString);
+	sprintf(tempString, "0x%02X 0x%02X 0x%02X 0x%02X", serial_rs485_last_read_buffer[0], serial_rs485_last_read_buffer[1], serial_rs485_last_read_buffer[2], serial_rs485_last_read_buffer[3]);
+	lv_label_set_text(ui_settings.ui_serial.rs485_latest_data, (char*)tempString);
+	
 }
 void ui_settings_bluetooth_page_init()
 {
@@ -375,10 +377,16 @@ void ui_settings_serial_page_init()
 	
 	uint16_t x = 0, y = 40;
 	
-	obj = ui_create_label(ui_settings_serial_page, "latest read data: ", &lv_font_montserrat_14);
-	lv_obj_set_pos(obj, 0, y + 10);
+	obj = ui_create_label(ui_settings_serial_page, "uart buffer: ", &lv_font_montserrat_14);
+	lv_obj_set_pos(obj, 0, y);
 	obj = ui_create_label(ui_settings_serial_page, "", &lv_font_montserrat_14);
-	lv_obj_set_pos(obj, 160, y); ui_settings.ui_serial.latest_data = obj;
+	lv_obj_set_pos(obj, 160, y); ui_settings.ui_serial.uart_latest_data = obj;
+	
+	y += 40;
+	obj = ui_create_label(ui_settings_serial_page, "rs485 buffer: ", &lv_font_montserrat_14);
+	lv_obj_set_pos(obj, 0, y);
+	obj = ui_create_label(ui_settings_serial_page, "", &lv_font_montserrat_14);
+	lv_obj_set_pos(obj, 160, y); ui_settings.ui_serial.rs485_latest_data = obj;
 }
 
 void ui_settings_system_page_init()
