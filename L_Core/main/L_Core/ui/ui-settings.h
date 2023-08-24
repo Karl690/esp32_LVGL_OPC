@@ -43,8 +43,9 @@ typedef struct
 
 typedef struct
 {
-	lv_obj_t* uart_latest_data;
-	lv_obj_t* rs485_latest_data;
+	lv_obj_t* uart1_latest_received_text;
+	lv_obj_t* uart2_latest_received_text;
+	lv_obj_t* send_text;
 } UI_SERIAL;
 
 typedef struct

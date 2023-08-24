@@ -19,6 +19,23 @@ bool ui_settings_initialized = false;
 
 
 UI_SETTINGS ui_settings;
+void ui_settings_serial_event_cb(lv_event_t* e)
+{
+	lv_obj_t * target = lv_event_get_target(e);	
+	int type = (int) e->user_data;
+	char* text = (char*)lv_textarea_get_text(ui_settings.ui_serial.send_text);
+	if (strlen(text) == 0) return;
+	switch (type)
+	{
+	case 1:
+		serial_add_string_to_buffer(&ComUart1.TxBuffer, text);
+		break;
+	case 2:
+		serial_add_string_to_buffer(&ComUart2.TxBuffer, text);
+		break;
+	}
+}
+
 void ui_settings_event_submenu_cb(lv_event_t* e)
 {
 	if (!ui_settings_initialized) return;
@@ -78,7 +95,7 @@ void ui_settings_event_edit_cb(lv_event_t* e)
 	{
 		char* value = (char*)lv_event_get_user_data(e);
 		lv_obj_add_flag(keyboard, LV_OBJ_FLAG_HIDDEN);
-		strcpy(value, lv_textarea_get_text(obj));
+		if(value) strcpy(value, lv_textarea_get_text(obj));
 	}
 }
 
@@ -161,10 +178,10 @@ void ui_settings_event_save_cb(lv_event_t* e)
 char tempString[256] = { 0 };
 void ui_settings_update_data_timer_cb(lv_timer_t * timer)
 {
-	sprintf(tempString, "0x%02X 0x%02X 0x%02X 0x%02X", serial_uart_last_read_buffer[0], serial_uart_last_read_buffer[1], serial_uart_last_read_buffer[2], serial_uart_last_read_buffer[3]);
-	lv_label_set_text(ui_settings.ui_serial.uart_latest_data, (char*)tempString);
-	sprintf(tempString, "0x%02X 0x%02X 0x%02X 0x%02X", serial_rs485_last_read_buffer[0], serial_rs485_last_read_buffer[1], serial_rs485_last_read_buffer[2], serial_rs485_last_read_buffer[3]);
-	lv_label_set_text(ui_settings.ui_serial.rs485_latest_data, (char*)tempString);
+	//sprintf(tempString, "0x%02X 0x%02X 0x%02X 0x%02X", serial_uart_last_read_buffer[0], serial_uart_last_read_buffer[1], serial_uart_last_read_buffer[2], serial_uart_last_read_buffer[3]);
+	lv_label_set_text(ui_settings.ui_serial.uart1_latest_received_text, (char*)serial_uart1_last_read_buffer);
+	//sprintf(tempString, "0x%02X 0x%02X 0x%02X 0x%02X", serial_rs485_last_read_buffer[0], serial_rs485_last_read_buffer[1], serial_rs485_last_read_buffer[2], serial_rs485_last_read_buffer[3]);
+	lv_label_set_text(ui_settings.ui_serial.uart2_latest_received_text, (char*)serial_uart2_last_read_buffer);
 	
 }
 void ui_settings_bluetooth_page_init()
@@ -377,16 +394,32 @@ void ui_settings_serial_page_init()
 	
 	uint16_t x = 0, y = 40;
 	
-	obj = ui_create_label(ui_settings_serial_page, "uart buffer: ", &lv_font_montserrat_14);
+	obj = ui_create_label(ui_settings_serial_page, "UART1 BUF: ", &lv_font_montserrat_14);
 	lv_obj_set_pos(obj, 0, y);
 	obj = ui_create_label(ui_settings_serial_page, "", &lv_font_montserrat_14);
-	lv_obj_set_pos(obj, 160, y); ui_settings.ui_serial.uart_latest_data = obj;
+	lv_obj_set_pos(obj, 160, y); ui_settings.ui_serial.uart1_latest_received_text= obj;
 	
 	y += 40;
-	obj = ui_create_label(ui_settings_serial_page, "rs485 buffer: ", &lv_font_montserrat_14);
+	obj = ui_create_label(ui_settings_serial_page, "UART2 BUF: ", &lv_font_montserrat_14);
 	lv_obj_set_pos(obj, 0, y);
 	obj = ui_create_label(ui_settings_serial_page, "", &lv_font_montserrat_14);
-	lv_obj_set_pos(obj, 160, y); ui_settings.ui_serial.rs485_latest_data = obj;
+	lv_obj_set_pos(obj, 160, y); ui_settings.ui_serial.uart2_latest_received_text = obj;
+	
+	y += 30;
+	obj = lv_textarea_create(ui_settings_serial_page);
+	lv_obj_set_style_border_color(obj, lv_color_hex(UI_MENU_ACTIVE_ITEM_COLOR), LV_PART_MAIN);
+	lv_obj_set_style_border_width(obj, 1, LV_PART_MAIN);
+	lv_textarea_set_one_line(obj, true);
+	lv_obj_set_width(obj, 250);
+	lv_obj_set_pos(obj, 0, y);
+	lv_obj_add_event_cb(obj, ui_settings_event_edit_cb, LV_EVENT_ALL, NULL);	
+	ui_settings.ui_serial.send_text  = obj;
+	
+	y += 45;
+	obj = ui_create_button(ui_settings_serial_page, "UART1 SEND", 100, 30, 3, UI_MENU_ACTIVE_ITEM_COLOR, &lv_font_montserrat_14, ui_settings_serial_event_cb, (void*)1);	
+	lv_obj_set_pos(obj, 0, y);
+	obj = ui_create_button(ui_settings_serial_page, "UART2 SEND", 100, 30, 3, UI_MENU_ACTIVE_ITEM_COLOR, &lv_font_montserrat_14, ui_settings_serial_event_cb, (void*)2);	
+	lv_obj_set_pos(obj, 200, y);
 }
 
 void ui_settings_system_page_init()

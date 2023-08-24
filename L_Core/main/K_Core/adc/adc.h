@@ -1,7 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include "adc-table.h"
-#define ADC_CHANNEL_NUM 5
+#define ADC_CHANNEL_NUM 2
 
 #define ANALOG_VOLTAGE  (0x34cd)    // 3.3V in a 4.12 format
 #define VDDA_FLOAT		3.3f

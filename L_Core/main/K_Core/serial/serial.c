@@ -12,19 +12,21 @@
 //#include "esp_vfs_dev.h"
 int serial_uart_fd = -1;
 
-uint8_t serial_rs485_rx_buffer[SERIAL_RX_BUF_SIZE];
-uint8_t serial_rs485_rx_urgent_buffer[SERIAL_RX_BUF_SIZE];
-uint8_t serial_rs485_tx_buffer[SERIAL_TX_BUF_SIZE];
 
-uint8_t serial_uart_rx_buffer[SERIAL_RX_BUF_SIZE];
-uint8_t serial_uart_rx_urgent_buffer[SERIAL_RX_BUF_SIZE];
-uint8_t serial_uart_tx_buffer[SERIAL_TX_BUF_SIZE];
+uint8_t serial_uart1_rx_buffer[SERIAL_RX_BUF_SIZE];
+uint8_t serial_uart1_rx_urgent_buffer[SERIAL_RX_BUF_SIZE];
+uint8_t serial_uart1_tx_buffer[SERIAL_TX_BUF_SIZE];
 
-COMPORT ComUart, Com485;
+uint8_t serial_uart2_rx_buffer[SERIAL_RX_BUF_SIZE];
+uint8_t serial_uart2_rx_urgent_buffer[SERIAL_RX_BUF_SIZE];
+uint8_t serial_uart2_tx_buffer[SERIAL_TX_BUF_SIZE];
 
-uint8_t serial_uart_last_read_buffer[256];
-uint8_t serial_rs485_last_read_buffer[256];
-void AddSerialBufferToBuffer(ComBuffer *targetBuffer, uint8_t* buf, uint16_t size)
+
+COMPORT ComUart1, ComUart2;
+
+uint8_t serial_uart1_last_read_buffer[256];
+uint8_t serial_uart2_last_read_buffer[256];
+void serial_add_buffer_to_buffer(ComBuffer *targetBuffer, uint8_t* buf, uint16_t size)
 {
 	uint16_t index = 0;
 	for (index = 0; index < size; index++)
@@ -35,19 +37,19 @@ void AddSerialBufferToBuffer(ComBuffer *targetBuffer, uint8_t* buf, uint16_t siz
 	}
 }
 
-void AddSerialStringToBuffer(ComBuffer *targetBuffer, char* SourceString)
+void serial_add_string_to_buffer(ComBuffer *targetBuffer, char* SourceString)
 {
 	uint16_t size = strlen(SourceString);
-	AddSerialBufferToBuffer(targetBuffer, (uint8_t*)SourceString, size);
+	serial_add_buffer_to_buffer(targetBuffer, (uint8_t*)SourceString, size);
 }
 
-void AddSerialCharToBuffer(ComBuffer *targetBuffer, uint8_t RawChar)
+void serial_add_char_to_buffer(ComBuffer *targetBuffer, uint8_t RawChar)
 {
 	targetBuffer->buffer[targetBuffer->Head] = RawChar;
 	targetBuffer->Head++;
 	targetBuffer->Head &= targetBuffer->Buffer_Size;
 }
-void serial_rs485_init()
+void serial_uart_init(uint8_t port, int tx_pin, int rx_pin, int rts_pin, int cts_pin, bool is485)
 {
 	const uart_config_t uart_config = {
 		.baud_rate = SERIAL_BAUD_RATE,
@@ -59,11 +61,14 @@ void serial_rs485_init()
 	};
 
 	// We won't use a buffer for sending data.
-	uart_driver_install(SERIAL_RS485, SERIAL_RX_BUF_SIZE * 2, 0, 0, NULL, 0);
-	uart_param_config(SERIAL_RS485, &uart_config);
-	uart_set_pin(SERIAL_RS485, SERIAL_485_TXD_PIN, SERIAL_485_RXD_PIN, SERIAL_485_RTS_PIN, UART_PIN_NO_CHANGE);
-	// Set RS485 half duplex mode
-	ESP_ERROR_CHECK(uart_set_mode(SERIAL_RS485, UART_MODE_RS485_HALF_DUPLEX));
+	uart_driver_install(port, SERIAL_RX_BUF_SIZE * 2, 0, 0, NULL, 0);
+	uart_param_config(port, &uart_config);
+	uart_set_pin(port, tx_pin, rx_pin, rts_pin, cts_pin);
+	if (is485)
+	{
+		// Set RS485 half duplex mode	
+		ESP_ERROR_CHECK(uart_set_mode(port, UART_MODE_RS485_HALF_DUPLEX));
+	}
 }
 
 void serial_buffers_init(uint8_t UartIndex, COMPORT* ComPort, uint8_t* RxBuffer, uint8_t* RxUgrentBuffer, uint8_t* TxBuffer)
@@ -94,21 +99,7 @@ void serial_buffers_init(uint8_t UartIndex, COMPORT* ComPort, uint8_t* RxBuffer,
 	ComPort->AcksWaiting				= 0;
 	memset(ComPort->RxUrgentBuffer.buffer, 0, SERIAL_RX_BUF_SIZE);
 }
-void serial_uart_init()
-{
-	uart_config_t uart_config = {
-		.baud_rate = SERIAL_BAUD_RATE,
-		.data_bits = UART_DATA_8_BITS,
-		.parity = UART_PARITY_DISABLE,
-		.stop_bits = UART_STOP_BITS_1,
-		.flow_ctrl = UART_HW_FLOWCTRL_DISABLE,
-		.source_clk = UART_SCLK_DEFAULT,
-	};
-	uart_driver_install(SERIAL_UART, SERIAL_RX_BUF_SIZE * 2, 0, 0, NULL, 0);
-	uart_param_config(SERIAL_UART, &uart_config);
-	uart_set_pin(SERIAL_UART, SERIAL_UART_TXD_PIN, SERIAL_UART_RXD_PIN, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
-	ESP_ERROR_CHECK(uart_set_mode(SERIAL_UART, UART_MODE_UART));
-}
+
 bool serial_uart_write_byte(int uart_port, char byte)
 {
 	if (uart_write_bytes(uart_port, &byte, 1) != 1) {
@@ -125,82 +116,77 @@ char serial_uart_read_byte(int uart_port)
 	return byte;
 }
 
-void serial_rs485_check_rxtx()
+
+void serial_uart1_check_tx()
 {
-	serial_uart_write_byte(2, 0x78);
-	return;
-	if (Com485.AcksWaiting)
+//	serial_uart_write_byte(1, 0x77);
+//	return;
+	if (ComUart1.AcksWaiting)
 	{
-		serial_uart_write_byte(Com485.uart_id, ASCII_ACK);
-		Com485.AcksWaiting--;
+		serial_uart_write_byte(ComUart1.uart_id, ASCII_ACK);
+		ComUart1.AcksWaiting--;
 	}
-	else if (Com485.TxBuffer.Head != Com485.TxBuffer.Tail)
+	else if (ComUart1.TxBuffer.Head != ComUart1.TxBuffer.Tail)
 	{
-		serial_uart_write_byte(Com485.uart_id, Com485.TxBuffer.buffer[Com485.TxBuffer.Tail]);
-		Com485.TxBuffer.Tail++;
-		Com485.TxBuffer.Head &= Com485.TxBuffer.Buffer_Size;
-	}
-	
-	
-	
+		serial_uart_write_byte(ComUart1.uart_id, ComUart1.TxBuffer.buffer[ComUart1.TxBuffer.Tail]);
+		ComUart1.TxBuffer.Tail++;
+		ComUart1.TxBuffer.Head &= ComUart1.TxBuffer.Buffer_Size;
+	}	
 }
-bool a;
-void serial_uart_check_rxtx()
+void serial_uart2_check_tx()
 {
-	serial_uart_write_byte(1, 0x77);
-//	
-//	if (ComUart.AcksWaiting)
-//	{
-//		serial_uart_write_byte(ComUart.uart_id, ASCII_ACK);
-//		ComUart.AcksWaiting--;
-//	}
-//	else if (ComUart.TxBuffer.Head != ComUart.TxBuffer.Tail)
-//	{
-//		 a = serial_uart_write_byte(ComUart.uart_id, ComUart.TxBuffer.buffer[ComUart.TxBuffer.Tail]);
-//		ComUart.TxBuffer.Tail++;
-//		ComUart.TxBuffer.Head &= ComUart.TxBuffer.Buffer_Size;
-//	}	
+	//serial_uart_write_byte(1, 0x77);
+	if (ComUart2.AcksWaiting)
+	{
+		serial_uart_write_byte(ComUart2.uart_id, ASCII_ACK);
+		ComUart2.AcksWaiting--;
+	}
+	else if (ComUart2.TxBuffer.Head != ComUart2.TxBuffer.Tail)
+	{
+		serial_uart_write_byte(ComUart2.uart_id, ComUart2.TxBuffer.buffer[ComUart2.TxBuffer.Tail]);
+		ComUart2.TxBuffer.Tail++;
+		ComUart2.TxBuffer.Head &= ComUart2.TxBuffer.Buffer_Size;
+	}	
 }
 
-void* serial_uart_read_task(void* param)
+void* serial_uart1_read_task(void* param)
 {
 	uint8_t buffer[256];
 	while (1)
 	{
-		int len = uart_read_bytes(SERIAL_UART, buffer, 256, (100 / portTICK_PERIOD_MS));	
+		int len = uart_read_bytes(UART_NUM_1, buffer, 256, (100 / portTICK_PERIOD_MS));	
 		if (len == 0) {
 			buffer[0] = 0;
 			continue;
 		}
-		memcpy(serial_uart_last_read_buffer, buffer, len);
-		serial_uart_last_read_buffer[len] = 0;
+		memcpy(serial_uart1_last_read_buffer, buffer, len);
+		serial_uart1_last_read_buffer[len] = 0;
 		for (int i = 0; i < len; i++)
 		{
-			ComUart.RxBuffer.buffer[ComUart.RxBuffer.Head] = buffer[i];
-			ComUart.RxBuffer.Head++;
-			ComUart.RxBuffer.Head &= ComUart.RxBuffer.Buffer_Size;			
+			ComUart1.RxBuffer.buffer[ComUart1.RxBuffer.Head] = buffer[i];
+			ComUart1.RxBuffer.Head++;
+			ComUart1.RxBuffer.Head &= ComUart1.RxBuffer.Buffer_Size;			
 		}
 	}
 	return NULL;
 }
-
-void* serial_rs485_read_task(void* param)
+void* serial_uart2_read_task(void* param)
 {
 	uint8_t buffer[256];
 	while (1)
 	{
-		int len = uart_read_bytes(SERIAL_RS485, buffer, 256, (100 / portTICK_PERIOD_MS));	
+		int len = uart_read_bytes(UART_NUM_2, buffer, 256, (100 / portTICK_PERIOD_MS));	
 		if (len == 0) {
 			buffer[0] = 0;
 			continue;
 		}
-		memcpy(serial_rs485_last_read_buffer, buffer, len);
-		serial_rs485_last_read_buffer[len] = 0;
-		for(int i = 0; i < len; i ++)
+		memcpy(serial_uart2_last_read_buffer, buffer, len);
+		serial_uart2_last_read_buffer[len] = 0;
+		for (int i = 0; i < len; i++)
 		{
-			Com485.RxBuffer.buffer[Com485.RxBuffer.Head] = buffer[i];
-			Com485.RxBuffer.Head++;
-			Com485.RxBuffer.Head &= Com485.RxBuffer.Buffer_Size;			
+			ComUart2.RxBuffer.buffer[ComUart2.RxBuffer.Head] = buffer[i];
+			ComUart2.RxBuffer.Head++;
+			ComUart2.RxBuffer.Head &= ComUart2.RxBuffer.Buffer_Size;			
 		}
 	}
 	return NULL;
@@ -208,13 +194,13 @@ void* serial_rs485_read_task(void* param)
 
 void serial_init()
 {
-	pthread_t rx_thread, rx485_thread;
+	pthread_t uart1_thread, uart2_thread;
 	// initialize uart devices
-	serial_uart_init();
-	serial_rs485_init();
+	serial_uart_init(UART_NUM_1, SERIAL_UART1_TXD_PIN, SERIAL_UART1_RXD_PIN, SERIAL_UART1_RTS_PIN, SERIAL_UART1_CTS_PIN, false);
+	serial_uart_init(UART_NUM_2, SERIAL_UART2_TXD_PIN, SERIAL_UART2_RXD_PIN, SERIAL_UART2_RTS_PIN, SERIAL_UART2_CTS_PIN, false);
 	// initialize buffers
-	serial_buffers_init(SERIAL_UART, &ComUart, serial_uart_rx_buffer, serial_uart_rx_urgent_buffer, serial_uart_tx_buffer);
-	pthread_create(&rx_thread, NULL, serial_uart_read_task, NULL);
-	serial_buffers_init(SERIAL_RS485, &Com485, serial_rs485_rx_buffer, serial_rs485_rx_urgent_buffer, serial_rs485_tx_buffer);
-	pthread_create(&rx485_thread, NULL, serial_rs485_read_task, NULL);
+	serial_buffers_init(UART_NUM_1, &ComUart1, serial_uart1_rx_buffer, serial_uart1_rx_urgent_buffer, serial_uart1_tx_buffer);
+	serial_buffers_init(UART_NUM_2, &ComUart2, serial_uart2_rx_buffer, serial_uart2_rx_urgent_buffer, serial_uart2_tx_buffer);
+	pthread_create(&uart1_thread, NULL, serial_uart1_read_task, NULL);
+	pthread_create(&uart2_thread, NULL, serial_uart2_read_task, NULL);
 }
