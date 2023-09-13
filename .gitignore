@@ -9,3 +9,6 @@ LCoreClient/.vs/
 LCoreClient/ESPScreenLib/bin/
 LCoreClient/ESPScreenLib/obj/
 LCoreClient/LCoreClient/bin/
+BluetoothWin/.vs
+BluetoothWin/BluetoothWin/bin
+BluetoothWin/BluetoothWin/obj/
