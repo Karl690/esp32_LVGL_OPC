@@ -44,3 +44,4 @@ void ble_init();
 
 bool ble_enable();
 void ble_disable();
+bool ble_send_data(uint8_t* data, uint16_t size);

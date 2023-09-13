@@ -2,7 +2,7 @@
 #include "bluetooth.h"
 #include "driver/uart.h"
 #include "L_Core/ui/ui.h"
-
+#include "L_Core/ui/ui-settings.h"
 #define GATTS_TABLE_TAG  "GATTS_SPP_DEMO"
 
 #define SPP_PROFILE_NUM             1
@@ -147,13 +147,6 @@ static const uint8_t  spp_command_val[10] = { 0x00 };
 static const uint16_t spp_status_uuid = ESP_GATT_UUID_SPP_COMMAND_NOTIFY;
 static const uint8_t  spp_status_val[10] = { 0x00 };
 static const uint8_t  spp_status_ccc[2] = { 0x00, 0x00 };
-
-#ifdef SUPPORT_HEARTBEAT
-///SPP Server - Heart beat characteristic, notify&write&read
-static const uint16_t spp_heart_beat_uuid = ESP_GATT_UUID_SPP_HEARTBEAT;
-static const uint8_t  spp_heart_beat_val[2] = { 0x00, 0x00 };
-static const uint8_t  spp_heart_beat_ccc[2] = { 0x00, 0x00 };
-#endif
 
 ///Full HRS Database Description - Used to add attributes into the database
 static const esp_gatts_attr_db_t spp_gatt_db[SPP_IDX_NB] =
@@ -300,47 +293,6 @@ static const esp_gatts_attr_db_t spp_gatt_db[SPP_IDX_NB] =
 	(uint8_t *)spp_status_ccc
  }
  },
-
-#ifdef SUPPORT_HEARTBEAT
-	//SPP -  Heart beat characteristic Declaration
-	[SPP_IDX_SPP_HEARTBEAT_CHAR] = {
-	 { ESP_GATT_AUTO_RSP },
-	{
-	 ESP_UUID_LEN_16,
-	(uint8_t *)&character_declaration_uuid,
-	ESP_GATT_PERM_READ,
-	CHAR_DECLARATION_SIZE, 
-	CHAR_DECLARATION_SIZE,
-	(uint8_t *)&char_prop_read_write_notify
- }
- },
-
-	//SPP -  Heart beat characteristic Value
-	[SPP_IDX_SPP_HEARTBEAT_VAL] = { 
-	{ ESP_GATT_AUTO_RSP },
-	{
-	 ESP_UUID_LEN_16,
-	(uint8_t *)&spp_heart_beat_uuid,
-	ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-	sizeof(spp_heart_beat_val),
-	sizeof(spp_heart_beat_val),
-	(uint8_t *)spp_heart_beat_val 
-} 
-},
-
-	//SPP -  Heart beat characteristic - Client Characteristic Configuration Descriptor
-	[SPP_IDX_SPP_HEARTBEAT_CFG] = {
-	 { ESP_GATT_AUTO_RSP },
-	{
-	 ESP_UUID_LEN_16,
-	(uint8_t *)&character_client_config_uuid,
-	ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE,
-	sizeof(uint16_t), 
-	sizeof(spp_data_notify_ccc),
-	(uint8_t *)spp_heart_beat_ccc 
-}
- },
-#endif
 };
 
 static uint8_t find_char_and_desr_index(uint16_t handle)
@@ -409,137 +361,6 @@ static void print_write_buffer(void)
 		temp_spp_recv_data_node_p1 = temp_spp_recv_data_node_p1->next_node;
 	}
 }
-
-void uart_task(void *pvParameters)
-{
-	uart_event_t event;
-	uint8_t total_num = 0;
-	uint8_t current_num = 0;
-
-	for (;;) {
-		//Waiting for UART event.
-		if (xQueueReceive(spp_uart_queue, (void *)&event, (TickType_t)portMAX_DELAY)) {
-			switch (event.type) {
-				//Event of UART receving data
-			case UART_DATA:
-				if ((event.size)&&(is_connected)) {
-					uint8_t * temp = NULL;
-					uint8_t * ntf_value_p = NULL;
-#ifdef SUPPORT_HEARTBEAT
-					if (!enable_heart_ntf) {
-						ESP_LOGE(GATTS_TABLE_TAG, "%s do not enable heartbeat Notify\n", __func__);
-						break;
-					}
-#endif
-					if (!enable_data_ntf) {
-						ESP_LOGE(GATTS_TABLE_TAG, "%s do not enable data Notify\n", __func__);
-						break;
-					}
-					temp = (uint8_t *)malloc(sizeof(uint8_t)*event.size);
-					if (temp == NULL) {
-						ESP_LOGE(GATTS_TABLE_TAG, "%s malloc.1 failed\n", __func__);
-						break;
-					}
-					memset(temp, 0x0, event.size);
-					uart_read_bytes(UART_NUM_0, temp, event.size, portMAX_DELAY);
-					if (event.size <= (spp_mtu_size - 3)) {
-						esp_ble_gatts_send_indicate(spp_gatts_if, spp_conn_id, spp_handle_table[SPP_IDX_SPP_DATA_NTY_VAL], event.size, temp, false);
-					}
-					else if (event.size > (spp_mtu_size - 3)) {
-						if ((event.size % (spp_mtu_size - 7)) == 0) {
-							total_num = event.size / (spp_mtu_size - 7);
-						}
-						else {
-							total_num = event.size / (spp_mtu_size - 7) + 1;
-						}
-						current_num = 1;
-						ntf_value_p = (uint8_t *)malloc((spp_mtu_size - 3)*sizeof(uint8_t));
-						if (ntf_value_p == NULL) {
-							ESP_LOGE(GATTS_TABLE_TAG, "%s malloc.2 failed\n", __func__);
-							free(temp);
-							break;
-						}
-						while (current_num <= total_num) {
-							if (current_num < total_num) {
-								ntf_value_p[0] = '#';
-								ntf_value_p[1] = '#';
-								ntf_value_p[2] = total_num;
-								ntf_value_p[3] = current_num;
-								memcpy(ntf_value_p + 4, temp + (current_num - 1)*(spp_mtu_size - 7), (spp_mtu_size - 7));
-								esp_ble_gatts_send_indicate(spp_gatts_if, spp_conn_id, spp_handle_table[SPP_IDX_SPP_DATA_NTY_VAL], (spp_mtu_size - 3), ntf_value_p, false);
-							}
-							else if (current_num == total_num) {
-								ntf_value_p[0] = '#';
-								ntf_value_p[1] = '#';
-								ntf_value_p[2] = total_num;
-								ntf_value_p[3] = current_num;
-								memcpy(ntf_value_p + 4, temp + (current_num - 1)*(spp_mtu_size - 7), (event.size - (current_num - 1)*(spp_mtu_size - 7)));
-								esp_ble_gatts_send_indicate(spp_gatts_if, spp_conn_id, spp_handle_table[SPP_IDX_SPP_DATA_NTY_VAL], (event.size - (current_num - 1)*(spp_mtu_size - 7) + 4), ntf_value_p, false);
-							}
-							vTaskDelay(20 / portTICK_PERIOD_MS);
-							current_num++;
-						}
-						free(ntf_value_p);
-					}
-					free(temp);
-				}
-				break;
-			default:
-				break;
-			}
-		}
-	}
-	vTaskDelete(NULL);
-}
-
-static void spp_uart_init(void)
-{
-	uart_config_t uart_config = {
-		.baud_rate = 115200,
-		.data_bits = UART_DATA_8_BITS,
-		.parity = UART_PARITY_DISABLE,
-		.stop_bits = UART_STOP_BITS_1,
-		.flow_ctrl = UART_HW_FLOWCTRL_RTS,
-		.rx_flow_ctrl_thresh = 122,
-		.source_clk = UART_SCLK_DEFAULT,
-	};
-
-	//Install UART driver, and get the queue.
-	uart_driver_install(UART_NUM_0, 4096, 8192, 10, &spp_uart_queue, 0);
-	//Set UART parameters
-	uart_param_config(UART_NUM_0, &uart_config);
-	//Set UART pins
-	uart_set_pin(UART_NUM_0, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
-	xTaskCreate(uart_task, "uTask", 2048, (void*)UART_NUM_0, 8, NULL);
-}
-
-#ifdef SUPPORT_HEARTBEAT
-void spp_heartbeat_task(void * arg)
-{
-	uint16_t cmd_id;
-
-	for (;;) {
-		vTaskDelay(50 / portTICK_PERIOD_MS);
-		if (xQueueReceive(cmd_heartbeat_queue, &cmd_id, portMAX_DELAY)) {
-			while (1) {
-				heartbeat_count_num++;
-				vTaskDelay(5000 / portTICK_PERIOD_MS);
-				if ((heartbeat_count_num > 3)&&(is_connected)) {
-					esp_ble_gap_disconnect(spp_remote_bda);
-				}
-				if (is_connected && enable_heart_ntf) {
-					esp_ble_gatts_send_indicate(spp_gatts_if, spp_conn_id, spp_handle_table[SPP_IDX_SPP_HEARTBEAT_VAL], sizeof(heartbeat_s), heartbeat_s, false);
-				}
-				else if (!is_connected) {
-					break;
-				}
-			}
-		}
-	}
-	vTaskDelete(NULL);
-}
-#endif
-
 void spp_cmd_task(void * arg)
 {
 	uint8_t * cmd_id;
@@ -556,13 +377,6 @@ void spp_cmd_task(void * arg)
 
 static void spp_task_init(void)
 {
-	spp_uart_init();
-
-#ifdef SUPPORT_HEARTBEAT
-	cmd_heartbeat_queue = xQueueCreate(10, sizeof(uint32_t));
-	xTaskCreate(spp_heartbeat_task, "spp_heartbeat_task", 2048, NULL, 10, NULL);
-#endif
-
 	cmd_cmd_queue = xQueueCreate(10, sizeof(uint32_t));
 	xTaskCreate(spp_cmd_task, "spp_cmd_task", 2048, NULL, 10, NULL);
 }
@@ -633,27 +447,9 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
 						enable_data_ntf = false;
 					}
 				}
-#ifdef SUPPORT_HEARTBEAT
-				else if (res == SPP_IDX_SPP_HEARTBEAT_CFG) {
-					if ((p_data->write.len == 2)&&(p_data->write.value[0] == 0x01)&&(p_data->write.value[1] == 0x00)) {
-						enable_heart_ntf = true;
-					}
-					else if ((p_data->write.len == 2)&&(p_data->write.value[0] == 0x00)&&(p_data->write.value[1] == 0x00)) {
-						enable_heart_ntf = false;
-					}
-				}
-				else if (res == SPP_IDX_SPP_HEARTBEAT_VAL) {
-					if ((p_data->write.len == sizeof(heartbeat_s))&&(memcmp(heartbeat_s, p_data->write.value, sizeof(heartbeat_s)) == 0)) {
-						heartbeat_count_num = 0;
-					}
-				}
-#endif
 				else if (res == SPP_IDX_SPP_DATA_RECV_VAL) {
-#ifdef SPP_DEBUG_MODE
-					esp_log_buffer_char(GATTS_TABLE_TAG, (char *)(p_data->write.value), p_data->write.len);
-#else
-					uart_write_bytes(UART_NUM_0, (char *)(p_data->write.value), p_data->write.len);
-#endif
+					lv_label_set_text(ui_settings.ui_bluetooth.receive, (char *)(p_data->write.value));
+					//uart_write_bytes(UART_NUM_0, (char *)(p_data->write.value), p_data->write.len);
 				}
 				else {
 					//TODO:
@@ -771,24 +567,15 @@ void ble_init()
 	
 	ESP_ERROR_CHECK(esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT));
 	esp_bt_controller_init(&bt_cfg);
+	esp_bt_controller_enable(ESP_BT_MODE_BLE);
+	
+	esp_bluedroid_init();	
 }
 	
 //enabled bluetooth device
 bool ble_enable()
 {
 	esp_err_t ret;
-	ret = esp_bt_controller_enable(ESP_BT_MODE_BLE);
-	if (ret) {
-		ESP_LOGE(TAG, "%s enable controller failed: %s\n", __func__, esp_err_to_name(ret));
-		return false;
-	}
-	
-	ESP_LOGI(TAG, "%s init bluetooth\n", __func__);
-	ret = esp_bluedroid_init();
-	if (ret) {
-		ESP_LOGE(TAG, "%s init bluetooth failed: %s\n", __func__, esp_err_to_name(ret));
-		return false;
-	}
 	ret = esp_bluedroid_enable();
 	if (ret) {
 		ESP_LOGE(TAG, "%s enable bluetooth failed: %s\n", __func__, esp_err_to_name(ret));
@@ -807,10 +594,16 @@ bool ble_enable()
 void ble_disable()
 {
 	esp_bluedroid_disable();
-	esp_bluedroid_deinit();
-	esp_bt_controller_disable();
-	esp_bt_controller_deinit();
-	
 	esp_ble_gatts_app_unregister(ESP_SPP_APP_ID);
 	systemconfig.bluetooth.status = 0;
 }
+
+//////////////////////////////////////////////////////////////////////////////
+bool ble_send_data(uint8_t* data, uint16_t size)
+{
+	if (!is_connected) return false;
+	esp_err_t err = esp_ble_gatts_send_indicate(spp_gatts_if, spp_conn_id, spp_handle_table[SPP_IDX_SPP_DATA_NTY_VAL], size, data, false);
+	if (err != ESP_OK) return false;
+	return true;
+}
+//////////////////////////////////////////////////////////////////////////////

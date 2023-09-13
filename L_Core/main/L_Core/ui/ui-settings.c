@@ -21,7 +21,6 @@ bool ui_settings_initialized = false;
 UI_SETTINGS ui_settings;
 void ui_settings_serial_event_cb(lv_event_t* e)
 {
-	lv_obj_t * target = lv_event_get_target(e);	
 	int type = (int) e->user_data;
 	char* text = (char*)lv_textarea_get_text(ui_settings.ui_serial.send_text);
 	if (strlen(text) == 0) return;
@@ -34,6 +33,14 @@ void ui_settings_serial_event_cb(lv_event_t* e)
 		serial_add_string_to_buffer(&ComUart2.TxBuffer, text);
 		break;
 	}
+}
+
+void ui_settings_ble_event_cb(lv_event_t* e) 
+{
+	char* text = (char*)lv_textarea_get_text(ui_settings.ui_bluetooth.send);
+	uint8_t len = strlen(text);
+	if (len == 0) return;
+	ble_send_data((uint8_t*)text, len);
 }
 
 void ui_settings_event_submenu_cb(lv_event_t* e)
@@ -212,6 +219,25 @@ void ui_settings_bluetooth_page_init()
 	else lv_obj_add_state(obj, LV_STATE_CHECKED);
 	lv_obj_add_event_cb(obj, ui_settings_event_switch_cb, LV_EVENT_VALUE_CHANGED, &systemconfig.bluetooth.autostart);
 	ui_settings.ui_bluetooth.autostart = obj;
+	
+	y += 45;
+	obj = lv_textarea_create(ui_settings_bluetooth_page);
+	lv_obj_set_style_border_color(obj, lv_color_hex(UI_MENU_ACTIVE_ITEM_COLOR), LV_PART_MAIN);
+	lv_obj_set_style_border_width(obj, 1, LV_PART_MAIN);
+	lv_textarea_set_one_line(obj, true);
+	lv_obj_set_width(obj, 150);
+	lv_obj_set_pos(obj, 0, y);
+	lv_obj_add_event_cb(obj, ui_settings_event_edit_cb, LV_EVENT_ALL, NULL);	
+	ui_settings.ui_bluetooth.send= obj;
+	
+	obj = ui_create_button(ui_settings_bluetooth_page, "SEND", 100, 30, 3, UI_MENU_ACTIVE_ITEM_COLOR, &lv_font_montserrat_14, ui_settings_ble_event_cb, NULL);	
+	lv_obj_set_pos(obj, 160, y);
+	y += 45;
+	obj = ui_create_label(ui_settings_bluetooth_page, "RECEIVED: ", &lv_font_montserrat_14);
+	lv_obj_set_pos(obj, 0, y);
+	obj = ui_create_label(ui_settings_bluetooth_page, "", &lv_font_montserrat_14);
+	lv_obj_set_pos(obj, 200, y);
+	ui_settings.ui_bluetooth.receive = obj;
 }
 
 void ui_settings_wifi_page_init()

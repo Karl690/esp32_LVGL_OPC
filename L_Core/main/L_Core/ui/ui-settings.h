@@ -25,6 +25,8 @@ typedef struct
 {
 	lv_obj_t* status;
 	lv_obj_t* autostart;
+	lv_obj_t* send;
+	lv_obj_t* receive;
 } UI_BLUETOOTH;
 
 typedef struct
@@ -58,5 +60,7 @@ typedef struct
 }UI_SETTINGS;
 
 extern lv_obj_t* ui_settings_screen;
+extern UI_SETTINGS ui_settings;
+
 void ui_settings_screen_init();
 void ui_settings_update_configuratiion();
