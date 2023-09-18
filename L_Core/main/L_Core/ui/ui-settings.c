@@ -116,6 +116,8 @@ void ui_settings_event_switch_cb(lv_event_t* e)
 	{
 		if (state) {
 			systemconfig.bluetooth.status = ble_enable();
+			lv_label_set_text(ui_settings.ui_bluetooth.receive, "");
+			lv_label_set_text(ui_settings.ui_bluetooth.total, "");
 		}
 		else ble_disable();
 		
@@ -238,6 +240,13 @@ void ui_settings_bluetooth_page_init()
 	obj = ui_create_label(ui_settings_bluetooth_page, "", &lv_font_montserrat_14);
 	lv_obj_set_pos(obj, 200, y);
 	ui_settings.ui_bluetooth.receive = obj;
+	
+	y += 30;
+	obj = ui_create_label(ui_settings_bluetooth_page, "TOTAL: ", &lv_font_montserrat_14);
+	lv_obj_set_pos(obj, 0, y);
+	obj = ui_create_label(ui_settings_bluetooth_page, "", &lv_font_montserrat_14);
+	lv_obj_set_pos(obj, 200, y);
+	ui_settings.ui_bluetooth.total = obj;
 }
 
 void ui_settings_wifi_page_init()
@@ -317,8 +326,6 @@ void ui_settings_wifi_page_init()
 	lv_label_set_text(obj, (const char*)systemconfig.wifi.subnet);
 	lv_obj_add_event_cb(obj, ui_settings_event_switch_cb, LV_EVENT_VALUE_CHANGED, &systemconfig.wifi.autoconnect);
 	ui_settings.ui_wifi.subnet= obj;
-	
-	
 }
 
 void ui_settings_opc_page_init()

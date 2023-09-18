@@ -19,6 +19,7 @@ namespace BluetoothWin
     {
         bool _isSearchingForDevices;
         BLEScanner bleScanner = new BLEScanner();
+        byte[] SendIntervalBuffer;
 
         public bool IsSearchingForDevices
         {
@@ -56,7 +57,7 @@ namespace BluetoothWin
                 value.SubItems.Add("Disconnect");
                 listView1.Items.Add(value);
                 bleDev.OnDeviceConnectStatus += BleDev_OnDeviceConnectStatus;
-                bleDev.OnReceivedData += BleDev_OnReceivedData1;
+                bleDev.OnReceivedData += BleDev_OnReceivedData;
             }
         }
 
@@ -92,21 +93,23 @@ namespace BluetoothWin
             return findItem;
         }
 
-        private void BleDev_OnReceivedData1(object sender, GattCharacteristic characteristic, GattValueChangedEventArgs args)
+        //private void BleDev_OnReceivedData(object sender, GattCharacteristic characteristic, GattValueChangedEventArgs args)
+        private void BleDev_OnReceivedData(object sender, EventArgs args)
         {
-            var reader = DataReader.FromBuffer(args.CharacteristicValue);
-            uint len = args.CharacteristicValue.Length;
-            string data = reader.ReadString(len);
+
+            BLEDevice dev = (BLEDevice)sender;
+            string str = Encoding.ASCII.GetString(dev.RecievedBuffer);
             if (this.InvokeRequired)
             {
+                
                 this.Invoke((MethodInvoker)delegate ()
                 {
-                    richboxReceivedData.AppendText(data + "\n");
+                    richboxReceivedData.AppendText(str + "\n");
                 });
             }
             else
             {
-                richboxReceivedData.AppendText(data + "\n");
+                richboxReceivedData.AppendText(str + "\n");
             }
             
         }
@@ -185,7 +188,15 @@ namespace BluetoothWin
             {
                 SelectedItem.SubItems[1].Text = "Connecting...";
                 btnConnect.Text = "Connecting...";
-                await bleDev.Connect();
+                try
+                {
+                    await bleDev.Connect();
+                }catch (Exception exception)
+                {
+                    bleDev.isConnected = false;
+                    MessageBox.Show(exception.Message);
+                }
+                
                 SelectedItem.SubItems[1].Text = bleDev.isConnected?"Connected":"Disconnected";
             }
             UpdateControlForBleDevice(bleDev.isConnected);
@@ -232,6 +243,66 @@ namespace BluetoothWin
             BLEDevice bleDev = (BLEDevice)SelectedItem.Tag;
             string data = txtboxSend.Text;
             bleDev.SendDataAsync(data);
+        }
+        private DateTime startTime;
+        private int totalSendBytes = 0;
+        private int timerCount = 0;
+        private void chkInterval_CheckedChanged(object sender, EventArgs e)
+        {
+            txtboxSend.Enabled = !chkInterval.Checked;
+            btnSend.Enabled = !chkInterval.Checked;
+            if(chkInterval.Checked)
+            {
+                timer.Interval = (int)nudTimer.Value;
+                timer.Enabled = true;
+                startTime = DateTime.Now;
+                totalSendBytes = 0;
+                SendIntervalBuffer = new byte[(int)nudBytes.Value];
+                timerCount = 0;
+                for (int i = 0; i < nudBytes.Value; i++) SendIntervalBuffer[i] = (byte)'A';
+                
+            }
+            else
+            {
+                timer.Enabled = false;
+            }
+            nudBytes.Enabled = !chkInterval.Checked;
+            nudTimes.Enabled = !chkInterval.Checked;
+            txtboxSend.Enabled = !chkInterval.Checked;
+        }
+        
+        private void timer_Tick(object sender, EventArgs e)
+        {
+            if (listView1.SelectedItems.Count == 0) return;
+            ListViewItem SelectedItem = listView1.SelectedItems[0];
+            BLEDevice bleDev = (BLEDevice)SelectedItem.Tag;
+            if (!bleDev.AvailableWrite) return;
+
+            totalSendBytes += SendIntervalBuffer.Length;
+            DateTime nowTime = DateTime.Now;
+            TimeSpan ts = DateTime.Now - startTime;
+
+            string sz = $"C:{timerCount},T:{totalSendBytes},S:{ts.Seconds}";
+            byte[] bytes = Encoding.ASCII.GetBytes(sz);
+            bytes.CopyTo(SendIntervalBuffer, 0);
+            _ = bleDev.SendDataBufferAsync(SendIntervalBuffer);
+            txtboxSend.Text = sz;
+            lblCount.Text = $"Count: {timerCount}";
+            lblDuring.Text = $"During: {ts.TotalMilliseconds.ToString("0.00")}";
+            lblTotal.Text = $"Total: {totalSendBytes}";
+            if(ts.Milliseconds > 1)            lblSpeed.Text = $"Speed: {(totalSendBytes / ts.TotalMilliseconds * 1000.0f).ToString("0.00")} BPS";
+
+            if(nudTimes.Value < timerCount)
+            {
+                chkInterval.Checked = false;
+                txtboxSend.Enabled = !chkInterval.Checked;
+                btnSend.Enabled = !chkInterval.Checked;
+                timer.Enabled = false;
+
+                nudBytes.Enabled = !chkInterval.Checked;
+                nudTimes.Enabled = !chkInterval.Checked;
+            }
+            timerCount++;
         }
     }
 

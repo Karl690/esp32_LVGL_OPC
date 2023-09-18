@@ -6,13 +6,15 @@ using System.Threading.Tasks;
 using Windows.Devices.Bluetooth;
 using Windows.Devices.Bluetooth.GenericAttributeProfile;
 using Windows.Devices.Enumeration;
+using Windows.Security.Cryptography;
 using Windows.Storage.Streams;
 
 namespace BluetoothWin
 {
 
     public delegate void BleDeviceEvent(object sender, EventArgs e);
-    public delegate void BleDeviceDataEvent(object sender, GattCharacteristic characteristic, GattValueChangedEventArgs args);
+    public delegate void BleDeviceDataEvent(object sender, EventArgs e); //; GattCharacteristic characteristic, GattValueChangedEventArgs args);
+
     public class BLEDevice
     {
         public DeviceInformation dev { get; set; }
@@ -27,6 +29,10 @@ namespace BluetoothWin
 
         public event BleDeviceEvent OnDeviceConnectStatus;
         public event BleDeviceDataEvent OnReceivedData;
+        public bool AvailableWrite = false;
+
+        public byte[] RecievedBuffer = new byte[1024];
+        public uint RecievedLength = 0;
 
         public BLEDevice(DeviceInformation dev)
         {
@@ -66,6 +72,7 @@ namespace BluetoothWin
                     }
                 }
             }
+            AvailableWrite = true;
             isConnected = true;
         }
 
@@ -84,14 +91,24 @@ namespace BluetoothWin
         }
         private void Characteristic_ValueChanged(GattCharacteristic sender, GattValueChangedEventArgs args)
         {
-            if (OnReceivedData != null) OnReceivedData(this, sender, args);
+            CryptographicBuffer.CopyToByteArray(args.CharacteristicValue, out RecievedBuffer);
+            RecievedLength = args.CharacteristicValue.Length;
+            //var reader = DataReader.FromBuffer(args.CharacteristicValue);
+            //uint len = args.CharacteristicValue.Length;
+            //RecievedBuffer = reader.Re .ReadBytes.ReadBuffer(len); //.ReadString(len);
+            if(RecievedBuffer[0] == 'O' && RecievedBuffer[1] == 'K')
+            {
+                AvailableWrite = true;
+
+            }
+            if (OnReceivedData != null) OnReceivedData(this, EventArgs.Empty);
 
         }
-        public async Task SendDataAsync(string data)
+        public async Task SendDataBufferAsync(byte[] buf)
         {
             if (!isConnected || gattWriteCharacteristic == null) return;
             DataWriter writer = new DataWriter();
-            writer.WriteBytes(Encoding.ASCII.GetBytes(data));
+            writer.WriteBytes(buf);
             IBuffer buffer = writer.DetachBuffer();
 
             GattCommunicationStatus status = await gattWriteCharacteristic.WriteValueAsync(buffer, GattWriteOption.WriteWithoutResponse);
@@ -102,9 +119,15 @@ namespace BluetoothWin
             else
             {
                 Console.WriteLine($"send success");
+                this.AvailableWrite = false; //wait until getting responsive
             }
-            //writer.Dispose();  
+            
             buffer = null;
+        }
+        public Task SendDataAsync(string data)
+        {
+            _ = SendDataBufferAsync(Encoding.ASCII.GetBytes(data));
+            return Task.CompletedTask;
         }
     }
 }

@@ -8,8 +8,9 @@
 #define SPP_PROFILE_NUM             1
 #define SPP_PROFILE_APP_IDX         0
 #define ESP_SPP_APP_ID              0x56
-#define SAMPLE_DEVICE_NAME          "ESP_SPP_SERVER"    //The Device Name Characteristics in GAP
+#define SAMPLE_DEVICE_NAME          "ESP32_S3"    //The Device Name Characteristics in GAP
 #define SPP_SVC_INST_ID	            0
+
 
 /// SPP Service
 static const uint16_t spp_service_uuid = 0xABF0;
@@ -54,6 +55,8 @@ static uint8_t heartbeat_count_num = 0;
 
 static bool enable_data_ntf = false;
 static bool is_connected = false;
+
+uint64_t ble_total_recieved = 0;
 static esp_bd_addr_t spp_remote_bda = { 0x0, };
 
 static uint16_t spp_handle_table[SPP_IDX_NB];
@@ -132,11 +135,11 @@ static const uint8_t char_prop_read_write_notify = ESP_GATT_CHAR_PROP_BIT_READ |
 
 ///SPP Service - data receive characteristic, read&write without response
 static const uint16_t spp_data_receive_uuid = ESP_GATT_UUID_SPP_DATA_RECEIVE;
-static const uint8_t  spp_data_receive_val[20] = { 0x00 };
+static const uint8_t  spp_data_receive_val[SPP_DATA_MAX_LEN] = { 0x00 };
 
 ///SPP Service - data notify characteristic, notify&read
 static const uint16_t spp_data_notify_uuid = ESP_GATT_UUID_SPP_DATA_NOTIFY;
-static const uint8_t  spp_data_notify_val[20] = { 0x00 };
+static const uint8_t  spp_data_notify_val[SPP_DATA_MAX_LEN] = { 0x00 };
 static const uint8_t  spp_data_notify_ccc[2] = { 0x00, 0x00 };
 
 ///SPP Service - command characteristic, read&write without response
@@ -400,7 +403,8 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
 		break;
 	}
 }
-
+char ble_last_received_data[20] = { 0 };
+char ble_tmp[10] = { 0 };
 static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t *param)
 {
 	esp_ble_gatts_cb_param_t *p_data = (esp_ble_gatts_cb_param_t *) param;
@@ -448,8 +452,15 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
 					}
 				}
 				else if (res == SPP_IDX_SPP_DATA_RECV_VAL) {
-					lv_label_set_text(ui_settings.ui_bluetooth.receive, (char *)(p_data->write.value));
+					ble_total_recieved += p_data->write.len;
+					if (p_data->write.len >= 20) strncpy(ble_last_received_data, (char*)p_data->write.value, 20);
+					else strcpy(ble_last_received_data, (char*)p_data->write.value);
+					lv_label_set_text(ui_settings.ui_bluetooth.receive, ble_last_received_data);
+					sprintf(ble_tmp, "%d", (int)ble_total_recieved);
+					lv_label_set_text(ui_settings.ui_bluetooth.total, ble_tmp);
 					//uart_write_bytes(UART_NUM_0, (char *)(p_data->write.value), p_data->write.len);
+					ble_send_data((uint8_t*)"OK", 2);
+					
 				}
 				else {
 					//TODO:
@@ -587,6 +598,8 @@ bool ble_enable()
 	esp_ble_gatts_app_register(ESP_SPP_APP_ID);
 	
 	systemconfig.bluetooth.status = 1;
+	ble_total_recieved = 0;
+	
 	return true;
 }
 
