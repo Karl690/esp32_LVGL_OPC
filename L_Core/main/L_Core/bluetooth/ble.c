@@ -69,41 +69,15 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
 		ui_bluetooth_changed_ble_status(ble_scan_status);
         break;
     case ESP_GAP_BLE_SCAN_STOP_COMPLETE_EVT:
-//        if ((err = param->scan_stop_cmpl.status) != ESP_BT_STATUS_SUCCESS) {
-//	        ESP_LOGE(BLE_TAG, "Scan stop failed: %s", esp_err_to_name(err));
-//            break;
-//        }
 		ESP_LOGI(BLE_TAG, "Scan stop successed");
 		ble_scan_status = BLE_CLIENT_SCAN_READY;
 		ui_bluetooth_changed_ble_status(ble_scan_status);
-//		if (is_client_connected == false) {
-//	        ESP_LOGI(BLE_TAG, "Connect to the remote device.");
-//            esp_ble_gattc_open(gl_profile_tab[PROFILE_APP_ID].gattc_if, scan_rst.scan_rst.bda, scan_rst.scan_rst.ble_addr_type, true);
-//        }
         break;
     case ESP_GAP_BLE_SCAN_RESULT_EVT: {
         esp_ble_gap_cb_param_t *scan_result = (esp_ble_gap_cb_param_t *)param;
         switch (scan_result->scan_rst.search_evt) {
         case ESP_GAP_SEARCH_INQ_RES_EVT:
 	        ble_add_scan_device(scan_result);
-//	        esp_log_buffer_hex(BLE_TAG, scan_result->scan_rst.bda, 6);
-//	        ESP_LOGI(BLE_TAG, "Searched Adv Data Len %d, Scan Response Len %d", scan_result->scan_rst.adv_data_len, scan_result->scan_rst.scan_rsp_len);
-//            adv_name = esp_ble_resolve_adv_data(scan_result->scan_rst.ble_adv, ESP_BLE_AD_TYPE_NAME_CMPL, &adv_name_len);
-//	        ESP_LOGI(BLE_TAG, "Searched Device Name Len %d", adv_name_len);
-//	        esp_log_buffer_char(BLE_TAG, adv_name, adv_name_len);
-//	        ESP_LOGI(BLE_TAG, "\n");
-//            if (adv_name != NULL) {
-//				strcpy(ble_client_remote_device[ble_client_scaned_device_num].device_name, (const char*)adv_name);
-//				memcpy(&(ble_client_remote_device[ble_client_scaned_device_num].scan_result), scan_result, sizeof(esp_ble_gap_cb_param_t));
-//				ble_client_remote_device[ble_client_scaned_device_num].profile_id = ble_client_scaned_device_num;
-//				ble_client_remote_device[ble_client_scaned_device_num].is_scaned = 1;
-//				ui_bluetooth_add_device(&ble_client_remote_device[ble_client_scaned_device_num]);
-//				ble_client_scaned_device_num ++;
-//                // if ( strncmp((char *)adv_name, device_name, adv_name_len) == 0) {
-//                //     memcpy(&(scan_rst), scan_result, sizeof(esp_ble_gap_cb_param_t));
-//                //     esp_ble_gap_stop_scanning();
-//                // }
-//            }
             break;
         case ESP_GAP_SEARCH_INQ_CMPL_EVT:
             break;
@@ -148,6 +122,8 @@ uint8_t ble_add_scan_device(esp_ble_gap_cb_param_t* scan_result) {
 	memcpy(&(ble_client_remote_device[ble_client_scaned_device_num].scan_result), scan_result, sizeof(esp_ble_gap_cb_param_t));
 	ble_client_remote_device[ble_client_scaned_device_num].id = ble_client_scaned_device_num;
 	ble_client_remote_device[ble_client_scaned_device_num].is_scaned = 1;
+	ble_client_remote_device[ble_client_scaned_device_num].total_sent = 0;
+	ble_client_remote_device[ble_client_scaned_device_num].total_received = 0;
 	ui_bluetooth_add_device(&ble_client_remote_device[ble_client_scaned_device_num]);
 	ble_client_scaned_device_num++;
 	return 1;

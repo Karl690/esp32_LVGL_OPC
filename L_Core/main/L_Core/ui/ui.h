@@ -48,6 +48,7 @@ typedef enum
 	SCREEN_BLUETOOTH,
 }SCREEN_TYPE;
 
+extern char ui_temp_string[];
 extern uint8_t ui_initialized;
 extern lv_obj_t * keyboard;
 void InitUI(void);

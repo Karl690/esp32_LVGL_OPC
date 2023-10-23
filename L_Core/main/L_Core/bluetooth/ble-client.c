@@ -8,12 +8,10 @@ struct gattc_profile_inst {
 	uint16_t conn_id;
 	uint16_t service_start_handle;
 	uint16_t service_end_handle;
-	uint16_t char_handle;
+	uint16_t write_handle;
+	uint16_t notify_handle;
 	esp_bd_addr_t remote_bda;
 };
-
-static esp_gattc_char_elem_t *char_elem_result   = NULL;
-static esp_gattc_descr_elem_t *descr_elem_result = NULL;
 
 
 ///Declare static functions
@@ -46,14 +44,14 @@ static esp_bt_uuid_t remote_filter_service_uuid = {
 	.uuid = { .uuid16 = SPP_SERVICE_UUID, },
 };
 
-static esp_bt_uuid_t remote_filter_char_uuid = {
+static esp_bt_uuid_t remote_write_char_uuid = {
 	.len = ESP_UUID_LEN_16,
 	.uuid = { .uuid16 = ESP_GATT_UUID_SPP_DATA_RECEIVE, },
 };
 
-static esp_bt_uuid_t notify_descr_uuid = {
+static esp_bt_uuid_t remote_read_char_uuid = {
 	.len = ESP_UUID_LEN_16,
-	.uuid = { .uuid16 = ESP_GATT_UUID_CHAR_CLIENT_CONFIG, },
+	.uuid = { .uuid16 = ESP_GATT_UUID_SPP_DATA_NOTIFY, },
 };
 
 uint8_t is_client_connect = 0;
@@ -125,13 +123,13 @@ static void gattc_profile_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_
 		    dev->conn_id = p_data->open.conn_id;
 		    memcpy(dev->remote_bda, p_data->open.remote_bda, sizeof(esp_bd_addr_t));
 	    }
-	    esp_ble_gattc_search_service(gattc_if, param->open.conn_id, &remote_filter_service_uuid);
-	    
+	    esp_ble_gattc_send_mtu_req(gattc_if, p_data->search_cmpl.conn_id);
 	    dev->is_connected = 1;
 	    ui_ble_set_device_status(dev);        
         break;    
     case ESP_GATTC_CFG_MTU_EVT:
 	    //esp_ble_gattc_send_mtu_req(gattc_if, p_data->cfg_mtu.conn_id);
+	    esp_ble_gattc_search_service(gattc_if, param->open.conn_id, &remote_filter_service_uuid);
         break;
     case ESP_GATTC_SEARCH_RES_EVT: {        
         ESP_LOGI(BLE_TAG, "SEARCH RES: conn_id = %x is primary service %d", p_data->search_res.conn_id, p_data->search_res.is_primary);
@@ -147,118 +145,71 @@ static void gattc_profile_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_
         break;
     }
     case ESP_GATTC_SEARCH_CMPL_EVT:
-	    esp_ble_gattc_send_mtu_req(gattc_if, p_data->search_cmpl.conn_id);
-//        if (p_data->search_cmpl.status != ESP_GATT_OK){
-//            ESP_LOGE(BLE_TAG, "search service failed, error status = %x", p_data->search_cmpl.status);
-//            break;
-//        }
-//        if(p_data->search_cmpl.searched_service_source == ESP_GATT_SERVICE_FROM_REMOTE_DEVICE) {
-//            ESP_LOGI(BLE_TAG, "Get service information from remote device");
-//        } else if (p_data->search_cmpl.searched_service_source == ESP_GATT_SERVICE_FROM_NVS_FLASH) {
-//            ESP_LOGI(BLE_TAG, "Get service information from flash");
-//        } else {
-//            ESP_LOGI(BLE_TAG, "unknown service source");
-//        }
-//        ESP_LOGI(BLE_TAG, "ESP_GATTC_SEARCH_CMPL_EVT");
-//	    dev = ble_client_get_device_by_conn_id(p_data->search_cmpl.conn_id);	
-//        if (dev->get_server){
-//            uint16_t count = 0;
-//            esp_gatt_status_t status = esp_ble_gattc_get_attr_count( gattc_if,
-//                                                                     p_data->search_cmpl.conn_id,
-//                                                                     ESP_GATT_DB_CHARACTERISTIC,
-//                                                                     dev->service_start_handle,
-//                                                                     dev->service_end_handle,
-//                                                                     0,
-//                                                                     &count);
-//            if (status != ESP_GATT_OK){
-//                ESP_LOGE(BLE_TAG, "esp_ble_gattc_get_attr_count error");
-//            }
-//
-//            if (count > 0){
-//                char_elem_result = (esp_gattc_char_elem_t *)malloc(sizeof(esp_gattc_char_elem_t) * count);
-//                if (!char_elem_result){
-//                    ESP_LOGE(BLE_TAG, "gattc no mem");
-//                }else{
-//                    status = esp_ble_gattc_get_char_by_uuid( gattc_if,
-//                                                             p_data->search_cmpl.conn_id,
-//                                                             dev->service_start_handle,
-//                                                             dev->service_end_handle,
-//                                                             remote_filter_char_uuid,
-//                                                             char_elem_result,
-//                                                             &count);
-//                    if (status != ESP_GATT_OK){
-//                        ESP_LOGE(BLE_TAG, "esp_ble_gattc_get_char_by_uuid error");
-//                    }
-//
-//                    /*  Every service have only one char in our 'ESP_GATTS_DEMO' demo, so we used first 'char_elem_result' */
-//                    if (count > 0 && (char_elem_result[0].properties & ESP_GATT_CHAR_PROP_BIT_NOTIFY)){
-//                        dev->char_handle = char_elem_result[0].char_handle;
-//                        esp_ble_gattc_register_for_notify (gattc_if, dev->remote_bda, char_elem_result[0].char_handle);
-//                    }
-//                }
-//                /* free char_elem_result */
-//                free(char_elem_result);
-//            }else{
-//                ESP_LOGE(BLE_TAG, "no char found");
-//            }
-//        }
-         break;
-    case ESP_GATTC_REG_FOR_NOTIFY_EVT: 
-        ESP_LOGI(BLE_TAG, "ESP_GATTC_REG_FOR_NOTIFY_EVT");
-	    dev = ble_client_get_device_by_address(p_data->connect.remote_bda);	
-        if (p_data->reg_for_notify.status != ESP_GATT_OK){
-            ESP_LOGE(BLE_TAG, "REG FOR NOTIFY failed: error status = %d", p_data->reg_for_notify.status);
-        }else{
+	    //esp_ble_gattc_send_mtu_req(gattc_if, p_data->search_cmpl.conn_id);
+        if (p_data->search_cmpl.status != ESP_GATT_OK){
+            ESP_LOGE(BLE_TAG, "search service failed, error status = %x", p_data->search_cmpl.status);
+            break;
+        }
+        if(p_data->search_cmpl.searched_service_source == ESP_GATT_SERVICE_FROM_REMOTE_DEVICE) {
+            ESP_LOGI(BLE_TAG, "Get service information from remote device");
+        } else if (p_data->search_cmpl.searched_service_source == ESP_GATT_SERVICE_FROM_NVS_FLASH) {
+            ESP_LOGI(BLE_TAG, "Get service information from flash");
+        } else {
+            ESP_LOGI(BLE_TAG, "unknown service source");
+        }
+        ESP_LOGI(BLE_TAG, "ESP_GATTC_SEARCH_CMPL_EVT");
+	    dev = ble_client_get_device_by_conn_id(p_data->search_cmpl.conn_id);	
+        if (dev->get_server){
             uint16_t count = 0;
-            uint16_t notify_en = 1;
-            esp_gatt_status_t ret_status = esp_ble_gattc_get_attr_count( gattc_if,
-                                                                         dev->conn_id,
-                                                                         ESP_GATT_DB_DESCRIPTOR,
-                                                                         dev->service_start_handle,
-                                                                         dev->service_end_handle,
-                                                                         dev->char_handle,
-                                                                         &count);
-            if (ret_status != ESP_GATT_OK){
+            esp_gatt_status_t status = esp_ble_gattc_get_attr_count( gattc_if,
+                                                                     p_data->search_cmpl.conn_id,
+                                                                     ESP_GATT_DB_CHARACTERISTIC,
+                                                                     dev->service_start_handle,
+                                                                     dev->service_end_handle,
+                                                                     0,
+                                                                     &count);
+            if (status != ESP_GATT_OK){
                 ESP_LOGE(BLE_TAG, "esp_ble_gattc_get_attr_count error");
             }
+
             if (count > 0){
-                descr_elem_result = (esp_gattc_descr_elem_t*)malloc(sizeof(esp_gattc_descr_elem_t) * count);
-                if (!descr_elem_result){
-                    ESP_LOGE(BLE_TAG, "malloc error, gattc no mem");
+	            db = (esp_gattc_db_elem_t *)malloc(sizeof(esp_gattc_db_elem_t) * count);
+	            if (!db) {
+                    ESP_LOGE(BLE_TAG, "gattc no mem");
                 }else{
-                    ret_status = esp_ble_gattc_get_descr_by_char_handle( gattc_if,
-                                                                         dev->conn_id,
-                                                                         p_data->reg_for_notify.handle,
-                                                                         notify_descr_uuid,
-                                                                         descr_elem_result,
-                                                                         &count);
-                    if (ret_status != ESP_GATT_OK){
-                        ESP_LOGE(BLE_TAG, "esp_ble_gattc_get_descr_by_char_handle error");
-                    }
-                    /* Every char has only one descriptor in our 'ESP_GATTS_DEMO' demo, so we used first 'descr_elem_result' */
-                    if (count > 0 && descr_elem_result[0].uuid.len == ESP_UUID_LEN_16 && descr_elem_result[0].uuid.uuid.uuid16 == ESP_GATT_UUID_CHAR_CLIENT_CONFIG){
-	                    ret_status = (esp_gatt_status_t)esp_ble_gattc_write_char_descr( gattc_if,
-                                                                     dev->conn_id,
-                                                                     descr_elem_result[0].handle,
-                                                                     sizeof(notify_en),
-                                                                     (uint8_t *)&notify_en,
-                                                                     ESP_GATT_WRITE_TYPE_RSP,
-                                                                     ESP_GATT_AUTH_REQ_NONE);
-                    }
-
-                    if (ret_status != ESP_GATT_OK){
-                        ESP_LOGE(BLE_TAG, "esp_ble_gattc_write_char_descr error");
-                    }
-
-                    /* free descr_elem_result */
-                    free(descr_elem_result);
+	                status = esp_ble_gattc_get_db(gattc_if,
+		                dev->conn_id,
+		                dev->service_start_handle,
+		                dev->service_end_handle,
+		                db,
+		                &count);
+	                if (status != ESP_GATT_OK) {
+		                ESP_LOGE(BLE_TAG, "esp_ble_gattc_get_all_char error, %d", __LINE__);
+	                }
+	                for (int i = 0; i < count; i++) {
+		                if (db[i].uuid.len == ESP_UUID_LEN_16 && (db[i].properties & ESP_GATT_CHAR_PROP_BIT_WRITE_NR)) {
+			                if (db[i].uuid.uuid.uuid16 == ESP_GATT_UUID_SPP_DATA_RECEIVE)
+			                dev->write_handle = db[i].attribute_handle;
+		                }else if (db[i].uuid.len == ESP_UUID_LEN_16 && (db[i].properties & ESP_GATT_CHAR_PROP_BIT_NOTIFY)) {
+			                if (db[i].uuid.uuid.uuid16 == ESP_GATT_UUID_SPP_DATA_NOTIFY)
+			                {
+				                dev->notify_handle = db[i].attribute_handle;
+				                esp_ble_gattc_register_for_notify(gattc_if,
+					                dev->remote_bda,
+					                db[i].attribute_handle);
+			                }
+		                }
+		            }
                 }
+                /* free char_elem_result */
+	            free(db);
+            }else{
+                ESP_LOGE(BLE_TAG, "no char found");
             }
-            else{
-                ESP_LOGE(BLE_TAG, "decsr not found");
-            }
-
         }
+        break;
+    case ESP_GATTC_REG_FOR_NOTIFY_EVT: 
+        ESP_LOGI(BLE_TAG, "ESP_GATTC_REG_FOR_NOTIFY_EVT");
         break;
     case ESP_GATTC_NOTIFY_EVT:
         if (p_data->notify.is_notify){
@@ -266,27 +217,12 @@ static void gattc_profile_event_handler(esp_gattc_cb_event_t event, esp_gatt_if_
         }else{
             ESP_LOGI(BLE_TAG, "ESP_GATTC_NOTIFY_EVT, receive indicate value:");
         }
+	    
         esp_log_buffer_hex(BLE_TAG, p_data->notify.value, p_data->notify.value_len);
+	    dev = ble_client_get_device_by_address(p_data->notify.remote_bda);
+	    ble_client_read_data(dev, p_data->notify.value, p_data->notify.value_len);
         break;
-    case ESP_GATTC_WRITE_DESCR_EVT:
-        if (p_data->write.status != ESP_GATT_OK){
-            ESP_LOGE(BLE_TAG, "write descr failed, error status = %x", p_data->write.status);
-            break;
-        }
-        ESP_LOGI(BLE_TAG, "write descr success ");
-        uint8_t write_char_data[35];
-	    dev = ble_client_get_device_by_address(p_data->connect.remote_bda);	
-        for (int i = 0; i < sizeof(write_char_data); ++i)
-        {
-            write_char_data[i] = i % 256;
-        }
-        esp_ble_gattc_write_char( gattc_if,
-                                  dev->conn_id,
-                                  dev->char_handle,
-                                  sizeof(write_char_data),
-                                  write_char_data,
-                                  ESP_GATT_WRITE_TYPE_RSP,
-                                  ESP_GATT_AUTH_REQ_NONE);
+    case ESP_GATTC_WRITE_DESCR_EVT:       
         break;
     case ESP_GATTC_SRVC_CHG_EVT: {
         esp_bd_addr_t bda;
@@ -325,8 +261,9 @@ uint8_t ble_client_enable()
         ESP_LOGE(BLE_TAG, "gattc register error: %s", esp_err_to_name_r(status, err_msg, sizeof(err_msg)));
         return 0;
     }
-	
+	memset(ble_client_remote_device, 0, sizeof(BleRemoteDevice) * BLE_CLIENT_MAX_CONNECT_NUM);
 	for (uint8_t i = 0; i < BLE_CLIENT_MAX_CONNECT_NUM; i++) {
+
 		ble_client_remote_device[i].gattc_cb = gattc_profile_event_handler;
 		ble_client_remote_device[i].gattc_if = ESP_GATT_IF_NONE;
 		status = esp_ble_gattc_app_register(i);
@@ -359,11 +296,24 @@ void ble_client_disconnect_device(BleRemoteDevice* dev)
 	esp_ble_gattc_close(dev->gattc_if, dev->conn_id);
 }
 
+void ble_client_read_data(BleRemoteDevice* dev, uint8_t* data, uint16_t len)
+{
+	if (!dev->is_connected) return;
+	strncpy((char*)dev->last_received_buffer, (char*)data, len>=50?50: len);
+    memcpy(dev->receive_buffer, data, len);
+	dev->total_received += len;
+	ui_bluetooth_set_received_data(dev);
+}
+
 void ble_client_write_data(BleRemoteDevice* dev, uint8_t* data, uint16_t len)
 {
+	if (!dev->is_connected) return;
+	strncpy((char*)dev->last_send_buffer  , (char*)data, len>=50?50: len);
+    memcpy(dev->send_buffer, data, len);
+	dev->total_sent += len;
 	esp_ble_gattc_write_char( dev->gattc_if,
 		dev->conn_id,
-		dev->char_handle,
+		dev->write_handle,
 		len,
 		data,
 		ESP_GATT_WRITE_TYPE_RSP,

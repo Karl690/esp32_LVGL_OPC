@@ -11,7 +11,7 @@ lv_obj_t* ui_bluetooth_device_name;
 lv_obj_t* ui_bluetooth_device_address;
 lv_obj_t* ui_bluetooth_send;
 lv_obj_t* ui_bluetooth_receive;
-lv_obj_t* ui_bluetooth_total;
+lv_obj_t* ui_bluetooth_total_received;
 
 
 BleRemoteDevice* selected_device = NULL;
@@ -38,7 +38,12 @@ void ui_ble_event_device_item_cb(lv_event_t* e)
 
 void ui_bluetooth_send_event_cb(lv_event_t* e)
 {
-	
+	lv_obj_t* textobj = (lv_obj_t*)lv_event_get_user_data(e);
+	char* text = (char*)lv_textarea_get_text(textobj);
+	uint8_t len = strlen(text);
+	if (!len) return;
+	if (!selected_device) return;
+	ble_client_write_data(selected_device, (uint8_t*)text, len);
 }
 
 void ui_bluetooth_pair_event_cb(lv_event_t* e)
@@ -132,22 +137,20 @@ void ui_bluetooth_screen_init()
 	lv_obj_set_pos(obj, 0, y);
 	lv_obj_add_event_cb(obj, ui_event_edit_cb, LV_EVENT_ALL, NULL);	
 	
-	obj = ui_create_button(ui_bluetooth_device_detail, "SEND", 100, 30, 3, UI_MENU_ACTIVE_ITEM_COLOR, &lv_font_montserrat_14, ui_bluetooth_send_event_cb, NULL);	
+	obj = ui_create_button(ui_bluetooth_device_detail, "SEND", 100, 30, 3, UI_MENU_ACTIVE_ITEM_COLOR, &lv_font_montserrat_14, ui_bluetooth_send_event_cb, obj);	
 	lv_obj_set_pos(obj, 160, y);
 	y += 45;
 	obj = ui_create_label(ui_bluetooth_device_detail, "RECEIVED: ", &lv_font_montserrat_14);
 	lv_obj_set_pos(obj, x, y); 
 	obj = ui_create_label(ui_bluetooth_device_detail, "", &lv_font_montserrat_14);
-	lv_obj_set_pos(obj, 200, y);  ui_bluetooth_receive = obj;
+	lv_obj_set_pos(obj, 100, y);  ui_bluetooth_receive = obj;
 	
 	
 	y += 30;
 	obj = ui_create_label(ui_bluetooth_device_detail, "TOTAL: ", &lv_font_montserrat_14);
 	lv_obj_set_pos(obj, x, y);
 	obj = ui_create_label(ui_bluetooth_device_detail, "", &lv_font_montserrat_14);
-	lv_obj_set_pos(obj, 200, y); ui_bluetooth_total = obj;
-	
-	
+	lv_obj_set_pos(obj, 100, y); ui_bluetooth_total_received = obj;
 }
 
 void ui_bluetooth_changed_ble_status(uint8_t status)
@@ -206,6 +209,13 @@ void ui_bluetooth_refresh_devices()
 	}
 }
 
+void ui_bluetooth_set_received_data(BleRemoteDevice* dev)
+{
+	if(selected_device != dev) return;
+	lv_label_set_text(ui_bluetooth_receive, (const char*)dev->last_received_buffer);
+	sprintf(ui_temp_string, "%d", (int)dev->total_received);
+	lv_label_set_text(ui_bluetooth_total_received, ui_temp_string);
+}
 
 
 

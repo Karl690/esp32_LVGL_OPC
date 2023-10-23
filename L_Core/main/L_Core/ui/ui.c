@@ -24,6 +24,8 @@ lv_obj_t * keyboard;
 lv_obj_t* msgbox;
 lv_obj_t* msgbox_label;
 uint8_t ui_initialized = 0;
+char ui_temp_string[256] = { 0 };
+
 lv_obj_t* ui_create_screen()
 {
 	lv_obj_t* screen = lv_obj_create(NULL);

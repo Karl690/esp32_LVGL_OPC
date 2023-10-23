@@ -26,8 +26,8 @@
 
 
 #define SPP_SERVICE_UUID		0xABF0
-#define ESP_GATT_UUID_SPP_DATA_RECEIVE      0xABF1
-#define ESP_GATT_UUID_SPP_DATA_NOTIFY       0xABF2
+#define ESP_GATT_UUID_SPP_DATA_RECEIVE      0xABF1 // it should use in Writting
+#define ESP_GATT_UUID_SPP_DATA_NOTIFY       0xABF2 // it should use in Reading
 #define ESP_GATT_UUID_SPP_COMMAND_RECEIVE   0xABF3
 #define ESP_GATT_UUID_SPP_COMMAND_NOTIFY    0xABF4
 
@@ -78,9 +78,16 @@ typedef struct _tagBLEDevice {
 	uint16_t conn_id;
 	uint16_t service_start_handle;
 	uint16_t service_end_handle;
-	uint16_t char_handle;
+	uint16_t write_handle;
+	uint16_t notify_handle;
 	esp_bd_addr_t remote_bda;
 	uint8_t get_server;
+	uint32_t total_received;
+	uint32_t total_sent;
+	uint8_t last_received_buffer[100];
+	uint8_t last_send_buffer[100];
+	uint8_t receive_buffer[256];
+	uint8_t send_buffer[256];
 }BleRemoteDevice;
 
 extern uint8_t ble_client_scaned_device_num;
@@ -118,3 +125,5 @@ void ble_client_disconnect_device(BleRemoteDevice*);
 BleRemoteDevice* ble_get_device(uint8_t id);
 BleRemoteDevice* ble_client_get_device_by_address(uint8_t* address);
 BleRemoteDevice* ble_client_get_device_by_conn_id(uint16_t);
+void ble_client_write_data(BleRemoteDevice* dev, uint8_t* data, uint16_t len);
+void ble_client_read_data(BleRemoteDevice* dev, uint8_t* data, uint16_t len);
