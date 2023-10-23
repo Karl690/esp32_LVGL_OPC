@@ -18,11 +18,12 @@
 #include "ui-control.h"
 #include "ui-server.h"
 #include "ui-pct.h"
+#include "ui-bluetooth.h"
 	
 lv_obj_t * keyboard;
 lv_obj_t* msgbox;
 lv_obj_t* msgbox_label;
-
+uint8_t ui_initialized = 0;
 lv_obj_t* ui_create_screen()
 {
 	lv_obj_t* screen = lv_obj_create(NULL);
@@ -47,7 +48,7 @@ lv_obj_t* ui_create_titlebar(lv_obj_t* screen, uint32_t color)
 	lv_obj_set_style_text_color(btnback, lv_color_hex(0xFFFFFF), LV_PART_MAIN);
 	lv_obj_add_flag(btnback, LV_OBJ_FLAG_CLICKABLE);
 	lv_obj_set_size(btnback, 30, 30);
-	lv_obj_add_event_cb(btnback, event_go_home_cb, LV_EVENT_CLICKED, NULL);	
+	lv_obj_add_event_cb(btnback, ui_event_go_home_cb, LV_EVENT_CLICKED, NULL);	
 	lv_obj_align(btnback, LV_ALIGN_TOP_LEFT, 10, 5);
 	return titlebar;
 }
@@ -183,15 +184,42 @@ void ui_transform_screen(SCREEN_TYPE screen)
 		lv_obj_set_parent(keyboard, ui_pct_screen);
 		lv_obj_set_parent(msgbox, ui_pct_screen);
 		break;
+	case SCREEN_BLUETOOTH:
+		lv_scr_load_anim(ui_bluetooth_screen, LV_SCR_LOAD_ANIM_FADE_ON, 300, 0, false);
+		lv_obj_set_parent(keyboard, ui_bluetooth_screen);
+		lv_obj_set_parent(msgbox, ui_bluetooth_screen);
+		break;
 	default:
 		break;
 	}
 }
 
-void event_go_home_cb(lv_event_t* e)
+void ui_event_go_home_cb(lv_event_t* e)
 {
 	ui_transform_screen(SCREEN_HOME);
 }
+
+void ui_event_edit_cb(lv_event_t* e)
+{
+	lv_event_code_t code = lv_event_get_code(e);
+	lv_obj_t * obj = lv_event_get_target(e);
+	if (code == LV_EVENT_CLICKED || code == LV_EVENT_FOCUSED)
+	{
+		if (keyboard != NULL)
+		{
+			lv_keyboard_set_textarea(keyboard, obj);
+			lv_obj_clear_flag(keyboard, LV_OBJ_FLAG_HIDDEN);
+		}
+		
+	}	
+	else if (code == LV_EVENT_READY)
+	{
+		char* value = (char*)lv_event_get_user_data(e);
+		lv_obj_add_flag(keyboard, LV_OBJ_FLAG_HIDDEN);
+		if(value) strcpy(value, lv_textarea_get_text(obj));
+	}
+}
+
 float b = 43.555;
 void InitUI( void )
 {
@@ -211,18 +239,22 @@ void InitUI( void )
 	ui_settings_screen_init();
 	ui_control_screen_init();
 	ui_pct_screen_init();
+	ui_bluetooth_screen_init();
 	
+
 	keyboard = lv_keyboard_create(ui_home_screen);
 	lv_obj_add_flag(keyboard, LV_OBJ_FLAG_HIDDEN);
 	ui_create_messagebox();
 	
 	lv_scr_load_anim(ui_splash_screen, LV_SCR_LOAD_ANIM_FADE_ON, 300, 0, false);
-		
+	ui_initialized = 1;	
     //lv_disp_load_scr(ui_main_screen);
 	
 	// Switch to the main application if OTA has not been started
 	vTaskDelay(pdMS_TO_TICKS(5000));
 	//lv_scr_load(ui_variables_screen);
 	//lv_scr_load_anim(ui_home_screen, LV_SCR_LOAD_ANIM_FADE_ON, 300, 0, false);
-	ui_transform_screen(SCREEN_PCT);
+	ui_transform_screen(SCREEN_HOME);
+
+	
 }

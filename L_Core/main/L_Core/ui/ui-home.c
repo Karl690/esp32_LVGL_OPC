@@ -53,6 +53,8 @@ void ui_home_screen_init(void)
 	LV_IMG_DECLARE(variables);
 	LV_IMG_DECLARE(folder);
 	LV_IMG_DECLARE(controllers);
+	LV_IMG_DECLARE(bluetooth);
+	LV_IMG_DECLARE(pct);
 	LV_IMG_DECLARE(btn_about);
 	
 	ui_home_screen = lv_obj_create(NULL);
@@ -76,7 +78,7 @@ void ui_home_screen_init(void)
 	lv_obj_set_pos(obj, x, y);
 	
 	x += BUTTON_WIDTH + gap_x;
-	obj = ui_home_create_button(ui_home_screen, &btnhome_04, &settings, "PCT");
+	obj = ui_home_create_button(ui_home_screen, &btnhome_04, &pct, "PCT");
 	lv_obj_add_event_cb(obj, ui_home_event_tranform_screen_cb, LV_EVENT_CLICKED, (void*)SCREEN_PCT);
 	lv_obj_set_pos(obj, x, y);
 	
@@ -89,6 +91,11 @@ void ui_home_screen_init(void)
 	x += BUTTON_WIDTH + gap_x;
 	obj = ui_home_create_button(ui_home_screen, &btnhome_06, &folder, "SD Card");
 	lv_obj_add_event_cb(obj, ui_home_event_tranform_screen_cb, LV_EVENT_CLICKED, (void*)SCREEN_SDCARD);
+	lv_obj_set_pos(obj, x, y);
+
+	x += BUTTON_WIDTH + gap_x;
+	obj = ui_home_create_button(ui_home_screen, &btnhome_07, &bluetooth, "Bluetooth");
+	lv_obj_add_event_cb(obj, ui_home_event_tranform_screen_cb, LV_EVENT_CLICKED, (void*)SCREEN_BLUETOOTH);
 	lv_obj_set_pos(obj, x, y);
 	
 	lv_obj_t* banner = ui_create_label(ui_home_screen, "#ffffff ©2023, PCT Systems. All rights reserved. #", &font_en_16);

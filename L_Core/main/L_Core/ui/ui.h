@@ -45,9 +45,10 @@ typedef enum
 	SCREEN_QUALITY,
 	SCREEN_SDCARD,
 	SCREEN_PCT,
+	SCREEN_BLUETOOTH,
 }SCREEN_TYPE;
 
-
+extern uint8_t ui_initialized;
 extern lv_obj_t * keyboard;
 void InitUI(void);
 
@@ -66,5 +67,6 @@ lv_obj_t* ui_create_button(lv_obj_t* parent,
 
 void ui_transform_screen(SCREEN_TYPE screen);
 void ui_show_messagebox(MESSAGEBOX_TYPE type, char* msg, uint16_t delay);
-void event_go_home_cb(lv_event_t* e);
+void ui_event_go_home_cb(lv_event_t* e);
+void ui_event_edit_cb(lv_event_t* e);
 

@@ -1,32 +1,32 @@
 idf_component_register(
                 SRCS
                 	main.c
-                	L_Core/ui/ui.c
-                	L_Core/ui/ui_helpers.c
                 	L_Core/open62541/open62541.c
                 	L_Core/wifi/wifi.c
                 	L_Core/open62541/opc.c
-                	L_Core/ui/images/mark.c
                 	L_Core/devices/display.c
-                	K_Core/K_Core.c
-                	K_Core/gpio/GPIO.c
-                	K_Core/taskmanager.c
-                	K_Core/gpio/GPIO.c
-                	K_Core/K_Core.c
-                	K_Core/taskmanager.c
-                	K_Core/display/DisplayList.c
-                    K_Core/serial/serial.c
+                	L_Core/server/server.c
+                	L_Core/server/parse.c
+                	L_Core/pct/pct.c
+                	L_Core/ui/ui.c
+                	L_Core/ui/ui_helpers.c
                 	L_Core/ui/ui-opc.c
                 	L_Core/ui/ui-splash.c
-                	K_Core/adc/adc.c
-                	K_Core/adc/adc-table.c
                 	L_Core/ui/ui-variables.c
-                	K_Core/display/DisplayCagetoryList.c
+                	L_Core/ui/ui-sdcard.c
+                	L_Core/ui/ui-settings.c
+                	L_Core/ui/ui-home.c
+                    L_Core/ui/ui-bluetooth.c                	
+                	L_Core/ui/ui-control.c
+                	L_Core/ui/ui-server.c
+                	L_Core/ui/ui-pct.c
+                    L_Core/bluetooth/ble.c
+                	L_Core/bluetooth/ble-server.c
+                	L_Core/bluetooth/ble-client.c
+                	L_Core/sd-card/sd-card.c
                 	L_Core/ui/images/btn_about.c
                 	L_Core/ui/images/copyright.c
-                	L_Core/ui/ui-home.c
-                	L_Core/bluetooth/bluetooth.c
-                	L_Core/sd-card/sd-card.c
+                	L_Core/ui/images/mark.c
                 	L_Core/ui/images/btnhome-01.c
                 	L_Core/ui/images/btnhome-02.c
                 	L_Core/ui/images/btnhome-03.c
@@ -34,29 +34,23 @@ idf_component_register(
                 	L_Core/ui/images/btnhome-06.c
                 	L_Core/ui/images/folder.c
                 	L_Core/ui/images/opc.c
+                	L_Core/ui/images/pct.c
+                	L_Core/ui/images/bluetooth.c
                 	L_Core/ui/images/settings.c
                 	L_Core/ui/images/variables.c
                 	L_Core/ui/images/btnhome-05.c
-                	L_Core/ui/ui-sdcard.c
-                	L_Core/ui/ui-settings.c
                 	L_Core/ui/images/btnhome-07.c
                 	L_Core/ui/images/btnhome-08.c
                 	L_Core/ui/images/controllers.c
+                	L_Core/ui/images/fan.c
+                	L_Core/ui/images/heater.c
+                	L_Core/ui/images/mtr.c
                 	L_Core/ui/font/en_12.c
                 	L_Core/ui/font/en_16.c
                 	L_Core/ui/font/en_bold_16.c
                 	L_Core/ui/font/en_bold_20.c
                 	L_Core/ui/font/en_bold_24.c
                 	L_Core/ui/font/en_bold_30.c
-                	L_Core/ui/ui-control.c
-                	L_Core/ui/images/fan.c
-                	L_Core/ui/images/heater.c
-                	L_Core/ui/images/mtr.c
-                	L_Core/server/server.c
-                	L_Core/ui/ui-server.c
-                	L_Core/server/parse.c
-                	L_Core/ui/ui-pct.c
-                	L_Core/pct/pct.c
                 	L_Core/ui/font/mono_bold_16.c
                 	L_Core/ui/font/mono_bold_24.c
                 	L_Core/ui/font/mono_bold_28.c
@@ -67,6 +61,17 @@ idf_component_register(
                 	L_Core/ui/font/mono_regualr_16.c
                 	L_Core/ui/font/mono_regualr_20.c
                 	L_Core/ui/font/mono_regualr_14.c
+                	K_Core/K_Core.c
+                	K_Core/gpio/GPIO.c
+                	K_Core/taskmanager.c
+                	K_Core/gpio/GPIO.c
+                	K_Core/K_Core.c
+                	K_Core/taskmanager.c
+                	K_Core/display/DisplayList.c
+                	K_Core/serial/serial.c
+                	K_Core/adc/adc.c
+                	K_Core/adc/adc-table.c
+                	K_Core/display/DisplayCagetoryList.c
                 INCLUDE_DIRS "."
                 REQUIRES
                 	LovyanGFX

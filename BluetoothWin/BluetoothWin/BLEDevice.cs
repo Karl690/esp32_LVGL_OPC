@@ -79,7 +79,11 @@ namespace BluetoothWin
         private void Ble_dev_ConnectionStatusChanged(BluetoothLEDevice sender, object args)
         {
             if (sender.ConnectionStatus == BluetoothConnectionStatus.Disconnected) isConnected = false;
-            else isConnected = true;
+            else
+            {
+                isConnected = true;
+                AvailableWrite = true;
+            }
             if (OnDeviceConnectStatus != null) OnDeviceConnectStatus(this, EventArgs.Empty);
         }
 
@@ -88,18 +92,21 @@ namespace BluetoothWin
             ble_dev.Dispose();
             ble_dev = null;
             isConnected = false;
+            AvailableWrite = false;
         }
         private void Characteristic_ValueChanged(GattCharacteristic sender, GattValueChangedEventArgs args)
         {
+            AvailableWrite = true;
+            if (args.CharacteristicValue.Length == 0) return;
             CryptographicBuffer.CopyToByteArray(args.CharacteristicValue, out RecievedBuffer);
             RecievedLength = args.CharacteristicValue.Length;
             //var reader = DataReader.FromBuffer(args.CharacteristicValue);
             //uint len = args.CharacteristicValue.Length;
             //RecievedBuffer = reader.Re .ReadBytes.ReadBuffer(len); //.ReadString(len);
-            if(RecievedBuffer[0] == 'O' && RecievedBuffer[1] == 'K')
+            //if(RecievedBuffer[0] == 'O' && RecievedBuffer[1] == 'K')
+            if (args.CharacteristicValue.Length > 0)
             {
                 AvailableWrite = true;
-
             }
             if (OnReceivedData != null) OnReceivedData(this, EventArgs.Empty);
 

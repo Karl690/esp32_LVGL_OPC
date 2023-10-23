@@ -80,25 +80,6 @@ void ui_server_event_screen_onoff_cb(lv_event_t* e)
 	}
 }
 
-void ui_server_event_edit_cb(lv_event_t* e)
-{
-	lv_event_code_t code = lv_event_get_code(e);
-	lv_obj_t * obj = lv_event_get_target(e);
-	if (code == LV_EVENT_CLICKED || code == LV_EVENT_FOCUSED)
-	{
-		if (keyboard != NULL)
-		{
-			lv_keyboard_set_textarea(keyboard, obj);
-			lv_obj_clear_flag(keyboard, LV_OBJ_FLAG_HIDDEN);
-		}
-		
-	}	
-	else if (code == LV_EVENT_READY)
-	{
-		lv_obj_add_flag(keyboard, LV_OBJ_FLAG_HIDDEN);
-	}
-}
-
 void ui_server_event_button_cb(lv_event_t* e)
 {
 	lv_obj_t* text = (lv_obj_t*)lv_event_get_user_data(e);		
@@ -158,7 +139,7 @@ void ui_server_screen_init(void)
 	lv_textarea_set_one_line(txt, true);
 	lv_obj_set_style_border_width(obj, 1, LV_PART_MAIN);
 	lv_obj_set_style_border_color(obj, lv_color_hex(UI_TEXTAREA_BORDER_COLOR), LV_PART_MAIN);
-	lv_obj_add_event_cb(txt, ui_server_event_edit_cb, LV_EVENT_ALL, NULL);
+	lv_obj_add_event_cb(txt, ui_event_edit_cb, LV_EVENT_ALL, NULL);
 	
 	obj = ui_create_button(panel, "Send", 60, 33, 2, 0xff0000, &lv_font_montserrat_14, ui_server_event_button_cb, txt);
 	lv_obj_set_pos(obj, 320, y);

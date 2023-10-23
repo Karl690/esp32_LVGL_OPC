@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,7 +21,8 @@ namespace BluetoothWin
         bool _isSearchingForDevices;
         BLEScanner bleScanner = new BLEScanner();
         byte[] SendIntervalBuffer;
-
+        bool isSendFile = false;
+        string[] SendFileDataLine = null;
         public bool IsSearchingForDevices
         {
             get => _isSearchingForDevices;
@@ -257,18 +259,28 @@ namespace BluetoothWin
                 timer.Enabled = true;
                 startTime = DateTime.Now;
                 totalSendBytes = 0;
-                SendIntervalBuffer = new byte[(int)nudBytes.Value];
+                if(SendFileDataLine == null || SendFileDataLine.Length == 0)
+                {
+                    SendIntervalBuffer = new byte[(int)nudBytes.Value];
+                    for (int i = 0; i < nudBytes.Value; i++) SendIntervalBuffer[i] = (byte)'A';
+                }
                 timerCount = 0;
-                for (int i = 0; i < nudBytes.Value; i++) SendIntervalBuffer[i] = (byte)'A';
                 
             }
             else
             {
                 timer.Enabled = false;
+                if (SendFileDataLine != null && SendFileDataLine.Length > 0) SendFileDataLine = null;
+
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
             }
             nudBytes.Enabled = !chkInterval.Checked;
             nudTimes.Enabled = !chkInterval.Checked;
             txtboxSend.Enabled = !chkInterval.Checked;
+
+            grpSendData.Enabled = !chkInterval.Checked;
+            grpSendFIle.Enabled = !chkInterval.Checked;
         }
         
         private void timer_Tick(object sender, EventArgs e)
@@ -277,32 +289,82 @@ namespace BluetoothWin
             ListViewItem SelectedItem = listView1.SelectedItems[0];
             BLEDevice bleDev = (BLEDevice)SelectedItem.Tag;
             if (!bleDev.AvailableWrite) return;
-
-            totalSendBytes += SendIntervalBuffer.Length;
+            string sz = "";
             DateTime nowTime = DateTime.Now;
             TimeSpan ts = DateTime.Now - startTime;
 
-            string sz = $"C:{timerCount},T:{totalSendBytes},S:{ts.Seconds}";
-            byte[] bytes = Encoding.ASCII.GetBytes(sz);
-            bytes.CopyTo(SendIntervalBuffer, 0);
-            _ = bleDev.SendDataBufferAsync(SendIntervalBuffer);
+            if (SendFileDataLine != null && SendFileDataLine.Length > 0)
+            {
+                StringBuilder sb = new StringBuilder();
+                for(int i = 0; i < nudLines.Value; i ++)
+                {
+                    if (timerCount >= nudTimes.Value) break;
+                    sb.AppendLine($"{timerCount + 1}: " + SendFileDataLine[timerCount]);                    
+                    timerCount++;
+                }
+                totalSendBytes += sb.Length;
+                _ = bleDev.SendDataBufferAsync(Encoding.ASCII.GetBytes(sb.ToString()));
+                lblLines.Text = $"Lines: {timerCount}";
+                lblLPS.Text = $"LPS: {(timerCount / ts.TotalMilliseconds * 1000.0f).ToString("0.0")} LPS";
+            }
+            else
+            {
+                totalSendBytes += SendIntervalBuffer.Length;
+                sz = $"{timerCount+1}: T{totalSendBytes},S{ts.TotalSeconds.ToString("0.0")}";
+                byte[] bytes = Encoding.ASCII.GetBytes(sz);
+                bytes.CopyTo(SendIntervalBuffer, 0);
+                _ = bleDev.SendDataBufferAsync(SendIntervalBuffer);
+            }
+            
+            
+            
             txtboxSend.Text = sz;
-            lblCount.Text = $"Count: {timerCount}";
+            lblLines.Text = $"Count: {timerCount}";
             lblDuring.Text = $"During: {ts.TotalMilliseconds.ToString("0.00")}";
             lblTotal.Text = $"Total: {totalSendBytes}";
+            lblSendText.Text = sz;
             if(ts.Milliseconds > 1)            lblSpeed.Text = $"Speed: {(totalSendBytes / ts.TotalMilliseconds * 1000.0f).ToString("0.00")} BPS";
 
-            if(nudTimes.Value < timerCount)
+BREAK:
+            if(nudTimes.Value <= timerCount)
             {
                 chkInterval.Checked = false;
-                txtboxSend.Enabled = !chkInterval.Checked;
-                btnSend.Enabled = !chkInterval.Checked;
-                timer.Enabled = false;
+                //txtboxSend.Enabled = !chkInterval.Checked;
+                //btnSend.Enabled = !chkInterval.Checked;
+                //timer.Enabled = false;
 
-                nudBytes.Enabled = !chkInterval.Checked;
-                nudTimes.Enabled = !chkInterval.Checked;
+                //nudBytes.Enabled = !chkInterval.Checked;
+                //nudTimes.Enabled = !chkInterval.Checked;
             }
             timerCount++;
+        }
+
+
+
+        private void btnBrowseFile_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog ofd = new OpenFileDialog();
+            ofd.Filter = "GCode files (*.gcode)|*.gcode|All files (*.*)|*.*";
+            if (ofd.ShowDialog() == DialogResult.OK)
+            {
+                txtFilePath.Text = ofd.FileName;
+            }
+        }
+
+        private void btnSendFile_Click(object sender, EventArgs e)
+        {
+            if (!File.Exists(txtFilePath.Text))
+            {
+                MessageBox.Show("The file does not exist."); return;
+            }
+            isSendFile = true;
+            nudTimer.Value = 1;
+            SendFileDataLine = File.ReadAllLines(txtFilePath.Text);
+            nudTimes.Value = SendFileDataLine.Length;
+            chkInterval.Checked = true;
+            grpSendData.Enabled = false;
+            grpSendFIle.Enabled = false;
+            
         }
     }
 

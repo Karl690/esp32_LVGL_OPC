@@ -1,7 +1,7 @@
 #include "main.h"
 #include "K_Core/K_Core.h"
 #include "L_Core/wifi/wifi.h"
-#include "L_Core/bluetooth/bluetooth.h"
+#include "L_Core/bluetooth/ble.h"
 #include "L_Core/sd-card/sd-card.h"
 #include "L_Core/server/server.h"
 #ifdef USE_OPC

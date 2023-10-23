@@ -3,7 +3,7 @@
 #include "ui-settings.h"
 #include "../wifi/wifi.h"
 #include "../sd-card/sd-card.h"
-#include "../bluetooth/bluetooth.h"
+#include "../bluetooth/ble.h"
 #include "../../K_Core/serial/serial.h"
 #include "RevisionHistory.h"
 lv_obj_t* ui_settings_screen;
@@ -40,7 +40,7 @@ void ui_settings_ble_event_cb(lv_event_t* e)
 	char* text = (char*)lv_textarea_get_text(ui_settings.ui_bluetooth.send);
 	uint8_t len = strlen(text);
 	if (len == 0) return;
-	ble_send_data((uint8_t*)text, len);
+	ble_server_send_data((uint8_t*)text, len);
 }
 
 void ui_settings_event_submenu_cb(lv_event_t* e)
@@ -85,43 +85,22 @@ void ui_settings_event_submenu_cb(lv_event_t* e)
 	settings_active_menu = target;
 }
 
-void ui_settings_event_edit_cb(lv_event_t* e)
-{
-	lv_event_code_t code = lv_event_get_code(e);
-	lv_obj_t * obj = lv_event_get_target(e);
-	if (code == LV_EVENT_CLICKED || code == LV_EVENT_FOCUSED)
-	{
-		if (keyboard != NULL)
-		{
-			lv_keyboard_set_textarea(keyboard, obj);
-			lv_obj_clear_flag(keyboard, LV_OBJ_FLAG_HIDDEN);
-		}
-		
-	}	
-	else if (code == LV_EVENT_READY)
-	{
-		char* value = (char*)lv_event_get_user_data(e);
-		lv_obj_add_flag(keyboard, LV_OBJ_FLAG_HIDDEN);
-		if(value) strcpy(value, lv_textarea_get_text(obj));
-	}
-}
-
 void ui_settings_event_switch_cb(lv_event_t* e)
 {
 	lv_obj_t * obj = lv_event_get_target(e);
 	uint8_t* data = (uint8_t*)lv_event_get_user_data(e);
 	bool state = lv_obj_has_state(obj, LV_STATE_CHECKED);
 	
-	if (data == &systemconfig.bluetooth.status)
+	if (data == &systemconfig.bluetooth.server_enabled)
 	{
 		if (state) {
-			systemconfig.bluetooth.status = ble_enable();
+			systemconfig.bluetooth.server_enabled = ble_server_enable();
 			lv_label_set_text(ui_settings.ui_bluetooth.receive, "");
 			lv_label_set_text(ui_settings.ui_bluetooth.total, "");
 		}
-		else ble_disable();
+		else ble_server_disable();
 		
-		if (systemconfig.bluetooth.status) lv_obj_add_state(ui_settings.ui_bluetooth.status, LV_STATE_CHECKED);
+		if (systemconfig.bluetooth.server_enabled) lv_obj_add_state(ui_settings.ui_bluetooth.status, LV_STATE_CHECKED);
 		else lv_obj_clear_state(ui_settings.ui_bluetooth.status, LV_STATE_CHECKED);
 	}
 	else if (data == &systemconfig.wifi.status)
@@ -207,9 +186,9 @@ void ui_settings_bluetooth_page_init()
 	lv_obj_set_pos(obj, 0, y+10);
 	obj = lv_switch_create(ui_settings_bluetooth_page);
 	lv_obj_set_pos(obj, 160, y);
-	if (systemconfig.bluetooth.status) lv_obj_add_state(obj, LV_STATE_CHECKED);
+	if (systemconfig.bluetooth.server_enabled) lv_obj_add_state(obj, LV_STATE_CHECKED);
 	else lv_obj_add_state(obj, LV_STATE_CHECKED);
-	lv_obj_add_event_cb(obj, ui_settings_event_switch_cb, LV_EVENT_VALUE_CHANGED, &systemconfig.bluetooth.status);
+	lv_obj_add_event_cb(obj, ui_settings_event_switch_cb, LV_EVENT_VALUE_CHANGED, &systemconfig.bluetooth.server_enabled);
 	ui_settings.ui_bluetooth.status = obj;
 	
 	y += SETTINGS_LINE_SPACE;
@@ -229,7 +208,7 @@ void ui_settings_bluetooth_page_init()
 	lv_textarea_set_one_line(obj, true);
 	lv_obj_set_width(obj, 150);
 	lv_obj_set_pos(obj, 0, y);
-	lv_obj_add_event_cb(obj, ui_settings_event_edit_cb, LV_EVENT_ALL, NULL);	
+	lv_obj_add_event_cb(obj, ui_event_edit_cb, LV_EVENT_ALL, NULL);	
 	ui_settings.ui_bluetooth.send= obj;
 	
 	obj = ui_create_button(ui_settings_bluetooth_page, "SEND", 100, 30, 3, UI_MENU_ACTIVE_ITEM_COLOR, &lv_font_montserrat_14, ui_settings_ble_event_cb, NULL);	
@@ -268,7 +247,7 @@ void ui_settings_wifi_page_init()
 	lv_textarea_set_one_line(obj, true);
 	lv_obj_set_width(obj, 150);
 	lv_obj_set_pos(obj, 160, y);
-	lv_obj_add_event_cb(obj, ui_settings_event_edit_cb, LV_EVENT_ALL, &systemconfig.wifi.ssid);
+	lv_obj_add_event_cb(obj, ui_event_edit_cb, LV_EVENT_ALL, &systemconfig.wifi.ssid);
 	lv_textarea_set_text(obj, (const char*)systemconfig.wifi.ssid);
 	lv_obj_set_user_data(obj, systemconfig.wifi.ssid);
 	ui_settings.ui_wifi.ssid = obj;
@@ -283,7 +262,7 @@ void ui_settings_wifi_page_init()
 	lv_textarea_set_password_mode(obj, true);
 	lv_obj_set_width(obj, 150);
 	lv_obj_set_pos(obj, 160, y);
-	lv_obj_add_event_cb(obj, ui_settings_event_edit_cb, LV_EVENT_ALL, &systemconfig.wifi.password);
+	lv_obj_add_event_cb(obj, ui_event_edit_cb, LV_EVENT_ALL, &systemconfig.wifi.password);
 	lv_textarea_set_text(obj, (const char*)systemconfig.wifi.password);
 	lv_obj_set_user_data(obj, systemconfig.wifi.password);
 	ui_settings.ui_wifi.password = obj;
@@ -346,7 +325,7 @@ void ui_settings_opc_page_init()
 	lv_textarea_set_one_line(obj, true);
 	lv_obj_set_width(obj, 150);
 	lv_obj_set_pos(obj, 160, y);
-	lv_obj_add_event_cb(obj, ui_settings_event_edit_cb, LV_EVENT_ALL, &systemconfig.opc.username);
+	lv_obj_add_event_cb(obj, ui_event_edit_cb, LV_EVENT_ALL, &systemconfig.opc.username);
 	lv_textarea_set_text(obj, (const char*)systemconfig.opc.username);
 	ui_settings.ui_opc.name = obj;
 	
@@ -360,7 +339,7 @@ void ui_settings_opc_page_init()
 	lv_textarea_set_password_mode(obj, true);
 	lv_obj_set_width(obj, 150);
 	lv_obj_set_pos(obj, 160, y);
-	lv_obj_add_event_cb(obj, ui_settings_event_edit_cb, LV_EVENT_ALL, &systemconfig.opc.userpassword);
+	lv_obj_add_event_cb(obj, ui_event_edit_cb, LV_EVENT_ALL, &systemconfig.opc.userpassword);
 	lv_textarea_set_text(obj, (const char*)systemconfig.opc.userpassword);
 	ui_settings.ui_opc.password = obj;
 	
@@ -445,7 +424,7 @@ void ui_settings_serial_page_init()
 	lv_textarea_set_one_line(obj, true);
 	lv_obj_set_width(obj, 250);
 	lv_obj_set_pos(obj, 0, y);
-	lv_obj_add_event_cb(obj, ui_settings_event_edit_cb, LV_EVENT_ALL, NULL);	
+	lv_obj_add_event_cb(obj, ui_event_edit_cb, LV_EVENT_ALL, NULL);	
 	ui_settings.ui_serial.send_text  = obj;
 	
 	y += 45;
@@ -605,7 +584,7 @@ void ui_settings_update_configuratiion()
 {
 	if (systemconfig.bluetooth.autostart)	lv_obj_add_state(ui_settings.ui_bluetooth.autostart, LV_STATE_CHECKED);
 	else lv_obj_clear_state(ui_settings.ui_bluetooth.autostart, LV_STATE_CHECKED);
-	if (systemconfig.bluetooth.status)	lv_obj_add_state(ui_settings.ui_bluetooth.status, LV_STATE_CHECKED);
+	if (systemconfig.bluetooth.server_enabled)	lv_obj_add_state(ui_settings.ui_bluetooth.status, LV_STATE_CHECKED);
 	else lv_obj_clear_state(ui_settings.ui_bluetooth.status, LV_STATE_CHECKED);
 	
 	
