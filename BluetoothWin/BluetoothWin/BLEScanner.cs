@@ -16,7 +16,7 @@ namespace BluetoothWin
     public class BLEScanner
     {
     
-        private readonly BluetoothLEAdvertisementWatcher BleWatcher;
+        private BluetoothLEAdvertisementWatcher BleWatcher;
 
         public delegate void BLEScannerEventHandler(object sender, BluetoothLEDeviceEventArgs e);
         public event BLEScannerEventHandler AddedDeviceEvent;
@@ -25,17 +25,15 @@ namespace BluetoothWin
 
         public string[] AvaibleDeviceNames = new string[2] { "ESP32_S3_SC01", "TTYGO-ESP32S3" };
         public bool AvaibleChecking = true;
+        private DeviceWatcher deviceWatcher;
         public BLEScanner()
         {
             // Start the watcher.
             BleWatcher = new BluetoothLEAdvertisementWatcher
             {
-                ScanningMode = BluetoothLEScanningMode.Passive,                
+                ScanningMode = BluetoothLEScanningMode.Passive,
             };
-            //BleWatcher.SignalStrengthFilter.SamplingInterval = new TimeSpan(1000);
-            //BleWatcher.SignalStrengthFilter.OutOfRangeTimeout = new TimeSpan(1000);
-
-            BleWatcher.SignalStrengthFilter.OutOfRangeTimeout = TimeSpan.FromMilliseconds(2000);
+            BleWatcher.AllowExtendedAdvertisements = true;
             BleWatcher.Received += BleWatcher_Received;
             
 
@@ -43,26 +41,44 @@ namespace BluetoothWin
             aTimer.Elapsed += new ElapsedEventHandler(OnTimedEvent);
             aTimer.Interval = 500;
             aTimer.Enabled = true;
+            
+        }
 
+        public void ForceRestart()
+        {
+            if (BleWatcher != null && BleWatcher.Status == BluetoothLEAdvertisementWatcherStatus.Started)
+            {
+                BleWatcher.Received -= BleWatcher_Received;
+                BleWatcher.Stop();
+            }
 
+            BleWatcher = null;
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+
+            BleWatcher = new BluetoothLEAdvertisementWatcher
+            {
+                ScanningMode = BluetoothLEScanningMode.Passive,
+            };
+            BleWatcher.AllowExtendedAdvertisements = true;
+            BleWatcher.Received += BleWatcher_Received;
+            BleWatcher.Start();
         }
 
         private async void BleWatcher_Received(BluetoothLEAdvertisementWatcher sender, BluetoothLEAdvertisementReceivedEventArgs args)
         {
             //if (!AvaibleChecing) return;
+            if (Array.IndexOf(AvaibleDeviceNames, args.Advertisement.LocalName) == -1) return;
+            Console.WriteLine($"-----{args.Advertisement.LocalName}");
             if (deviceList.ContainsKey(args.BluetoothAddress))
             {
+                deviceList[args.BluetoothAddress].liveTime = DateTime.Now;
                 return;
             }
             
-            AvaibleChecking = false;
-            var device = await BluetoothLEDevice.FromBluetoothAddressAsync(args.BluetoothAddress);
-            
+            var device = await BluetoothLEDevice.FromBluetoothAddressAsync(args.BluetoothAddress);            
             if (device != null && device.ConnectionStatus == BluetoothConnectionStatus.Disconnected)
             {
-                Console.WriteLine($"BleWatcher_Found device : {device.Name}");
-
-                if (Array.IndexOf(AvaibleDeviceNames, device.Name) == -1) return;
                 try
                 {
                     BLEDevice dev = new BLEDevice(device);
@@ -71,28 +87,22 @@ namespace BluetoothWin
                     Console.WriteLine($"ADD: {device.Name} {dev.liveTime}");
                     AddedDeviceEvent?.Invoke(this, new BluetoothLEDeviceEventArgs(dev));
                 }catch(Exception) { }
-                    
-                
             }
-            AvaibleChecking = true;
-            //BleDeviceReceivedEvent?.Invoke(sender, new BluetoothLEDeviceEventArgs(device));
         }
         private void OnTimedEvent(object source, ElapsedEventArgs e)
         {
             var now = DateTime.Now;
-            if(BleWatcher.Status == BluetoothLEAdvertisementWatcherStatus.Started)
+            if (BleWatcher.Status != BluetoothLEAdvertisementWatcherStatus.Started) return;
+            foreach (var dev in deviceList)
             {
-                foreach (var dev in deviceList)
+                if (dev.Value.isConnected) continue;
+                TimeSpan ts = now - dev.Value.liveTime;
+                if (ts.TotalSeconds > 2)
                 {
-                    if (dev.Value.isConnected) continue;
-                    TimeSpan ts = now - dev.Value.liveTime;
-                    if (ts.TotalSeconds > 10)
-                    {
-                        // removed device
-                        Console.WriteLine($"REMOVE: {dev.Value.Name} {dev.Value.liveTime} {ts.TotalSeconds}");
-                        RemovedDeviceEvent?.Invoke(this, new BluetoothLEDeviceEventArgs(dev.Value));
-                        deviceList.Remove(dev.Key);
-                    }
+                    // removed device
+                    Console.WriteLine($"REMOVE: {dev.Value.Name} {dev.Value.liveTime} {ts.TotalSeconds}");
+                    RemovedDeviceEvent?.Invoke(this, new BluetoothLEDeviceEventArgs(dev.Value));
+                    deviceList.Remove(dev.Key);
                 }
             }
         }
@@ -104,6 +114,14 @@ namespace BluetoothWin
         public void StopScan()
         {
             BleWatcher.Stop();
+        }
+
+        public void Unpair(BLEDevice dev)
+        {
+            dev.Disconnet();
+            deviceList.Remove(dev.Address);
+
+            ForceRestart();
         }
     }
     public class BluetoothLEDeviceEventArgs: EventArgs

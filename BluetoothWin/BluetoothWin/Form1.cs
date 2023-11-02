@@ -171,6 +171,7 @@ namespace BluetoothWin
             ListViewItem item = FindItemById(dev.ID);
             if(item != null)
             {
+                
                 if (this.InvokeRequired)
                 {
                     this.Invoke((MethodInvoker)delegate ()
@@ -239,7 +240,7 @@ namespace BluetoothWin
             BLEDevice bleDev = (BLEDevice)SelectedItem.Tag;
             if (bleDev.isConnected)
             {
-                bleDev.Disconnet();
+                bleScanner.Unpair(bleDev);
                 SelectedItem.SubItems[1].Text = "Disconnected";
             }
             else
@@ -339,8 +340,7 @@ namespace BluetoothWin
         {
             if (listView1.SelectedItems.Count == 0) return;
             ListViewItem SelectedItem = listView1.SelectedItems[0];
-            BLEDevice bleDev = (BLEDevice)SelectedItem.Tag;
-            if (!bleDev.AvailableWrite) return;
+            BLEDevice bleDev = (BLEDevice)SelectedItem.Tag;            
             string sz = "";
             DateTime nowTime = DateTime.Now;
             TimeSpan ts = DateTime.Now - startTime;

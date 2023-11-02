@@ -381,7 +381,7 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
 	case ESP_GATTS_DISCONNECT_EVT:
 		is_server_connected = 0;
 		enable_data_ntf = false;
-		//esp_ble_gap_start_advertising(&spp_adv_params);
+		esp_ble_gap_start_advertising(&spp_adv_params);
 		break;
 	case ESP_GATTS_OPEN_EVT:
 		break;
