@@ -8,6 +8,7 @@
 #include "RevisionHistory.h"
 #include "adc/adc.h"
 #include "serial/serial.h"
+#include "tools/tools.h"
 DisplayVariableInfo *ActiveVariableInfo = NULL;
 void forground_task(void* arg);
 void K_Core_Main()
@@ -16,7 +17,7 @@ void K_Core_Main()
 	gpio_init();
 	adc_init();
 	serial_init();
-	
+	tools_init();
 	// InitSerialBuffers();
 	// Init_Uart();
 	// Init_CAN();

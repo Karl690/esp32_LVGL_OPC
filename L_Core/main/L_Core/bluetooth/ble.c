@@ -2,6 +2,7 @@
 #include "ble.h"
 #include "../ui/ui-bluetooth.h"
 
+
 BleRemoteDevice ble_client_remote_device[BLE_CLIENT_MAX_CONNECT_NUM];
 uint8_t ble_client_scaned_device_num = 0;
 esp_ble_adv_params_t spp_adv_params = {
@@ -209,3 +210,4 @@ BleRemoteDevice* ble_get_device(uint8_t id)
 {
 	return &ble_client_remote_device[id];
 }
+

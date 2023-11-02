@@ -40,31 +40,65 @@ namespace BluetoothWin
             listView1.Columns[0].Width = this.listView1.Width - 100;
             listView1.Columns.Add("STATUS");
             listView1.Columns[1].Width = 90;
-            bleScanner.BleDeviceAddEvent += BleScanner_BleDeviceAddEvent;
-
+            
+            bleScanner.AddedDeviceEvent += BleScanner_AddedDeviceEvent;
+            bleScanner.RemovedDeviceEvent += BleScanner_RemovedDeviceEvent; 
             lblID.Text = "";
             lblName.Text = "";
             UpdateControlForBleDevice(false);
         }
-        public void AddBlutoothLEDevice(DeviceInformation dev)
+
+        private void BleScanner_RemovedDeviceEvent(object sender, BluetoothLEDeviceEventArgs e)
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke((MethodInvoker)delegate ()
+                {
+                    RemoveBlutoothLEDevice(e.device);
+                });
+            }
+            else
+                RemoveBlutoothLEDevice(e.device);
+        }
+
+        private void BleScanner_AddedDeviceEvent(object sender, BluetoothLEDeviceEventArgs e)
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke((MethodInvoker)delegate ()
+                {
+                    AddBlutoothLEDevice(e.device);                    
+                });
+            }
+            else
+                AddBlutoothLEDevice(e.device);
+        }
+        
+        public void AddBlutoothLEDevice(BLEDevice dev)
         {
             var value = new ListViewItem();
-            BLEDevice bleDev = new BLEDevice(dev);
-            bleDev.dev = dev;
-            value.Tag = bleDev;
-            value.Text = bleDev.Name;
-            var item = FindItemByName(dev.Name);
+            value.Tag = dev;
+            value.Text = dev.Name;
+            var item = FindItemById(dev.ID);
             if(item == null)
             {
                 value.SubItems.Add("Disconnect");
                 listView1.Items.Add(value);
-                bleDev.OnDeviceConnectStatus += BleDev_OnDeviceConnectStatus;
-                bleDev.OnReceivedData += BleDev_OnReceivedData;
+                dev.OnDeviceConnectStatus += BleDev_OnDeviceConnectStatus;
+                dev.OnReceivedData += BleDev_OnReceivedData;
+            }
+        }
+        public void RemoveBlutoothLEDevice(BLEDevice dev)
+        {
+            var item = FindItemById(dev.ID);
+            if (item != null)
+            {
+                listView1.Items.Remove(item);
             }
         }
 
-        
-        public ListViewItem FindItemByName(string devName)
+
+        public ListViewItem FindItemById(string devId)
         {
             ListViewItem findItem = null;
             if(this.InvokeRequired)
@@ -73,7 +107,8 @@ namespace BluetoothWin
                   {
                       foreach (ListViewItem item in listView1.Items)
                       {
-                          if (item.SubItems[0].Text == devName)
+                          var dev = (BLEDevice)item.Tag;
+                          if (dev.ID == devId)
                           {
                               findItem = item;
                               break;
@@ -84,7 +119,8 @@ namespace BluetoothWin
             {
                 foreach (ListViewItem item in listView1.Items)
                 {
-                    if (item.SubItems[0].Text == devName)
+                    var dev = (BLEDevice)item.Tag;
+                    if (dev.ID == devId)
                     {
                         findItem = item;
                         break;
@@ -98,19 +134,31 @@ namespace BluetoothWin
         //private void BleDev_OnReceivedData(object sender, GattCharacteristic characteristic, GattValueChangedEventArgs args)
         private void BleDev_OnReceivedData(object sender, EventArgs args)
         {
-
-            BLEDevice dev = (BLEDevice)sender;
-            string str = Encoding.ASCII.GetString(dev.RecievedBuffer);
+           
             if (this.InvokeRequired)
             {
                 
                 this.Invoke((MethodInvoker)delegate ()
                 {
+                    if (listView1.SelectedItems.Count == 0) return;
+                    ListViewItem item = listView1.SelectedItems[0];
+                    BLEDevice selected_dev = (BLEDevice)item.Tag;
+
+                    BLEDevice dev = (BLEDevice)sender;
+                    if (selected_dev.ID != dev.ID) return;
+                    string str = Encoding.ASCII.GetString(dev.RecievedBuffer);
                     richboxReceivedData.AppendText(str + "\n");
                 });
             }
             else
             {
+                if (listView1.SelectedItems.Count == 0) return;
+                ListViewItem item = listView1.SelectedItems[0];
+                BLEDevice selected_dev = (BLEDevice)item.Tag;
+
+                BLEDevice dev = (BLEDevice)sender;
+                if (selected_dev.ID != dev.ID) return;
+                string str = Encoding.ASCII.GetString(dev.RecievedBuffer);
                 richboxReceivedData.AppendText(str + "\n");
             }
             
@@ -120,7 +168,7 @@ namespace BluetoothWin
         private void BleDev_OnDeviceConnectStatus(object sender, EventArgs e)
         {
             BLEDevice dev = (BLEDevice)sender;
-            ListViewItem item = FindItemByName(dev.Name);
+            ListViewItem item = FindItemById(dev.ID);
             if(item != null)
             {
                 if (this.InvokeRequired)
@@ -128,31 +176,39 @@ namespace BluetoothWin
                     this.Invoke((MethodInvoker)delegate ()
                     {
                         item.SubItems[1].Text = dev.isConnected ? "Connected" : "Disconnected";
+                        if (listView1.SelectedItems.Count == 0) return;
+                        item = listView1.SelectedItems[0];
+                        BLEDevice selected_dev = (BLEDevice)item.Tag;
+
+                        if (selected_dev.ID == dev.ID)
+                        {
+                            btnConnect.Text = selected_dev.isConnected ? "Disconnect" : "Connect";
+                        }
                     });
                 }else
                 {
                     item.SubItems[1].Text = dev.isConnected ? "Connected" : "Disconnected";
+                    if (listView1.SelectedItems.Count == 0) return;
+                    item = listView1.SelectedItems[0];
+                    BLEDevice selected_dev = (BLEDevice)item.Tag;
+
+                    if (selected_dev.ID == dev.ID)
+                    {
+                        btnConnect.Text = selected_dev.isConnected ? "Disconnect" : "Connect";
+                    }
                 }   
             }
-        }
 
-        private void BleScanner_BleDeviceAddEvent(object sender, BleDeviceScannerEvengArgs e)
-        {
-            if(this.InvokeRequired)
-            {
-                this.Invoke((MethodInvoker)delegate ()
-                {
-                    AddBlutoothLEDevice(e.device);
-                });
-            }else 
-                AddBlutoothLEDevice(e.device);
+            
         }
 
         private void btnScanForDevices_Click(object sender, EventArgs e)
         {   
-            listView1.Items.Clear();
+
             if (btnScanForDevices.Text == "Scan")
             {
+                listView1.Items.Clear();
+
                 bleScanner.StartScan();
                 btnScanForDevices.Text = "Stop";
             }
@@ -195,7 +251,6 @@ namespace BluetoothWin
                     await bleDev.Connect();
                 }catch (Exception exception)
                 {
-                    bleDev.isConnected = false;
                     MessageBox.Show(exception.Message);
                 }
                 
@@ -224,9 +279,6 @@ namespace BluetoothWin
             
             lblID.Text = bledev.ID;
             lblName.Text = bledev.Name;
-
-            btnConnect.Text = bledev.isConnected ? "Disconnect" : "Connect";
-
             UpdateControlForBleDevice(bledev.isConnected);
         }
 
@@ -243,7 +295,7 @@ namespace BluetoothWin
             if (listView1.SelectedItems.Count == 0) return;
             ListViewItem SelectedItem = listView1.SelectedItems[0];
             BLEDevice bleDev = (BLEDevice)SelectedItem.Tag;
-            string data = txtboxSend.Text;
+            string data = txtboxSend.Text + "\n";
             bleDev.SendDataAsync(data);
         }
         private DateTime startTime;
@@ -366,6 +418,8 @@ BREAK:
             grpSendFIle.Enabled = false;
             
         }
+
+       
     }
 
 }

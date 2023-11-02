@@ -42,6 +42,7 @@ namespace BluetoothWin
             this.button2 = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
             this.label8 = new System.Windows.Forms.Label();
+            this.lblLPS = new System.Windows.Forms.Label();
             this.label9 = new System.Windows.Forms.Label();
             this.grpSendInterval = new System.Windows.Forms.GroupBox();
             this.nudTimes = new System.Windows.Forms.NumericUpDown();
@@ -65,7 +66,6 @@ namespace BluetoothWin
             this.label1 = new System.Windows.Forms.Label();
             this.btnConnect = new System.Windows.Forms.Button();
             this.timer = new System.Windows.Forms.Timer(this.components);
-            this.lblLPS = new System.Windows.Forms.Label();
             this.groupBox1.SuspendLayout();
             this.grpSendData.SuspendLayout();
             this.grpSendFIle.SuspendLayout();
@@ -78,10 +78,9 @@ namespace BluetoothWin
             // 
             // btnScanForDevices
             // 
-            this.btnScanForDevices.Location = new System.Drawing.Point(279, 15);
-            this.btnScanForDevices.Margin = new System.Windows.Forms.Padding(4);
+            this.btnScanForDevices.Location = new System.Drawing.Point(209, 12);
             this.btnScanForDevices.Name = "btnScanForDevices";
-            this.btnScanForDevices.Size = new System.Drawing.Size(100, 28);
+            this.btnScanForDevices.Size = new System.Drawing.Size(75, 23);
             this.btnScanForDevices.TabIndex = 0;
             this.btnScanForDevices.Text = "Scan";
             this.btnScanForDevices.UseVisualStyleBackColor = true;
@@ -92,11 +91,10 @@ namespace BluetoothWin
             this.listView1.Alignment = System.Windows.Forms.ListViewAlignment.Default;
             this.listView1.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.listView1.HideSelection = false;
-            this.listView1.Location = new System.Drawing.Point(16, 50);
-            this.listView1.Margin = new System.Windows.Forms.Padding(4);
+            this.listView1.Location = new System.Drawing.Point(12, 41);
             this.listView1.MultiSelect = false;
             this.listView1.Name = "listView1";
-            this.listView1.Size = new System.Drawing.Size(388, 584);
+            this.listView1.Size = new System.Drawing.Size(292, 475);
             this.listView1.TabIndex = 2;
             this.listView1.UseCompatibleStateImageBehavior = false;
             this.listView1.View = System.Windows.Forms.View.Details;
@@ -113,11 +111,9 @@ namespace BluetoothWin
             this.groupBox1.Controls.Add(this.label2);
             this.groupBox1.Controls.Add(this.lblID);
             this.groupBox1.Controls.Add(this.label1);
-            this.groupBox1.Location = new System.Drawing.Point(429, 50);
-            this.groupBox1.Margin = new System.Windows.Forms.Padding(4);
+            this.groupBox1.Location = new System.Drawing.Point(322, 41);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Padding = new System.Windows.Forms.Padding(4);
-            this.groupBox1.Size = new System.Drawing.Size(621, 548);
+            this.groupBox1.Size = new System.Drawing.Size(466, 445);
             this.groupBox1.TabIndex = 3;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Bluetooth LE Device";
@@ -126,30 +122,31 @@ namespace BluetoothWin
             // 
             this.grpSendData.Controls.Add(this.txtboxSend);
             this.grpSendData.Controls.Add(this.btnSend);
-            this.grpSendData.Location = new System.Drawing.Point(23, 485);
+            this.grpSendData.Location = new System.Drawing.Point(17, 394);
+            this.grpSendData.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.grpSendData.Name = "grpSendData";
-            this.grpSendData.Size = new System.Drawing.Size(601, 56);
+            this.grpSendData.Padding = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.grpSendData.Size = new System.Drawing.Size(451, 46);
             this.grpSendData.TabIndex = 6;
             this.grpSendData.TabStop = false;
             this.grpSendData.Text = "Send Data";
             // 
             // txtboxSend
             // 
-            this.txtboxSend.Location = new System.Drawing.Point(15, 28);
-            this.txtboxSend.Margin = new System.Windows.Forms.Padding(4);
+            this.txtboxSend.Location = new System.Drawing.Point(11, 23);
             this.txtboxSend.Name = "txtboxSend";
-            this.txtboxSend.Size = new System.Drawing.Size(426, 22);
+            this.txtboxSend.Size = new System.Drawing.Size(320, 20);
             this.txtboxSend.TabIndex = 4;
             // 
             // btnSend
             // 
-            this.btnSend.Location = new System.Drawing.Point(447, 25);
-            this.btnSend.Margin = new System.Windows.Forms.Padding(4);
+            this.btnSend.Location = new System.Drawing.Point(335, 20);
             this.btnSend.Name = "btnSend";
-            this.btnSend.Size = new System.Drawing.Size(140, 28);
+            this.btnSend.Size = new System.Drawing.Size(105, 23);
             this.btnSend.TabIndex = 3;
             this.btnSend.Text = "Send";
             this.btnSend.UseVisualStyleBackColor = true;
+            this.btnSend.Click += new System.EventHandler(this.btnSend_Click);
             // 
             // grpSendFIle
             // 
@@ -160,16 +157,19 @@ namespace BluetoothWin
             this.grpSendFIle.Controls.Add(this.label8);
             this.grpSendFIle.Controls.Add(this.lblLPS);
             this.grpSendFIle.Controls.Add(this.label9);
-            this.grpSendFIle.Location = new System.Drawing.Point(25, 377);
+            this.grpSendFIle.Location = new System.Drawing.Point(19, 306);
+            this.grpSendFIle.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.grpSendFIle.Name = "grpSendFIle";
-            this.grpSendFIle.Size = new System.Drawing.Size(599, 99);
+            this.grpSendFIle.Padding = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.grpSendFIle.Size = new System.Drawing.Size(449, 80);
             this.grpSendFIle.TabIndex = 4;
             this.grpSendFIle.TabStop = false;
             this.grpSendFIle.Text = "Send File";
             // 
             // nudLines
             // 
-            this.nudLines.Location = new System.Drawing.Point(103, 65);
+            this.nudLines.Location = new System.Drawing.Point(77, 53);
+            this.nudLines.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.nudLines.Maximum = new decimal(new int[] {
             10,
             0,
@@ -181,7 +181,7 @@ namespace BluetoothWin
             0,
             0});
             this.nudLines.Name = "nudLines";
-            this.nudLines.Size = new System.Drawing.Size(72, 22);
+            this.nudLines.Size = new System.Drawing.Size(54, 20);
             this.nudLines.TabIndex = 12;
             this.nudLines.Value = new decimal(new int[] {
             10,
@@ -191,18 +191,16 @@ namespace BluetoothWin
             // 
             // txtFilePath
             // 
-            this.txtFilePath.Location = new System.Drawing.Point(20, 36);
-            this.txtFilePath.Margin = new System.Windows.Forms.Padding(4);
+            this.txtFilePath.Location = new System.Drawing.Point(15, 29);
             this.txtFilePath.Name = "txtFilePath";
-            this.txtFilePath.Size = new System.Drawing.Size(377, 22);
+            this.txtFilePath.Size = new System.Drawing.Size(284, 20);
             this.txtFilePath.TabIndex = 5;
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(406, 36);
-            this.button2.Margin = new System.Windows.Forms.Padding(4);
+            this.button2.Location = new System.Drawing.Point(304, 29);
             this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(33, 28);
+            this.button2.Size = new System.Drawing.Size(25, 23);
             this.button2.TabIndex = 3;
             this.button2.Text = "...";
             this.button2.UseVisualStyleBackColor = true;
@@ -210,10 +208,9 @@ namespace BluetoothWin
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(447, 36);
-            this.button1.Margin = new System.Windows.Forms.Padding(4);
+            this.button1.Location = new System.Drawing.Point(335, 29);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(140, 28);
+            this.button1.Size = new System.Drawing.Size(105, 23);
             this.button1.TabIndex = 4;
             this.button1.Text = "Send";
             this.button1.UseVisualStyleBackColor = true;
@@ -222,21 +219,28 @@ namespace BluetoothWin
             // label8
             // 
             this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(18, 67);
-            this.label8.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label8.Location = new System.Drawing.Point(14, 54);
             this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(42, 17);
+            this.label8.Size = new System.Drawing.Size(32, 13);
             this.label8.TabIndex = 9;
             this.label8.Text = "Lines";
             this.label8.TextAlign = System.Drawing.ContentAlignment.TopCenter;
             // 
+            // lblLPS
+            // 
+            this.lblLPS.AutoSize = true;
+            this.lblLPS.Location = new System.Drawing.Point(302, 57);
+            this.lblLPS.Name = "lblLPS";
+            this.lblLPS.Size = new System.Drawing.Size(27, 13);
+            this.lblLPS.TabIndex = 0;
+            this.lblLPS.Text = "LPS";
+            // 
             // label9
             // 
             this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(217, 70);
-            this.label9.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label9.Location = new System.Drawing.Point(163, 57);
             this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(42, 17);
+            this.label9.Size = new System.Drawing.Size(32, 13);
             this.label9.TabIndex = 0;
             this.label9.Text = "Lines";
             // 
@@ -255,16 +259,19 @@ namespace BluetoothWin
             this.grpSendInterval.Controls.Add(this.label3);
             this.grpSendInterval.Controls.Add(this.label5);
             this.grpSendInterval.Controls.Add(this.lblLines);
-            this.grpSendInterval.Location = new System.Drawing.Point(23, 246);
+            this.grpSendInterval.Location = new System.Drawing.Point(17, 200);
+            this.grpSendInterval.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.grpSendInterval.Name = "grpSendInterval";
-            this.grpSendInterval.Size = new System.Drawing.Size(591, 125);
+            this.grpSendInterval.Padding = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.grpSendInterval.Size = new System.Drawing.Size(443, 102);
             this.grpSendInterval.TabIndex = 5;
             this.grpSendInterval.TabStop = false;
             this.grpSendInterval.Text = "Interval Send";
             // 
             // nudTimes
             // 
-            this.nudTimes.Location = new System.Drawing.Point(105, 92);
+            this.nudTimes.Location = new System.Drawing.Point(79, 75);
+            this.nudTimes.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.nudTimes.Maximum = new decimal(new int[] {
             1000000,
             0,
@@ -276,7 +283,7 @@ namespace BluetoothWin
             0,
             0});
             this.nudTimes.Name = "nudTimes";
-            this.nudTimes.Size = new System.Drawing.Size(72, 22);
+            this.nudTimes.Size = new System.Drawing.Size(54, 20);
             this.nudTimes.TabIndex = 12;
             this.nudTimes.Value = new decimal(new int[] {
             10,
@@ -286,7 +293,8 @@ namespace BluetoothWin
             // 
             // nudBytes
             // 
-            this.nudBytes.Location = new System.Drawing.Point(105, 60);
+            this.nudBytes.Location = new System.Drawing.Point(79, 49);
+            this.nudBytes.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.nudBytes.Maximum = new decimal(new int[] {
             1000,
             0,
@@ -298,7 +306,7 @@ namespace BluetoothWin
             0,
             0});
             this.nudBytes.Name = "nudBytes";
-            this.nudBytes.Size = new System.Drawing.Size(72, 22);
+            this.nudBytes.Size = new System.Drawing.Size(54, 20);
             this.nudBytes.TabIndex = 13;
             this.nudBytes.Value = new decimal(new int[] {
             30,
@@ -308,7 +316,8 @@ namespace BluetoothWin
             // 
             // nudTimer
             // 
-            this.nudTimer.Location = new System.Drawing.Point(105, 28);
+            this.nudTimer.Location = new System.Drawing.Point(79, 23);
+            this.nudTimer.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.nudTimer.Maximum = new decimal(new int[] {
             5000,
             0,
@@ -320,7 +329,7 @@ namespace BluetoothWin
             0,
             0});
             this.nudTimer.Name = "nudTimer";
-            this.nudTimer.Size = new System.Drawing.Size(82, 22);
+            this.nudTimer.Size = new System.Drawing.Size(62, 20);
             this.nudTimer.TabIndex = 14;
             this.nudTimer.Value = new decimal(new int[] {
             1,
@@ -331,9 +340,10 @@ namespace BluetoothWin
             // chkInterval
             // 
             this.chkInterval.AutoSize = true;
-            this.chkInterval.Location = new System.Drawing.Point(23, 29);
+            this.chkInterval.Location = new System.Drawing.Point(17, 24);
+            this.chkInterval.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.chkInterval.Name = "chkInterval";
-            this.chkInterval.Size = new System.Drawing.Size(76, 21);
+            this.chkInterval.Size = new System.Drawing.Size(61, 17);
             this.chkInterval.TabIndex = 11;
             this.chkInterval.Text = "Interval";
             this.chkInterval.UseVisualStyleBackColor = true;
@@ -342,10 +352,9 @@ namespace BluetoothWin
             // lblTotal
             // 
             this.lblTotal.AutoSize = true;
-            this.lblTotal.Location = new System.Drawing.Point(416, 33);
-            this.lblTotal.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.lblTotal.Location = new System.Drawing.Point(312, 27);
             this.lblTotal.Name = "lblTotal";
-            this.lblTotal.Size = new System.Drawing.Size(91, 17);
+            this.lblTotal.Size = new System.Drawing.Size(69, 13);
             this.lblTotal.TabIndex = 5;
             this.lblTotal.Text = "Total: 0Bytes";
             this.lblTotal.TextAlign = System.Drawing.ContentAlignment.TopCenter;
@@ -353,39 +362,35 @@ namespace BluetoothWin
             // lblSpeed
             // 
             this.lblSpeed.AutoSize = true;
-            this.lblSpeed.Location = new System.Drawing.Point(416, 69);
-            this.lblSpeed.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.lblSpeed.Location = new System.Drawing.Point(312, 56);
             this.lblSpeed.Name = "lblSpeed";
-            this.lblSpeed.Size = new System.Drawing.Size(53, 17);
+            this.lblSpeed.Size = new System.Drawing.Size(41, 13);
             this.lblSpeed.TabIndex = 6;
             this.lblSpeed.Text = "Speed:";
             this.lblSpeed.TextAlign = System.Drawing.ContentAlignment.TopCenter;
             // 
             // lblSendText
             // 
-            this.lblSendText.Location = new System.Drawing.Point(324, 94);
-            this.lblSendText.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.lblSendText.Location = new System.Drawing.Point(243, 76);
             this.lblSendText.Name = "lblSendText";
-            this.lblSendText.Size = new System.Drawing.Size(255, 17);
+            this.lblSendText.Size = new System.Drawing.Size(191, 14);
             this.lblSendText.TabIndex = 0;
             // 
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(237, 94);
-            this.label7.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label7.Location = new System.Drawing.Point(178, 76);
             this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(79, 17);
+            this.label7.Size = new System.Drawing.Size(61, 13);
             this.label7.TabIndex = 0;
             this.label7.Text = "Send Data:";
             // 
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(-64, 80);
-            this.label6.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label6.Location = new System.Drawing.Point(-48, 65);
             this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(46, 17);
+            this.label6.Size = new System.Drawing.Size(35, 13);
             this.label6.TabIndex = 7;
             this.label6.Text = "Times";
             this.label6.TextAlign = System.Drawing.ContentAlignment.TopCenter;
@@ -393,10 +398,9 @@ namespace BluetoothWin
             // lblDuring
             // 
             this.lblDuring.AutoSize = true;
-            this.lblDuring.Location = new System.Drawing.Point(237, 65);
-            this.lblDuring.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.lblDuring.Location = new System.Drawing.Point(178, 53);
             this.lblDuring.Name = "lblDuring";
-            this.lblDuring.Size = new System.Drawing.Size(89, 17);
+            this.lblDuring.Size = new System.Drawing.Size(67, 13);
             this.lblDuring.TabIndex = 8;
             this.lblDuring.Text = "During Time:";
             this.lblDuring.TextAlign = System.Drawing.ContentAlignment.TopCenter;
@@ -404,10 +408,9 @@ namespace BluetoothWin
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(20, 94);
-            this.label3.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label3.Location = new System.Drawing.Point(15, 76);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(46, 17);
+            this.label3.Size = new System.Drawing.Size(35, 13);
             this.label3.TabIndex = 9;
             this.label3.Text = "Times";
             this.label3.TextAlign = System.Drawing.ContentAlignment.TopCenter;
@@ -415,10 +418,9 @@ namespace BluetoothWin
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(18, 62);
-            this.label5.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label5.Location = new System.Drawing.Point(14, 50);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(80, 17);
+            this.label5.Size = new System.Drawing.Size(61, 13);
             this.label5.TabIndex = 9;
             this.label5.Text = "Send Bytes";
             this.label5.TextAlign = System.Drawing.ContentAlignment.TopCenter;
@@ -426,77 +428,69 @@ namespace BluetoothWin
             // lblLines
             // 
             this.lblLines.AutoSize = true;
-            this.lblLines.Location = new System.Drawing.Point(237, 33);
-            this.lblLines.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.lblLines.Location = new System.Drawing.Point(178, 27);
             this.lblLines.Name = "lblLines";
-            this.lblLines.Size = new System.Drawing.Size(61, 17);
+            this.lblLines.Size = new System.Drawing.Size(47, 13);
             this.lblLines.TabIndex = 10;
             this.lblLines.Text = "Count: 0";
             this.lblLines.TextAlign = System.Drawing.ContentAlignment.TopCenter;
             // 
             // richboxReceivedData
             // 
-            this.richboxReceivedData.Location = new System.Drawing.Point(28, 108);
-            this.richboxReceivedData.Margin = new System.Windows.Forms.Padding(4);
+            this.richboxReceivedData.Location = new System.Drawing.Point(21, 88);
             this.richboxReceivedData.Name = "richboxReceivedData";
-            this.richboxReceivedData.Size = new System.Drawing.Size(583, 131);
+            this.richboxReceivedData.Size = new System.Drawing.Size(438, 107);
             this.richboxReceivedData.TabIndex = 1;
             this.richboxReceivedData.Text = "";
             // 
             // lblName
             // 
-            this.lblName.Location = new System.Drawing.Point(389, 32);
-            this.lblName.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.lblName.Location = new System.Drawing.Point(292, 26);
             this.lblName.Name = "lblName";
-            this.lblName.Size = new System.Drawing.Size(192, 16);
+            this.lblName.Size = new System.Drawing.Size(144, 13);
             this.lblName.TabIndex = 0;
             this.lblName.Text = "ID:";
             // 
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(24, 77);
-            this.label4.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label4.Location = new System.Drawing.Point(18, 63);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(101, 17);
+            this.label4.Size = new System.Drawing.Size(79, 13);
             this.label4.TabIndex = 0;
             this.label4.Text = "Received Data";
             // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(317, 32);
-            this.label2.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label2.Location = new System.Drawing.Point(238, 26);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(49, 17);
+            this.label2.Size = new System.Drawing.Size(38, 13);
             this.label2.TabIndex = 0;
             this.label2.Text = "Name:";
             // 
             // lblID
             // 
-            this.lblID.Location = new System.Drawing.Point(97, 33);
-            this.lblID.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.lblID.Location = new System.Drawing.Point(73, 27);
             this.lblID.Name = "lblID";
-            this.lblID.Size = new System.Drawing.Size(173, 16);
+            this.lblID.Size = new System.Drawing.Size(130, 13);
             this.lblID.TabIndex = 0;
             this.lblID.Text = "ID:";
             // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(25, 31);
-            this.label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label1.Location = new System.Drawing.Point(19, 25);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(25, 17);
+            this.label1.Size = new System.Drawing.Size(21, 13);
             this.label1.TabIndex = 0;
             this.label1.Text = "ID:";
             // 
             // btnConnect
             // 
-            this.btnConnect.Location = new System.Drawing.Point(950, 606);
-            this.btnConnect.Margin = new System.Windows.Forms.Padding(4);
+            this.btnConnect.Location = new System.Drawing.Point(712, 492);
             this.btnConnect.Name = "btnConnect";
-            this.btnConnect.Size = new System.Drawing.Size(100, 28);
+            this.btnConnect.Size = new System.Drawing.Size(75, 23);
             this.btnConnect.TabIndex = 0;
             this.btnConnect.Text = "Connect";
             this.btnConnect.UseVisualStyleBackColor = true;
@@ -506,26 +500,15 @@ namespace BluetoothWin
             // 
             this.timer.Tick += new System.EventHandler(this.timer_Tick);
             // 
-            // lblLPS
-            // 
-            this.lblLPS.AutoSize = true;
-            this.lblLPS.Location = new System.Drawing.Point(403, 70);
-            this.lblLPS.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.lblLPS.Name = "lblLPS";
-            this.lblLPS.Size = new System.Drawing.Size(34, 17);
-            this.lblLPS.TabIndex = 0;
-            this.lblLPS.Text = "LPS";
-            // 
             // Form1
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1067, 652);
+            this.ClientSize = new System.Drawing.Size(800, 530);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.listView1);
             this.Controls.Add(this.btnConnect);
             this.Controls.Add(this.btnScanForDevices);
-            this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "Form1";
             this.Text = "Form1";
             this.groupBox1.ResumeLayout(false);

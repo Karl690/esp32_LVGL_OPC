@@ -17,14 +17,14 @@ namespace BluetoothWin
 
     public class BLEDevice
     {
-        public DeviceInformation dev { get; set; }
         public BluetoothLEDevice ble_dev { get; set; }
-        public bool isConnected { get; set; }
+        public bool isConnected { get { return ble_dev.ConnectionStatus == BluetoothConnectionStatus.Connected ? true : false; } }
         private GattCharacteristic gattReadCharacteristic;
         private GattCharacteristic gattWriteCharacteristic;
 
-        public string ID { get { return dev.Id; } }
-        public string Name { get { return dev.Name; } }
+        public string ID { get { return ble_dev.DeviceId; } }
+        public ulong Address { get { return ble_dev.BluetoothAddress; } }
+        public string Name { get { return ble_dev.Name; } }
 
 
         public event BleDeviceEvent OnDeviceConnectStatus;
@@ -33,22 +33,24 @@ namespace BluetoothWin
 
         public byte[] RecievedBuffer = new byte[1024];
         public uint RecievedLength = 0;
+        public DateTime liveTime;
 
-        public BLEDevice(DeviceInformation dev)
+        GattDeviceServicesResult result;
+        public BLEDevice(BluetoothLEDevice dev)
         {
-            this.dev = dev;
+            this.ble_dev = dev;
+            ble_dev.ConnectionStatusChanged += Ble_dev_ConnectionStatusChanged;
         }
         public async Task Connect()
         {
-            ble_dev = await BluetoothLEDevice.FromIdAsync(dev.Id);
-            GattDeviceServicesResult result = await ble_dev.GetGattServicesAsync();
-            isConnected = false;
+            //ble_dev = await BluetoothLEDevice.FromIdAsync(dev.Id);
+            result = await ble_dev.GetGattServicesAsync();
             if (result.Status != GattCommunicationStatus.Success) return;
-            ble_dev.ConnectionStatusChanged += Ble_dev_ConnectionStatusChanged;
-
+            
             foreach (var service in result.Services)
-            {
+            {   
                 GattCharacteristicsResult charactiristicResult = await service.GetCharacteristicsAsync();
+                
                 if (charactiristicResult.Status == GattCommunicationStatus.Success)
                 {
                     foreach (var characteristic in charactiristicResult.Characteristics)
@@ -72,16 +74,13 @@ namespace BluetoothWin
                     }
                 }
             }
-            AvailableWrite = true;
-            isConnected = true;
+            AvailableWrite = true;            
         }
 
         private void Ble_dev_ConnectionStatusChanged(BluetoothLEDevice sender, object args)
         {
-            if (sender.ConnectionStatus == BluetoothConnectionStatus.Disconnected) isConnected = false;
-            else
+            if (sender.ConnectionStatus != BluetoothConnectionStatus.Connected)
             {
-                isConnected = true;
                 AvailableWrite = true;
             }
             if (OnDeviceConnectStatus != null) OnDeviceConnectStatus(this, EventArgs.Empty);
@@ -90,8 +89,7 @@ namespace BluetoothWin
         public void Disconnet()
         {
             ble_dev.Dispose();
-            ble_dev = null;
-            isConnected = false;
+            
             AvailableWrite = false;
         }
         private void Characteristic_ValueChanged(GattCharacteristic sender, GattValueChangedEventArgs args)
@@ -100,10 +98,6 @@ namespace BluetoothWin
             if (args.CharacteristicValue.Length == 0) return;
             CryptographicBuffer.CopyToByteArray(args.CharacteristicValue, out RecievedBuffer);
             RecievedLength = args.CharacteristicValue.Length;
-            //var reader = DataReader.FromBuffer(args.CharacteristicValue);
-            //uint len = args.CharacteristicValue.Length;
-            //RecievedBuffer = reader.Re .ReadBytes.ReadBuffer(len); //.ReadString(len);
-            //if(RecievedBuffer[0] == 'O' && RecievedBuffer[1] == 'K')
             if (args.CharacteristicValue.Length > 0)
             {
                 AvailableWrite = true;
@@ -136,5 +130,6 @@ namespace BluetoothWin
             _ = SendDataBufferAsync(Encoding.ASCII.GetBytes(data));
             return Task.CompletedTask;
         }
+
     }
 }

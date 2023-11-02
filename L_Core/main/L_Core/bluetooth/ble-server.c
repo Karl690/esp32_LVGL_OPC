@@ -3,20 +3,21 @@
 #include "driver/uart.h"
 #include "L_Core/ui/ui.h"
 #include "L_Core/ui/ui-settings.h"
-
+#include "K_Core/communication/communication.h"
+#include "K_Core/tools/tools.h";
 #define ESP_SERVER_PROFILE_APP_IDX         0
 #define SAMPLE_DEVICE_NAME          "ESP32_S3_SC01"    //The Device Name Characteristics in GAP
 #define SPP_SVC_INST_ID	            0
 
 
+uint8_t ble_server_rx_buffer[RX_BUF_SIZE];
+uint8_t ble_server_rx_urgent_buffer[RX_BUF_SIZE];
+uint8_t ble_server_tx_buffer[TX_BUF_SIZE];
+BleDevice bleServerDevice;
+
 /// SPP Service
 const uint16_t spp_service_uuid = SPP_SERVICE_UUID;
 /// Characteristic UUID
-
-
-#ifdef SUPPORT_HEARTBEAT
-#define ESP_GATT_UUID_SPP_HEARTBEAT         0xABF5
-#endif
 
 static const uint8_t spp_adv_data[23] = {
 	/* Flags */
@@ -330,13 +331,14 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
 			}
 			else if (res == SPP_IDX_SPP_DATA_RECV_VAL) {
 				ble_server_total_recieved += p_data->write.len;
+				ble_server_received_data(p_data->write.value, p_data->write.len);
 				if (p_data->write.len >= 20) strncpy(ble_last_received_data, (char*)p_data->write.value, 20);
 				else strcpy(ble_last_received_data, (char*)p_data->write.value);
 				lv_label_set_text(ui_settings.ui_bluetooth.receive, ble_last_received_data);
 				sprintf(ble_tmp, "%d", (int)ble_server_total_recieved);
 				lv_label_set_text(ui_settings.ui_bluetooth.total, ble_tmp);
 				//uart_write_bytes(UART_NUM_0, (char *)(p_data->write.value), p_data->write.len);
-				ble_server_send_data((uint8_t*)"OK", 2);
+				//ble_server_send_data((uint8_t*)"OK", 2);
 					
 			}
 			else {
@@ -379,7 +381,7 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
 	case ESP_GATTS_DISCONNECT_EVT:
 		is_server_connected = 0;
 		enable_data_ntf = false;
-		esp_ble_gap_start_advertising(&spp_adv_params);
+		//esp_ble_gap_start_advertising(&spp_adv_params);
 		break;
 	case ESP_GATTS_OPEN_EVT:
 		break;
@@ -447,6 +449,8 @@ uint8_t ble_server_enable()
 	
 	systemconfig.bluetooth.server_enabled = 1;
 	ble_server_total_recieved = 0;
+	// initialize the buffer(Rx, Tx, Urgent Rx)
+	communication_buffers_ble_init(BLE_PORT_ID, &bleServerDevice);
 	return 1;
 }
 
@@ -465,5 +469,10 @@ uint8_t ble_server_send_data(uint8_t* data, uint16_t size)
 	esp_err_t err = esp_ble_gatts_send_indicate(spp_gatts_if, spp_server_conn_id, spp_handle_table[SPP_IDX_SPP_DATA_NTY_VAL], size, data, false);
 	if (err != ESP_OK) return 0;
 	return 1;
+}
+
+void ble_server_received_data(uint8_t* data, uint16_t size)
+{
+	commnuication_process_rx_ble_characters(&bleServerDevice, data, size);
 }
 //////////////////////////////////////////////////////////////////////////////

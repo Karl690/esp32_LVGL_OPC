@@ -10,9 +10,10 @@
 #include "esp_bt_defs.h"
 #include "esp_gatt_common_api.h"
 #include "esp_bt_main.h"
+#include "K_Core/serial/serial.h"
 
 #define BLE_TAG "HYREL_BLE"
-
+#define BLE_PORT_ID				0x80
 #define BLE_SERVER_DEVICE_NAME "TTYGO-ESP32S3"
 
 #define spp_sprintf(s,...)         sprintf((char*)(s), ##__VA_ARGS__)
@@ -90,6 +91,9 @@ typedef struct _tagBLEDevice {
 	uint8_t send_buffer[256];
 }BleRemoteDevice;
 
+
+extern BleDevice bleServerDevice;
+
 extern uint8_t ble_client_scaned_device_num;
 extern BleRemoteDevice ble_client_remote_device[BLE_CLIENT_MAX_CONNECT_NUM];
 extern esp_ble_adv_params_t spp_adv_params;
@@ -113,9 +117,11 @@ void ble_scan_stop();
 
 uint8_t ble_server_enable();
 void ble_server_disable();
-uint8_t ble_add_scan_device(esp_ble_gap_cb_param_t* scan_result);
 uint8_t ble_server_send_data(uint8_t* data, uint16_t size);
+void ble_server_received_data(uint8_t* data, uint16_t size);
 
+
+uint8_t ble_add_scan_device(esp_ble_gap_cb_param_t* scan_result);
 
 uint8_t ble_client_enable();
 void ble_client_disable();

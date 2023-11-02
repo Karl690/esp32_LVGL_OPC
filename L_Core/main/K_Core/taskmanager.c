@@ -2,8 +2,12 @@
 #include "main.h"
 #include "taskmanager.h"
 #include "L_Core/ui/ui.h"
-#include "adc/adc.h"
-#include "serial/serial.h"
+#include "K_Core/adc/adc.h"
+#include "K_Core/serial/serial.h"
+#include "K_Core/communication/parser.h"
+#include "K_Core/communication/communication.h"
+#include "K_Core/tools/tools.h"
+#include "K_Core/execution/cmdprocessor.h"
 esp_timer_handle_t systickTimer;
 
 
@@ -14,11 +18,11 @@ const PFUNC F1000HZ[NUM_1000HZ] =
 {
 	Spare,
 	// keep as last call in this array
-	serial_uart1_check_tx,
-	serial_uart2_check_tx,
-	Spare,	
+	communication_check_tx,
 	Spare,
-	Spare,
+	parser_incomming_ble_process,
+	parser_incomming_serial_process,
+	cmd_ble_sequener,
 	Spare,
 	Spare,
 };
@@ -55,7 +59,7 @@ const PFUNC F1HZ[NUM_1HZ] =
 	Spare,
 	Spare,
 	Spare,
-	Spare,
+	ReportToolInfo,
 	BlinkHeartBeat,
 };
 /*
@@ -109,6 +113,10 @@ void BlinkHeartBeat(void)
 	//AddSerialStringToBuffer(&Com485.TxBuffer, "b");
 }
 
+void ReportToolInfo()
+{
+	tools_report_information();
+}
 
 void taskamanger_task(void* arg)
 {

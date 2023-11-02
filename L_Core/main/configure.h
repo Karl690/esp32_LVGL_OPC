@@ -6,6 +6,12 @@
 #define SYSTEM_CONFIG_FILE SDCARD_MOUNT_POINT"/config.ini"
 #define AMPLIIFER_CSV_FILE SDCARD_MOUNT_POINT"/amplifier.csv"
 
+#define CMD_MAX_SIZE 50
+#define RX_BUF_SIZE  0x7ff
+#define TX_BUF_SIZE  0x3ff
+#define RX_URGENT_BUF_SIZE 0x3ff	//1k
+
+
 typedef struct
 {
 	uint8_t ssid[32];

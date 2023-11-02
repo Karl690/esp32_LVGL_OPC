@@ -1,10 +1,11 @@
 #include "main.h"
 #include "ui.h"
 #include "ui-settings.h"
-#include "../wifi/wifi.h"
-#include "../sd-card/sd-card.h"
-#include "../bluetooth/ble.h"
-#include "../../K_Core/serial/serial.h"
+#include "L_Core/wifi/wifi.h"
+#include "L_Core/sd-card/sd-card.h"
+#include "L_Core/bluetooth/ble.h"
+#include "K_Core/serial/serial.h"
+#include "K_Core/communication/communication.h"
 #include "RevisionHistory.h"
 lv_obj_t* ui_settings_screen;
 lv_obj_t* ui_settings_bluetooth_page;
@@ -27,10 +28,10 @@ void ui_settings_serial_event_cb(lv_event_t* e)
 	switch (type)
 	{
 	case 1:
-		serial_add_string_to_buffer(&ComUart1.TxBuffer, text);
+		commnuication_add_string_to_serial_buffer(&ComUart1.TxBuffer, text);
 		break;
 	case 2:
-		serial_add_string_to_buffer(&ComUart2.TxBuffer, text);
+		commnuication_add_string_to_serial_buffer(&ComUart2.TxBuffer, text);
 		break;
 	}
 }
