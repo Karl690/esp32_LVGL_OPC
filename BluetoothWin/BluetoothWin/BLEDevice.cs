@@ -182,7 +182,12 @@ namespace BluetoothWin
         }
         public Task SendDataAsync(string data)
         {
-            _ = SendDataBufferAsync(Encoding.ASCII.GetBytes(data));
+            return SendBufferAsync(Encoding.ASCII.GetBytes(data));            
+        }
+
+        public Task SendBufferAsync(byte[] buf)
+        {
+            _ = SendDataBufferAsync(buf);
             return Task.CompletedTask;
         }
 

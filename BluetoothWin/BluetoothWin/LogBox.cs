@@ -56,30 +56,30 @@ namespace BluetoothWin
         public void AddError(string log)
         {
             //come here if you have a error and want it logged
-            string log1 = $"{ DateTime.Now.ToString("hh:mm:ss")}: {log}\n";
+            string log1 = $"{ DateTime.Now.ToString("hh:mm:ss")} ERROR: {log}\n";
             AddColorText(log1, Color.Red);
         }
         public void AddNotification(string log)
         {
             //come here if you have a error and want it logged
-            string log1 = $"{ DateTime.Now.ToString("hh:mm:ss")}: {log}\n";
+            string log1 = $"{ DateTime.Now.ToString("hh:mm:ss")} INFO: {log}\n";
             AddColorText(log1, Color.Cyan);
         }
         public void AddWarning(string log)
         {
             //come here if you have a error and want it logged
-            string log1 = $"{ DateTime.Now.ToString("hh:mm:ss")}: {log}\n";
+            string log1 = $"{ DateTime.Now.ToString("hh:mm:ss")} WARING: {log}\n";
             AddColorText(log1, Color.Yellow);
         }
-        public void AddData(string data, bool hex = false)
+        public void AddData(string data, Color color, bool hex = false)
         {
-            if(!hex) AddColorText(data, Color.Cyan);
+            if(!hex) AddColorText(data, color);
             else
             {
-                AddHexData(Encoding.ASCII.GetBytes(data));
+                AddHexData(Encoding.ASCII.GetBytes(data), color);
             }
         }
-        public void AddHexData(byte[] dataToAdd, int numberofcharcterstoadd = 16)
+        public void AddHexData(byte[] dataToAdd, Color color, int numberofcharcterstoadd = 16 )
         {//this will add the data from a byte array to the list box
             if (numberofcharcterstoadd > dataToAdd.Length) numberofcharcterstoadd = dataToAdd.Length;
             int count = 0;
@@ -99,10 +99,10 @@ namespace BluetoothWin
                 if ((count & 7) == 0)//we just got to 8 characters so display them and go to next line
                 {
                     tempString += ' ';
-                    AddColorText(tempString, Color.Cyan);
+                    AddColorText(tempString, color);
                     if (tempStringAscii.Length > 8)
                     { tempStringAscii += tempStringAscii.Length.ToString(); }
-                    AddColorText(tempStringAscii + "\n", Color.Cyan);
+                    AddColorText(tempStringAscii + "\n", color);
 
                     tempString = "";
                     tempStringAscii = "";
@@ -113,8 +113,8 @@ namespace BluetoothWin
             for (count = 0; count < fill - 1; count++)
             { tempString += '-'; }
             tempString += "  ";
-            AddColorText(tempString, Color.Cyan); //addRedText(tempString);
-            AddColorText(tempStringAscii + "\n", Color.Cyan);
+            AddColorText(tempString, color); //addRedText(tempString);
+            AddColorText(tempStringAscii + "\n", color);
         }
     }
 }

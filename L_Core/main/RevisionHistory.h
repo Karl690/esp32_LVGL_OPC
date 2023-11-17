@@ -5,7 +5,7 @@
 #define MajorStep      "1.023"
 #define RevisionDate   "11/17/2023"
 #define SYSTEMVERSION  MajorStep " " RevisionDate
-#define CONNECTIONSTRING ">Hy:L_Core Rev " MajorStep ":" RevisionDate ":ESP32SC01 Plus:---:"   //"1.000:0:0:0:USB"
+#define CONNECTIONSTRING ">Hy:L_Core Rev " MajorStep ":" RevisionDate ":ESP32SC01 Plus:---:\n"   //"1.000:0:0:0:USB"
 
 /* 
 1.023 11/17/2023

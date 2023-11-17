@@ -66,8 +66,8 @@ namespace BluetoothWin
             this.label3 = new System.Windows.Forms.Label();
             this.lblAddress = new System.Windows.Forms.Label();
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
-            this.logbox = new BluetoothWin.LogBox();
             this.timer = new System.Windows.Forms.Timer(this.components);
+            this.logbox = new BluetoothWin.LogBox();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.NUDHeadIndex)).BeginInit();
             this.SuspendLayout();
@@ -116,6 +116,7 @@ namespace BluetoothWin
             this.aPPLYToolStripMenuItem.Size = new System.Drawing.Size(73, 66);
             this.aPPLYToolStripMenuItem.Text = "PING";
             this.aPPLYToolStripMenuItem.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageAboveText;
+            this.aPPLYToolStripMenuItem.Click += new System.EventHandler(this.aPPLYToolStripMenuItem_Click);
             // 
             // NUDHeadIndex
             // 
@@ -552,22 +553,23 @@ namespace BluetoothWin
             this.lblAddress.TabIndex = 567;
             this.lblAddress.Text = "xxxx";
             // 
-            // logbox
-            // 
-            this.logbox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.logbox.Location = new System.Drawing.Point(6, 159);
-            this.logbox.Margin = new System.Windows.Forms.Padding(6, 8, 6, 8);
-            this.logbox.Name = "logbox";
-            this.logbox.Size = new System.Drawing.Size(612, 412);
-            this.logbox.TabIndex = 617;
-            // 
             // timer
             // 
             this.timer.Enabled = true;
             this.timer.Interval = 500;
             this.timer.Tick += new System.EventHandler(this.timer_Tick);
+            // 
+            // logbox
+            // 
+            this.logbox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.logbox.Location = new System.Drawing.Point(7, 160);
+            this.logbox.Margin = new System.Windows.Forms.Padding(14, 21, 14, 21);
+            this.logbox.MaxLinesToDisplay = 1000;
+            this.logbox.Name = "logbox";
+            this.logbox.Size = new System.Drawing.Size(610, 414);
+            this.logbox.TabIndex = 617;
             // 
             // BleCommTool
             // 

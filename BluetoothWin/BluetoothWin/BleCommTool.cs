@@ -110,7 +110,7 @@ namespace BluetoothWin
                             NUDHeadIndex.Value = device.HeadIndex;
                             logbox.AddNotification($"The selected device's head index is Updated as {selectedDevice.HeadIndex}");
                         }
-                        if(CBShowRecieveCharacters.Checked) logbox.AddData($"RECEIVED: {data}", CBShowHex.Checked);
+                        if(CBShowRecieveCharacters.Checked) logbox.AddData($"{data}", Color.White, CBShowHex.Checked);
                         labelAcknowledesReceviedSinceHardReset.Text = selectedDevice.totalReceivedBytes.ToString();
                     });                    
                 }else
@@ -120,7 +120,7 @@ namespace BluetoothWin
                         NUDHeadIndex.Value = device.HeadIndex;
                         logbox.AddNotification($"The selected device's head index is Updated as {selectedDevice.HeadIndex}");
                     }
-                    if (CBShowRecieveCharacters.Checked) logbox.AddData($"← {data}", CBShowHex.Checked);
+                    if (CBShowRecieveCharacters.Checked) logbox.AddData($"{data}", Color.White, CBShowHex.Checked);
                     labelAcknowledesReceviedSinceHardReset.Text = selectedDevice.totalReceivedBytes.ToString();
                 }
             }
@@ -221,7 +221,7 @@ namespace BluetoothWin
             _ = selectedDevice.SendDataBufferAsync(Encoding.ASCII.GetBytes(bcode));
             if(CBShowTransmitCharacters.Checked)
             {
-                logbox.AddData($"SEND: {bcode}", CBShowHex.Checked);
+                logbox.AddData($"{bcode}", Color.Red, CBShowHex.Checked);
             }
 
             labelAcknowledesSentSinceHardReset.Text = selectedDevice.totalSentBytes.ToString();
@@ -242,6 +242,13 @@ namespace BluetoothWin
                 isReceiving--;
                 if (isReceiving == 0) labelReceiveIndicator.ForeColor = Color.DarkGray;
             }
+        }
+
+        private void aPPLYToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (selectedDevice == null) return;
+            if (CBShowTransmitCharacters.Checked) logbox.AddData($"PING 0x7\n", Color.Red, false);
+            selectedDevice.SendBufferAsync(new byte[] { 0x7 });
         }
     }
 }
