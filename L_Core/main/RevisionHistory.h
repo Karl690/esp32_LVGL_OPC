@@ -2,12 +2,15 @@
 
 #define SYSTEMINFO "ESP32SC01-PLUS"
 #define RevisionHeader ">Hy:L_Core:"
-#define MajorStep      "1.022"
-#define RevisionDate   "11/2/2023"
+#define MajorStep      "1.023"
+#define RevisionDate   "11/17/2023"
 #define SYSTEMVERSION  MajorStep " " RevisionDate
 #define CONNECTIONSTRING ">Hy:L_Core Rev " MajorStep ":" RevisionDate ":ESP32SC01 Plus:---:"   //"1.000:0:0:0:USB"
 
 /* 
+1.023 11/17/2023
+    Added BLE C# project for testing
+
 1.022 11/01/2023
     Added  bcode, tools, cmdprocess
 

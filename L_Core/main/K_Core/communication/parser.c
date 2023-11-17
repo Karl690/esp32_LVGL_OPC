@@ -117,7 +117,7 @@ void parser_ble_data(BleDevice* device, uint8_t urgent)
 			//purge till we see a cr, eol
 			WorkBuff->ReadyForAtof = 1;
 			*WorkBuff->commandPtr++ = 0;
-			device->AcksWaiting++;
+			//device->AcksWaiting++;
 			
 			strcpy(cmd_bleCommandsInQueBuffer[cmd_bleNextCommandInsertionPointer], WorkBuff->command); // copy the command string to Que buffer
 			WorkBuff->commandPtr = WorkBuff->command; //reset the command buffer

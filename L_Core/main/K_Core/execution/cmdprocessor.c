@@ -21,6 +21,7 @@ void cmd_ble_sequener()
 	switch ((uint8_t)cmd_bleCommand.B)
 	{
 	case 10: BCODE_10(&cmd_bleCommand); break;
+	case 11: BCODE_11(&cmd_bleCommand); break;
 	case 100: BCODE_100(&cmd_bleCommand); break;
 	default:
 		break;

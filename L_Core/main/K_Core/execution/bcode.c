@@ -11,6 +11,16 @@ void BCODE_10(GMBCOMMAND* cmd)
 {
 	tools_report_register();
 }
+
+/* BCODE 11: Set the head position
+	format: B11 T11  
+	response: >RG:[Head position]
+**/
+void BCODE_11(GMBCOMMAND* cmd)
+{
+	if (!ARG_PRESENT(cmd->T)) return;
+	toolInfo.Address = cmd->T;
+}
 /* BCODE 100: Set the tool params
 	format: B100 T# P# Q# R# S#	
 		   T: Head address

@@ -10,18 +10,21 @@ void tools_init()
 
 void tools_report_information()
 {
+	memset(tempstring, 0, 256);
 	sprintf(tempstring, ">RT:T%d %d %d %d %d\n", toolInfo.Address, toolInfo.ActualTemperature, toolInfo.ActualHeaterDutyCycle, toolInfo.ActualFanDutyCycle, toolInfo.ActualAux);
 	commnuication_add_string_to_ble_buffer(&bleServerDevice.TxBuffer, tempstring);
 }
 
 void tools_report_register()
 {
+	memset(tempstring, 0, 256);
 	sprintf(tempstring, ">RG:%d\n", toolInfo.Address);
 	commnuication_add_string_to_ble_buffer(&bleServerDevice.TxBuffer, tempstring);
 }
 
 void tools_report_unregister()
 {
+	memset(tempstring, 0, 256);
 	sprintf(tempstring, ">RM:%d\n", toolInfo.Address);
 	commnuication_add_string_to_ble_buffer(&bleServerDevice.TxBuffer, tempstring);
 }

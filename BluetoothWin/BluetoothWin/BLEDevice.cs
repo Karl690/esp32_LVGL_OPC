@@ -28,14 +28,17 @@ namespace BluetoothWin
         public string ID;
         public ulong Address;
         public string Name;
-
+        public int HeadIndex = 99;
 
         public event BleDeviceEvent OnDeviceConnectStatus;
         public event BleDeviceDataEvent OnReceivedData;
         
-        public byte[] RecievedBuffer = new byte[1024];
+        public byte[] ReceivedBuffer = new byte[1024];
         public uint RecievedLength = 0;
         public DateTime liveTime;
+
+        public uint totalSentBytes = 0;
+        public uint totalReceivedBytes = 0;
 
         GattDeviceServicesResult result;
        
@@ -49,43 +52,57 @@ namespace BluetoothWin
         }
         public async Task Connect()
         {
-            //ble_dev = await BluetoothLEDevice.FromIdAsync(dev.Id);
-            result = await ble_dev.GetGattServicesAsync();
-            
-            if (result.Status != GattCommunicationStatus.Success)
+            try
             {
-                this.isConnected = false;
-                return;
-            }
-            this.isConnected = true;
-            foreach (var service in result.Services)
-            {   
-                GattCharacteristicsResult charactiristicResult = await service.GetCharacteristicsAsync();
-                
-                if (charactiristicResult.Status == GattCommunicationStatus.Success)
+                Console.WriteLine("Connect start -01");
+                result = await ble_dev.GetGattServicesAsync(BluetoothCacheMode.Cached);
+                if (result.Status != GattCommunicationStatus.Success)
                 {
-                    foreach (var characteristic in charactiristicResult.Characteristics)
-                    {   
-                        byte[] uuid = characteristic.Uuid.ToByteArray();
-                        GattCharacteristicProperties properties = characteristic.CharacteristicProperties;
-                        if (properties.HasFlag(GattCharacteristicProperties.WriteWithoutResponse))
+                    Console.WriteLine("disconneced");
+                    this.isConnected = false;
+                    return;
+                }
+                Console.WriteLine("Connect start -02");
+                this.isConnected = true;
+                foreach (var service in result.Services)
+                {
+                    GattCharacteristicsResult charactiristicResult = await service.GetCharacteristicsAsync();
+
+                    if (charactiristicResult.Status == GattCommunicationStatus.Success)
+                    {
+                        foreach (var characteristic in charactiristicResult.Characteristics)
                         {
-                            if (uuid[0] == 0xF1 && uuid[1] == 0xAB) gattWriteCharacteristic = characteristic;
-                        }
-                        if (properties.HasFlag(GattCharacteristicProperties.Notify))
-                        {
-                            GattCommunicationStatus status = await characteristic.WriteClientCharacteristicConfigurationDescriptorAsync(GattClientCharacteristicConfigurationDescriptorValue.Notify);
-                            if (status == GattCommunicationStatus.Success && uuid[0] == 0xF2 && uuid[1] == 0xAB)
+                            byte[] uuid = characteristic.Uuid.ToByteArray();
+                            GattCharacteristicProperties properties = characteristic.CharacteristicProperties;
+                            if (properties.HasFlag(GattCharacteristicProperties.WriteWithoutResponse))
                             {
-                                gattReadCharacteristic = characteristic;
-                                characteristic.ValueChanged += Characteristic_ValueChanged;
+                                Console.WriteLine("Connect start -033444");
+
+                                if (uuid[0] == 0xF1 && uuid[1] == 0xAB) gattWriteCharacteristic = characteristic;
                             }
+                            if (properties.HasFlag(GattCharacteristicProperties.Notify))
+                            {
+                                Console.WriteLine("Connect start -03333");
+                                GattCommunicationStatus status = await characteristic.WriteClientCharacteristicConfigurationDescriptorAsync(GattClientCharacteristicConfigurationDescriptorValue.Notify);
+                                if (status == GattCommunicationStatus.Success && uuid[0] == 0xF2 && uuid[1] == 0xAB)
+                                {
+                                    gattReadCharacteristic = characteristic;
+                                    characteristic.ValueChanged += Characteristic_ValueChanged;
+                                    Console.WriteLine("Characteristic_ValueChanged --registered");
+                                }
+                            }
+
                         }
-                            
                     }
                 }
+            }catch(Exception e)
+            {
+                Console.WriteLine(e.Message);
+                Console.WriteLine("Connect ERROR");
+                return;
             }
             
+            Console.WriteLine("Connect start -05");
         }
 
         private void Ble_dev_ConnectionStatusChanged(BluetoothLEDevice sender, object args)
@@ -98,6 +115,14 @@ namespace BluetoothWin
             isConnected = sender.ConnectionStatus == BluetoothConnectionStatus.Connected ? true : false;
         }
 
+
+        public void Dispose()
+        {
+            gattReadCharacteristic.ValueChanged -= Characteristic_ValueChanged;
+            ble_dev.Dispose();
+            ble_dev = null;
+
+        }
         public async void Disconnet()
         {
             bool success = true;
@@ -116,9 +141,6 @@ namespace BluetoothWin
                 }
                 ble_dev.Dispose();
                 ble_dev = null;
-                //ble_dev = null;
-                //GC.Collect();
-                //GC.WaitForPendingFinalizers();
             }
             catch (Exception ex)
             {
@@ -128,11 +150,13 @@ namespace BluetoothWin
         }
 
         private void Characteristic_ValueChanged(GattCharacteristic sender, GattValueChangedEventArgs args)
-        {   
+        {
+            Console.WriteLine("Characteristic_ValueChanged");
             if (args.CharacteristicValue.Length == 0) return;
-            CryptographicBuffer.CopyToByteArray(args.CharacteristicValue, out RecievedBuffer);
-            RecievedLength = args.CharacteristicValue.Length;
+            CryptographicBuffer.CopyToByteArray(args.CharacteristicValue, out ReceivedBuffer);
             
+            RecievedLength = args.CharacteristicValue.Length;
+            totalReceivedBytes += RecievedLength;
             if (OnReceivedData != null) OnReceivedData(this, EventArgs.Empty);
 
         }
@@ -142,6 +166,7 @@ namespace BluetoothWin
             DataWriter writer = new DataWriter();
             writer.WriteBytes(buf);
             IBuffer buffer = writer.DetachBuffer();
+            totalSentBytes += (uint)buf.Length;
 
             GattCommunicationStatus status = await gattWriteCharacteristic.WriteValueAsync(buffer, GattWriteOption.WriteWithoutResponse);
             if (status != GattCommunicationStatus.Success)

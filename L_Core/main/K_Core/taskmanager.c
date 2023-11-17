@@ -59,6 +59,7 @@ const PFUNC F1HZ[NUM_1HZ] =
 	Spare,
 	Spare,
 	Spare,
+	//Spare,
 	ReportToolInfo,
 	BlinkHeartBeat,
 };
