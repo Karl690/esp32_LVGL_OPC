@@ -1,8 +1,17 @@
 
 #include "bcode.h"
 #include "K_Core/tools/tools.h"
+#include "L_Core/bluetooth/ble.h"
 #include "cmdprocessor.h"
 
+/* BCODE 0: disconnect ble-client
+	format: B0 
+	response: NO
+**/
+void BCODE_0(GMBCOMMAND* cmd)
+{
+	ble_server_disconnect();
+}
 /* BCODE 10: Reqeust the head position
 	format: B10 
 	response: >RG:[Head position]

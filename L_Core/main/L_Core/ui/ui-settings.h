@@ -25,9 +25,6 @@ typedef struct
 {
 	lv_obj_t* status;
 	lv_obj_t* autostart;
-	lv_obj_t* send;
-	lv_obj_t* receive;
-	lv_obj_t* total;	
 } UI_BLUETOOTH;
 
 typedef struct

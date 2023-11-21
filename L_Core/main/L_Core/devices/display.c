@@ -1,8 +1,9 @@
 #include "display.h"
+#include  "configure.h"
 #include "../server/server.h"
 /*** Setup screen resolution for LVGL ***/
-static const uint16_t screenWidth = 480;// TFT_WIDTH;
-static const uint16_t screenHeight = 320;// TFT_HEIGHT;
+static const uint16_t screenWidth =  SCREEN_WIDTH;// TFT_WIDTH;
+static const uint16_t screenHeight = SCREEN_HEIGHT;// TFT_HEIGHT;
 
 static lv_disp_draw_buf_t draw_buf;
 

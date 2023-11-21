@@ -282,12 +282,12 @@ void communication_process_tx_ble(BleDevice* device)
 	uint16_t numberOfXmitCharactersToSend = 0;
 	if ((device->TxBuffer.Head != device->TxBuffer.Tail) || device->AcksWaiting)
 	{
-		while (device->AcksWaiting)
-		{
-			device->TxBuffer.command[numberOfXmitCharactersToSend] = ASCII_ACK; //stuff the acks in the front of the serial stream
-			device->AcksWaiting--;
-			numberOfXmitCharactersToSend++;
-		}
+//		while (device->AcksWaiting)
+//		{
+//			//device->TxBuffer.command[numberOfXmitCharactersToSend] = ASCII_ACK; //stuff the acks in the front of the serial stream
+//			device->AcksWaiting--;
+//			numberOfXmitCharactersToSend++;
+//		}
 		while (device->TxBuffer.Head != device->TxBuffer.Tail)
 		{ 
 			workcharacter = device->TxBuffer.buffer[device->TxBuffer.Tail];
@@ -296,7 +296,7 @@ void communication_process_tx_ble(BleDevice* device)
 			device->TxBuffer.Tail &= TX_BUF_SIZE;
 			numberOfXmitCharactersToSend++;
 			if (workcharacter == CMD_END_CHAR || workcharacter == NULL_CHAR )break;//one line at a time please
-			if (numberOfXmitCharactersToSend > CMD_MAX_SIZE)break;//limit the transmission packet size
+			if (numberOfXmitCharactersToSend > CMD_MAX_SIZE) break;//limit the transmission packet size
 		}
 		if(numberOfXmitCharactersToSend > 0)
 			ble_server_send_data((uint8_t*)device->TxBuffer.command, numberOfXmitCharactersToSend);

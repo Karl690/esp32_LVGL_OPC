@@ -49,7 +49,7 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
 		//esp_ble_gap_set_scan_params(&ble_scan_params); // reset parameters
 		
 		ble_scan_status = BLE_CLIENT_SCAN_READY;
-		ui_bluetooth_changed_ble_status(ble_scan_status);
+		ui_ble_changed_ble_status(ble_scan_status);
         //the unit of the duration is second
         //uint32_t duration = 0xFFFF;
 		//ESP_LOGI(BLE_TAG, "Enable Ble Scan:during time %04" PRIx32 " minutes.", duration);
@@ -67,12 +67,12 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
 		//memset(ble_client_remote_device, 0, sizeof(BleRemoteDevice) * BLE_CLIENT_MAX_CONNECT_NUM);
 		ble_scan_status = BLE_CLIENT_SCANNING;
 		ESP_LOGI(BLE_TAG, "Scan start successed");
-		ui_bluetooth_changed_ble_status(ble_scan_status);
+		ui_ble_changed_ble_status(ble_scan_status);
         break;
     case ESP_GAP_BLE_SCAN_STOP_COMPLETE_EVT:
 		ESP_LOGI(BLE_TAG, "Scan stop successed");
 		ble_scan_status = BLE_CLIENT_SCAN_READY;
-		ui_bluetooth_changed_ble_status(ble_scan_status);
+		ui_ble_changed_ble_status(ble_scan_status);
         break;
     case ESP_GAP_BLE_SCAN_RESULT_EVT: {
         esp_ble_gap_cb_param_t *scan_result = (esp_ble_gap_cb_param_t *)param;
@@ -125,7 +125,7 @@ uint8_t ble_add_scan_device(esp_ble_gap_cb_param_t* scan_result) {
 	ble_client_remote_device[ble_client_scaned_device_num].is_scaned = 1;
 	ble_client_remote_device[ble_client_scaned_device_num].total_sent = 0;
 	ble_client_remote_device[ble_client_scaned_device_num].total_received = 0;
-	ui_bluetooth_add_device(&ble_client_remote_device[ble_client_scaned_device_num]);
+	ui_ble_add_device(&ble_client_remote_device[ble_client_scaned_device_num]);
 	ble_client_scaned_device_num++;
 	return 1;
 }

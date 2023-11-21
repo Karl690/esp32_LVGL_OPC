@@ -302,7 +302,7 @@ void ble_client_read_data(BleRemoteDevice* dev, uint8_t* data, uint16_t len)
 	strncpy((char*)dev->last_received_buffer, (char*)data, len>=50?50: len);
     memcpy(dev->receive_buffer, data, len);
 	dev->total_received += len;
-	ui_bluetooth_set_received_data(dev);
+	ui_ble_set_received_data(dev);
 }
 
 void ble_client_write_data(BleRemoteDevice* dev, uint8_t* data, uint16_t len)

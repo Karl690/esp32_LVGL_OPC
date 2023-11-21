@@ -2,7 +2,7 @@
 #include "ble.h"
 #include "driver/uart.h"
 #include "L_Core/ui/ui.h"
-#include "L_Core/ui/ui-settings.h"
+#include "L_Core/ui/ui-bluetooth.h"
 #include "K_Core/communication/communication.h"
 #include "K_Core/tools/tools.h";
 #define ESP_SERVER_PROFILE_APP_IDX         0
@@ -15,6 +15,7 @@ uint8_t ble_server_rx_urgent_buffer[RX_BUF_SIZE];
 uint8_t ble_server_tx_buffer[TX_BUF_SIZE];
 BleDevice bleServerDevice;
 
+char ble_tmp[256] = { 0 };
 /// SPP Service
 const uint16_t spp_service_uuid = SPP_SERVICE_UUID;
 /// Characteristic UUID
@@ -282,7 +283,7 @@ static uint8_t find_char_and_desr_index(uint16_t handle)
 }
 
 char ble_last_received_data[20] = { 0 };
-char ble_tmp[10] = { 0 };
+
 static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t *param)
 {
 	esp_ble_gatts_cb_param_t *p_data = (esp_ble_gatts_cb_param_t *) param;
@@ -334,9 +335,9 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
 				ble_server_received_data(p_data->write.value, p_data->write.len);
 				if (p_data->write.len >= 20) strncpy(ble_last_received_data, (char*)p_data->write.value, 20);
 				else strcpy(ble_last_received_data, (char*)p_data->write.value);
-				lv_label_set_text(ui_settings.ui_bluetooth.receive, ble_last_received_data);
+				lv_label_set_text(ui_ble_sever_receive_text, ble_last_received_data);
 				sprintf(ble_tmp, "%d", (int)ble_server_total_recieved);
-				lv_label_set_text(ui_settings.ui_bluetooth.total, ble_tmp);
+				lv_label_set_text(ui_ble_server_total_text, ble_tmp);
 				//uart_write_bytes(UART_NUM_0, (char *)(p_data->write.value), p_data->write.len);
 				//ble_server_send_data((uint8_t*)"OK", 2);
 					
@@ -377,11 +378,21 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
 		spp_gatts_if = gatts_if;
 		is_server_connected = 1;
 		memcpy(&spp_remote_bda, &p_data->connect.remote_bda, sizeof(esp_bd_addr_t));
+		sprintf(ble_tmp,
+			"%02x-%02x-%02x-%02x-%02x-%02x",
+			p_data->connect.remote_bda[0],
+			p_data->connect.remote_bda[1],
+			p_data->connect.remote_bda[2],
+			p_data->connect.remote_bda[3],
+			p_data->connect.remote_bda[4],
+			p_data->connect.remote_bda[5]);
+		lv_label_set_text(ui_ble_server_client_text, ble_tmp);  
 		break;
 	case ESP_GATTS_DISCONNECT_EVT:
 		is_server_connected = 0;
 		enable_data_ntf = false;
 		esp_ble_gap_start_advertising(&spp_adv_params);
+		lv_label_set_text(ui_ble_server_client_text, "Disconnected");
 		break;
 	case ESP_GATTS_OPEN_EVT:
 		break;
@@ -460,6 +471,11 @@ void ble_server_disable()
 	//esp_bluedroid_disable();
 	esp_ble_gatts_app_unregister(BLE_SERVER_APP_ID);
 	systemconfig.bluetooth.server_enabled = 0;
+}
+
+void ble_server_disconnect()
+{
+	esp_ble_gatts_close(spp_gatts_if, spp_server_conn_id);
 }
 
 //////////////////////////////////////////////////////////////////////////////

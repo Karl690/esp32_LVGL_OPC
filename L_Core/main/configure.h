@@ -12,6 +12,9 @@
 #define RX_URGENT_BUF_SIZE 0x3ff	//1k
 
 
+#define SCREEN_WIDTH	480
+#define SCREEN_HEIGHT	320
+
 typedef struct
 {
 	uint8_t ssid[32];

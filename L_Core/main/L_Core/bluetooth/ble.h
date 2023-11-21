@@ -125,6 +125,7 @@ uint8_t ble_add_scan_device(esp_ble_gap_cb_param_t* scan_result);
 
 uint8_t ble_client_enable();
 void ble_client_disable();
+void ble_server_disconnect();
 uint8_t ble_client_connect_device(BleRemoteDevice*);
 void ble_client_disconnect_device(BleRemoteDevice*);
 

@@ -187,9 +187,9 @@ void ui_transform_screen(SCREEN_TYPE screen)
 		lv_obj_set_parent(msgbox, ui_pct_screen);
 		break;
 	case SCREEN_BLUETOOTH:
-		lv_scr_load_anim(ui_bluetooth_screen, LV_SCR_LOAD_ANIM_FADE_ON, 300, 0, false);
-		lv_obj_set_parent(keyboard, ui_bluetooth_screen);
-		lv_obj_set_parent(msgbox, ui_bluetooth_screen);
+		lv_scr_load_anim(ui_ble_screen, LV_SCR_LOAD_ANIM_FADE_ON, 300, 0, false);
+		lv_obj_set_parent(keyboard, ui_ble_screen);
+		lv_obj_set_parent(msgbox, ui_ble_screen);
 		break;
 	default:
 		break;
@@ -225,13 +225,8 @@ void ui_event_edit_cb(lv_event_t* e)
 float b = 43.555;
 void InitUI( void )
 {
-	char sz[100] = { 0 };
-	sprintf(sz, "%.2f", 2.442f);
-	float a = 423.233;
-	sprintf(sz, "%05.02f", a);
-    lv_disp_t *dispp = lv_disp_get_default();
-	sprintf(sz, "%05.02f", b);
-    lv_theme_t *theme = lv_theme_default_init(dispp, lv_palette_main(LV_PALETTE_BLUE), lv_palette_main(LV_PALETTE_RED), true, LV_FONT_DEFAULT);
+	lv_disp_t *dispp = lv_disp_get_default();
+	lv_theme_t *theme = lv_theme_default_init(dispp, lv_palette_main(LV_PALETTE_BLUE), lv_palette_main(LV_PALETTE_RED), true, LV_FONT_DEFAULT);
     lv_disp_set_theme(dispp, theme);
 	ui_splash_screen_init();
 	ui_home_screen_init();
@@ -241,7 +236,7 @@ void InitUI( void )
 	ui_settings_screen_init();
 	ui_control_screen_init();
 	ui_pct_screen_init();
-	ui_bluetooth_screen_init();
+	ui_ble_screen_init();
 	
 
 	keyboard = lv_keyboard_create(ui_home_screen);
