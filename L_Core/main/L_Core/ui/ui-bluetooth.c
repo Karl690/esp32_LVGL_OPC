@@ -51,6 +51,10 @@ void ui_ble_server_send_event_cb(lv_event_t* e)
 	if (len == 0) return;
 	ble_server_send_data((uint8_t*)text, len);
 }
+void ui_ble_disconnect_event_cb(lv_event_t* e)
+{
+	ble_server_disconnect();
+}
 void ui_ble_scan_event_cb(lv_event_t* e) 
 {
 	//lv_obj_t * label = lv_obj_get_child(target, 0);
@@ -188,6 +192,9 @@ void ui_ble_screen_init()
 	obj = ui_create_label(ui_ble_server_panel, "", &lv_font_montserrat_14);
 	lv_obj_set_pos(obj, 200, y);
 	ui_ble_server_total_text = obj;
+	y += 45;
+	obj = ui_create_button(ui_ble_server_panel, "DICONNECT", SCREEN_WIDTH - 20, 30, 3, UI_BUTTON_COLOR, &lv_font_montserrat_14, ui_ble_disconnect_event_cb, NULL);	
+	lv_obj_set_pos(obj, 5, y);
 	
 	// client 
 	x = 0; y = 0;
@@ -251,6 +258,8 @@ void ui_ble_screen_init()
 	obj = ui_create_label(ui_ble_device_detail, "", &lv_font_montserrat_14);
 	lv_obj_set_pos(obj, 100, y); ui_ble_total_received = obj;
 	ui_ble_switch_screen(0);
+	
+	
 }
 
 void ui_ble_changed_ble_status(uint8_t status)

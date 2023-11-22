@@ -475,6 +475,7 @@ void ble_server_disable()
 
 void ble_server_disconnect()
 {
+	if (!is_server_connected) return;
 	esp_ble_gatts_close(spp_gatts_if, spp_server_conn_id);
 }
 
