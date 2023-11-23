@@ -1,4 +1,5 @@
 #include "main.h"
+
 typedef struct {
 	float               PulsesPerUnit; //number of pulses per microliter or mm, used to calculate actual flow rate in pulses per second
 	float               NozzleDiameter; // check your slicer, but this is usually close to the nozzle hole diameter
@@ -15,7 +16,6 @@ typedef struct {
 	uint16_t            UnPrimeFeedRate; //speed in pulses per second to spin the motor during the Unprime
 	uint16_t            UnPrimeSteps; //number of pulses to spin during Unprime, extrusion stops after this many pulses
 	int16_t             UnPrimeTimeMs; //When to Fire the unprime sequence in ms relative to the end of the move (neg means before)
-
 	uint8_t             isManuallyExtruding;
 } ToolExtrusionControlStruct;
 typedef struct {
@@ -34,7 +34,6 @@ typedef struct {
 }ToolInfo;
 
 extern ToolInfo toolInfo;
-
 void tools_init();
 void tools_report_information();
 void tools_report_register();

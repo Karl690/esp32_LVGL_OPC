@@ -14,7 +14,9 @@ uint8_t ble_server_rx_buffer[RX_BUF_SIZE];
 uint8_t ble_server_rx_urgent_buffer[RX_BUF_SIZE];
 uint8_t ble_server_tx_buffer[TX_BUF_SIZE];
 BleDevice bleServerDevice;
-
+ble_server_status_t ble_server_status = BLE_SERVER_LISTENING;
+uint8_t ble_server_send_blink_count = 0;
+uint8_t ble_server_receive_blink_count = 0;
 char ble_tmp[256] = { 0 };
 /// SPP Service
 const uint16_t spp_service_uuid = SPP_SERVICE_UUID;
@@ -36,9 +38,10 @@ static esp_gatt_if_t spp_gatts_if = 0xff;
 static bool enable_data_ntf = false;
 uint8_t is_server_connected = 0;
 
-uint64_t ble_server_total_recieved = 0;
+uint64_t ble_server_total_sent = 0;
+uint64_t ble_server_total_received = 0;
 static esp_bd_addr_t spp_remote_bda = { 0x0, };
-
+uint8_t ble_server_pairing_countdown = 0;
 static uint16_t spp_handle_table[SPP_IDX_NB];
 
 struct gatts_profile_inst {
@@ -331,15 +334,9 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
 				}
 			}
 			else if (res == SPP_IDX_SPP_DATA_RECV_VAL) {
-				ble_server_total_recieved += p_data->write.len;
 				ble_server_received_data(p_data->write.value, p_data->write.len);
 				if (p_data->write.len >= 20) strncpy(ble_last_received_data, (char*)p_data->write.value, 20);
-				else strcpy(ble_last_received_data, (char*)p_data->write.value);
-				lv_label_set_text(ui_ble_sever_receive_text, ble_last_received_data);
-				sprintf(ble_tmp, "%d", (int)ble_server_total_recieved);
-				lv_label_set_text(ui_ble_server_total_text, ble_tmp);
-				//uart_write_bytes(UART_NUM_0, (char *)(p_data->write.value), p_data->write.len);
-				//ble_server_send_data((uint8_t*)"OK", 2);
+				else strcpy(ble_last_received_data, (char*)p_data->write.value);				
 					
 			}
 			else {
@@ -377,22 +374,17 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
 		spp_server_conn_id = p_data->connect.conn_id;
 		spp_gatts_if = gatts_if;
 		is_server_connected = 1;
+		ble_server_total_received = 0;
+		ble_server_total_sent = 0;
 		memcpy(&spp_remote_bda, &p_data->connect.remote_bda, sizeof(esp_bd_addr_t));
-		sprintf(ble_tmp,
-			"%02x-%02x-%02x-%02x-%02x-%02x",
-			p_data->connect.remote_bda[0],
-			p_data->connect.remote_bda[1],
-			p_data->connect.remote_bda[2],
-			p_data->connect.remote_bda[3],
-			p_data->connect.remote_bda[4],
-			p_data->connect.remote_bda[5]);
-		lv_label_set_text(ui_ble_server_client_text, ble_tmp);  
+		ble_server_status = BLE_SERVER_PAIRED;
+		ble_server_pairing_countdown = 10; // if the client does not send data util this value become 0, close the pairing. 
 		break;
 	case ESP_GATTS_DISCONNECT_EVT:
 		is_server_connected = 0;
 		enable_data_ntf = false;
-		esp_ble_gap_start_advertising(&spp_adv_params);
-		lv_label_set_text(ui_ble_server_client_text, "Disconnected");
+		esp_ble_gap_start_advertising(&spp_adv_params);		
+		ble_server_status = BLE_SERVER_LISTENING;
 		break;
 	case ESP_GATTS_OPEN_EVT:
 		break;
@@ -459,7 +451,7 @@ uint8_t ble_server_enable()
 	esp_ble_gatts_app_register(BLE_SERVER_APP_ID);
 	
 	systemconfig.bluetooth.server_enabled = 1;
-	ble_server_total_recieved = 0;
+	ble_server_total_received = 0;
 	// initialize the buffer(Rx, Tx, Urgent Rx)
 	communication_buffers_ble_init(BLE_PORT_ID, &bleServerDevice);
 	return 1;
@@ -473,6 +465,7 @@ void ble_server_disable()
 	systemconfig.bluetooth.server_enabled = 0;
 }
 
+// disconnect client
 void ble_server_disconnect()
 {
 	if (!is_server_connected) return;
@@ -483,13 +476,17 @@ void ble_server_disconnect()
 uint8_t ble_server_send_data(uint8_t* data, uint16_t size)
 {
 	if (!is_server_connected) return 0;
-	esp_err_t err = esp_ble_gatts_send_indicate(spp_gatts_if, spp_server_conn_id, spp_handle_table[SPP_IDX_SPP_DATA_NTY_VAL], size, data, false);
+	ble_server_send_blink_count = 5;	
+	ble_server_total_sent += size;
+	esp_err_t err = esp_ble_gatts_send_indicate(spp_gatts_if, spp_server_conn_id, spp_handle_table[SPP_IDX_SPP_DATA_NTY_VAL], size, data, false);	
 	if (err != ESP_OK) return 0;
 	return 1;
 }
 
 void ble_server_received_data(uint8_t* data, uint16_t size)
 {
-	commnuication_process_rx_ble_characters(&bleServerDevice, data, size);
+	ble_server_receive_blink_count = 5;
+	ble_server_total_received += size;
+	commnuication_process_rx_ble_characters(&bleServerDevice, data, size);	
 }
 //////////////////////////////////////////////////////////////////////////////

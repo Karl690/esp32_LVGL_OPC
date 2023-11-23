@@ -21,8 +21,9 @@
 #define WARNING_COLOR				0xEEBA34
 #define ERROR_COLOR					0xEE3455
 
-#define UI_PANEL_BACGROUND_COLOR		0x333333
-#define UI_BUTTON_COLOR				0x5DA105
+#define UI_PANEL_BACGROUND_COLOR	0x333333
+#define UI_BUTTON_ACTIVE_COLOR		0x5DA105
+#define UI_BUTTON_DISABLE_COLOR		0x494949
 #define UI_MENU_ACTIVE_ITEM_COLOR	0xF30505
 #define UI_MENU_NORMAL_ITEM_COLOR	0x494949
 #define UI_TEXTAREA_BORDER_COLOR	0x5DA105
@@ -55,6 +56,7 @@ typedef enum
 extern char ui_temp_string[];
 extern uint8_t ui_initialized;
 extern lv_obj_t * keyboard;
+extern char ui_temp[256];
 void InitUI(void);
 
 lv_obj_t* ui_create_screen();

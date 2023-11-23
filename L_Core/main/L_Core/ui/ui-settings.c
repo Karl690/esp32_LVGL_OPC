@@ -394,9 +394,9 @@ void ui_settings_serial_page_init()
 	ui_settings.ui_serial.send_text  = obj;
 	
 	y += 45;
-	obj = ui_create_button(ui_settings_serial_page, "UART1 SEND", 100, 30, 3, UI_BUTTON_COLOR, &lv_font_montserrat_14, ui_settings_serial_event_cb, (void*)1);	
+	obj = ui_create_button(ui_settings_serial_page, "UART1 SEND", 100, 30, 3, UI_BUTTON_ACTIVE_COLOR, &lv_font_montserrat_14, ui_settings_serial_event_cb, (void*)1);	
 	lv_obj_set_pos(obj, 0, y);
-	obj = ui_create_button(ui_settings_serial_page, "UART2 SEND", 100, 30, 3, UI_BUTTON_COLOR, &lv_font_montserrat_14, ui_settings_serial_event_cb, (void*)2);	
+	obj = ui_create_button(ui_settings_serial_page, "UART2 SEND", 100, 30, 3, UI_BUTTON_ACTIVE_COLOR, &lv_font_montserrat_14, ui_settings_serial_event_cb, (void*)2);	
 	lv_obj_set_pos(obj, 200, y);
 }
 

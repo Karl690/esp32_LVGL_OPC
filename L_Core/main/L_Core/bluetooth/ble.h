@@ -64,6 +64,14 @@ enum {
 	BLE_CLIENT_SCANNING,
 };
 
+typedef enum
+{
+	BLE_SERVER_LISTENING = 0,
+	BLE_SERVER_PAIRED    = 1,
+	BLE_SERVER_CONNECTED = 2,
+	BLE_SERVER_HEADSET   = 3,
+}ble_server_status_t;
+
 
 typedef struct _tagBLEDevice {
 	uint8_t id;
@@ -93,13 +101,20 @@ typedef struct _tagBLEDevice {
 
 
 extern BleDevice bleServerDevice;
-
+extern ble_server_status_t ble_server_status;
 extern uint8_t ble_client_scaned_device_num;
 extern BleRemoteDevice ble_client_remote_device[BLE_CLIENT_MAX_CONNECT_NUM];
 extern esp_ble_adv_params_t spp_adv_params;
 
+extern uint8_t ble_server_send_blink_count;
+extern uint8_t ble_server_receive_blink_count;
+extern uint8_t ble_server_pairing_countdown;
+
 extern uint8_t is_client_connected;
 extern uint8_t is_server_connected;
+
+extern uint64_t ble_server_total_sent;
+extern uint64_t ble_server_total_received;
 extern uint16_t spp_client_conn_id;
 extern uint16_t spp_client_mtu_size;
 

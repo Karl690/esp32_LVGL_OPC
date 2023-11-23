@@ -2,6 +2,7 @@
 #include "main.h"
 #include "taskmanager.h"
 #include "L_Core/ui/ui.h"
+#include "L_Core/bluetooth/ble.h"
 #include "K_Core/adc/adc.h"
 #include "K_Core/serial/serial.h"
 #include "K_Core/communication/parser.h"
@@ -58,8 +59,7 @@ const PFUNC F1HZ[NUM_1HZ] =
 	Spare,
 	Spare,
 	Spare,
-	Spare,
-	//Spare,
+	CheckBluetoothConnection,
 	ReportToolInfo,
 	BlinkHeartBeat,
 };
@@ -114,6 +114,19 @@ void BlinkHeartBeat(void)
 	//AddSerialStringToBuffer(&Com485.TxBuffer, "b");
 }
 
+void CheckBluetoothConnection(void)
+{
+	if (ble_server_pairing_countdown > 0 && ble_server_status == BLE_SERVER_PAIRED)
+	{
+		// if keep the pairing status, close the connection.
+		ble_server_pairing_countdown--;
+		if (ble_server_pairing_countdown == 0)
+		{
+			ble_server_disconnect();
+		}
+	}
+}
+
 void ReportToolInfo()
 {
 	tools_report_information();
@@ -123,6 +136,8 @@ void taskamanger_task(void* arg)
 {
 	
 }
+
+
 void Init_TaskManager()
 {
 	//xTaskCreatePinnedToCore(taskamanger_task, "taskamanger_task", 1024 * 2, NULL, 10, NULL, 0);

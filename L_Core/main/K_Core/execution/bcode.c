@@ -29,6 +29,8 @@ void BCODE_11(GMBCOMMAND* cmd)
 {
 	if (!ARG_PRESENT(cmd->T)) return;
 	toolInfo.Address = cmd->T;
+	ble_server_status = BLE_SERVER_HEADSET;
+	tools_report_register();
 }
 /* BCODE 100: Set the tool params
 	format: B100 T# P# Q# R# S#	

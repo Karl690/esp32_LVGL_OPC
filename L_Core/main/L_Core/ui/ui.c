@@ -24,7 +24,7 @@ lv_obj_t * keyboard;
 lv_obj_t* msgbox;
 lv_obj_t* msgbox_label;
 uint8_t ui_initialized = 0;
-char ui_temp_string[256] = { 0 };
+char ui_temp[256];
 
 lv_obj_t* ui_create_screen()
 {
@@ -61,7 +61,7 @@ lv_obj_t* ui_create_label(lv_obj_t* parent, char* text, const lv_font_t* font)
 	lv_obj_set_width(obj, LV_SIZE_CONTENT); /// 1
 	lv_obj_set_height(obj, LV_SIZE_CONTENT); /// 1
 	lv_label_set_recolor(obj, true);	
-	lv_label_set_text_fmt(obj, "%s", text);
+	lv_label_set_text_fmt(obj, "%s", text);	
 	lv_obj_set_style_text_font(obj, font, LV_PART_MAIN | LV_STATE_DEFAULT);
 	return obj;
 }
@@ -100,8 +100,7 @@ lv_obj_t* ui_create_button(lv_obj_t* parent,
 	lv_label_set_recolor(label, true);
 	lv_label_set_text_fmt(label, text);
 	lv_obj_set_style_text_font(label, font, LV_PART_MAIN | LV_STATE_DEFAULT);
-	
-	lv_obj_add_event_cb(button, event_button_handler, LV_EVENT_CLICKED, event_data);	
+	if (event_button_handler)	lv_obj_add_event_cb(button, event_button_handler, LV_EVENT_CLICKED, event_data);	
 	return button;
 }
 
