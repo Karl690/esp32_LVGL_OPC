@@ -1,6 +1,7 @@
 #include "L_Core/ui/ui.h"
 #include "L_Core/ui/ui-bluetooth.h"
 #include "tools.h"
+#include "L_Core/storage/storage.h"
 #include "L_Core/bluetooth/ble.h"
 #include "K_Core/communication/communication.h"
 
@@ -9,7 +10,7 @@ char tempstring[256] = { 0 };
 
 void tools_init()
 {
-	toolInfo.Address = 11;
+	storage_read(STORAGE_ADDRESS_TOOLINFO, (uint8_t*)&toolInfo, sizeof(ToolInfo));
 }
 
 void tools_report_information()

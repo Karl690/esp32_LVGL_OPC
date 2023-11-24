@@ -1,3 +1,4 @@
 # Name,   Type, SubType, Offset,  Size, Flags
 nvs,      data, nvs,     36K,     20K,
-factory,  app,  factory, 64K,     6000K,
+factory,  app,  factory, 64K,     5000K,
+storage,  data,			, 6000K,  2M,

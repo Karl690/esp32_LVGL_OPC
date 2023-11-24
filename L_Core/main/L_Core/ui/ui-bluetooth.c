@@ -216,7 +216,8 @@ void ui_ble_screen_init()
 	obj = ui_create_button(ui_ble_server_panel, "CONNECTED", 100, 30, 0, UI_BUTTON_DISABLE_COLOR, &lv_font_montserrat_14, NULL, NULL); lv_obj_set_pos(obj, x, y);
 	ui_ble_server_status[BLE_SERVER_CONNECTED] = obj;
 	x += 101;
-	obj = ui_create_button(ui_ble_server_panel, "HEAD #", 100, 30, 0, UI_BUTTON_DISABLE_COLOR, &lv_font_montserrat_14, NULL, NULL); lv_obj_set_pos(obj, x, y);
+	sprintf(ui_temp, "HEAD %d", toolInfo.Address);
+	obj = ui_create_button(ui_ble_server_panel, ui_temp, 100, 30, 0, UI_BUTTON_DISABLE_COLOR, &lv_font_montserrat_14, NULL, NULL); lv_obj_set_pos(obj, x, y);
 	ui_ble_server_status[BLE_SERVER_HEADSET] = obj;
 	
 	x = 10; y += 45;
@@ -391,5 +392,10 @@ void ui_ble_set_received_data(BleRemoteDevice* dev)
 	lv_label_set_text(ui_ble_total_received, ui_temp);
 }
 
-
+void ui_ble_set_headindex(uint8_t index)
+{
+	if (!ui_ble_server_status[BLE_SERVER_HEADSET]) return;
+	sprintf(ui_temp, "HEAD %d", index);
+	lv_label_set_text(lv_obj_get_child(ui_ble_server_status[BLE_SERVER_HEADSET], 0), ui_temp);
+}
 

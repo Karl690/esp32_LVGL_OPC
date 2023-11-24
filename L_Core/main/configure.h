@@ -47,6 +47,7 @@ typedef struct
 } OPC_CONFIG;
 typedef struct 
 {
+	uint8_t initialized;
 	WIFI_CONFIG wifi;
 	BLUETOOTH_CONFIG bluetooth;
 	OPC_CONFIG opc;

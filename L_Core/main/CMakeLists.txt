@@ -7,6 +7,11 @@ idf_component_register(
                 	L_Core/devices/display.c
                 	L_Core/server/server.c
                 	L_Core/server/parse.c
+                    L_Core/storage/storage.c
+                    L_Core/bluetooth/ble.c
+                	L_Core/bluetooth/ble-server.c
+                	L_Core/bluetooth/ble-client.c
+                	L_Core/sd-card/sd-card.c
                 	L_Core/pct/pct.c
                 	L_Core/ui/ui.c
                 	L_Core/ui/ui_helpers.c
@@ -20,10 +25,6 @@ idf_component_register(
                 	L_Core/ui/ui-control.c
                 	L_Core/ui/ui-server.c
                 	L_Core/ui/ui-pct.c
-                    L_Core/bluetooth/ble.c
-                	L_Core/bluetooth/ble-server.c
-                	L_Core/bluetooth/ble-client.c
-                	L_Core/sd-card/sd-card.c
                 	L_Core/ui/images/btn_about.c
                 	L_Core/ui/images/copyright.c
                 	L_Core/ui/images/mark.c

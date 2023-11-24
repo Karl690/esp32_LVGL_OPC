@@ -2,6 +2,7 @@
 #include "K_Core/K_Core.h"
 #include "L_Core/wifi/wifi.h"
 #include "L_Core/bluetooth/ble.h"
+#include "L_Core/storage/storage.h"
 #include "L_Core/sd-card/sd-card.h"
 #include "L_Core/server/server.h"
 #ifdef USE_OPC
@@ -18,30 +19,31 @@ extern "C" void app_main(void)
 	//esp_log_level_set(TAG, ESP_LOG_DEBUG); // enable DEBUG logs for this App
     //Initialize NVS
 	esp_err_t ret = nvs_flash_init();
-	if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-		ESP_ERROR_CHECK(nvs_flash_erase());
-		ret = nvs_flash_init();
-	}
-	ESP_ERROR_CHECK(ret);
+//	if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+//		ESP_ERROR_CHECK(nvs_flash_erase());
+//		ret = nvs_flash_init();
+//	}
+//	ESP_ERROR_CHECK(ret);
 	
 	IsInitialized = false;
+	
+	storage_init();
+	load_configuration();
 	if (sdcard_init())
 	{	
-		systemconfig.sdcard.automount = 1;
-		//first, mount sdcard to read the config file.
-		systemconfig.sdcard.status = sdcard_mount();	
+		if (systemconfig.sdcard.automount)
+		{	
+			systemconfig.sdcard.status = sdcard_mount();		
+		}
 	}
-	
-	
-	load_configuration();
 	
 	//wifi_init();
 	ble_init();
 	
-	if (systemconfig.wifi.autoconnect) {
-		wifi_connect();
-		if (systemconfig.wifi.status) server_start();
-	}
+//	if (systemconfig.wifi.autoconnect) {
+//		wifi_connect();
+//		if (systemconfig.wifi.status) server_start();
+//	}
 	//if (systemconfig.bluetooth.autostart) ble_enable();
 	
 	
@@ -50,9 +52,7 @@ extern "C" void app_main(void)
 #endif
 	InitLCDAndLVGL();
 	InitUI();
-	
 	K_Core_Main();
-	
 	
 	IsInitialized = true;
 }
@@ -65,6 +65,15 @@ char* parseValue(char* line)
 }
 bool load_configuration()
 {
+	SYSTEMCONFIG tmp;
+	if (!storage_read(STORAGE_ADDRESS_SETTINGS, (uint8_t*)&tmp, sizeof(SYSTEMCONFIG))) return false;
+	if (tmp.initialized == 0x1)
+	{
+		memcpy(&systemconfig, &tmp, sizeof(SYSTEMCONFIG));
+	}
+	return true;
+}
+bool load_configu_from_ssd() {
 	if (!systemconfig.sdcard.status)	return false;
 	FILE* fp = fopen(SYSTEM_CONFIG_FILE, "rt");
 	if (!fp) return false;
@@ -73,7 +82,10 @@ bool load_configuration()
 	uint8_t session = 0;
 	enum
 	{
-		SESSION_SDCARD = 1, SESSION_WIFI, SESSION_BLUETOOTH, SESSION_OPC,
+		SESSION_SDCARD    = 1,
+		SESSION_WIFI,
+		SESSION_BLUETOOTH,
+		SESSION_OPC,
 	};
 	while (fgets(line, 256, fp))
 	{
@@ -89,7 +101,7 @@ bool load_configuration()
 			case SESSION_SDCARD:
 				if (strstr(line, "automount"))
 				{
-					value = parseValue(line); if(value) systemconfig.sdcard.automount = atoi(value);
+					value = parseValue(line); if (value) systemconfig.sdcard.automount = atoi(value);
 				}
 				break;
 			case SESSION_WIFI:
@@ -134,16 +146,19 @@ bool load_configuration()
 	fclose(fp);
 	return true;
 }
-
 bool save_configuration()
 {
+	systemconfig.initialized = 1;
+	return storage_write(STORAGE_ADDRESS_SETTINGS, (uint8_t*)&systemconfig, sizeof(SYSTEMCONFIG));
+}
+bool save_configu_to_ssd() {
 	if (!systemconfig.sdcard.status)	return false;
 	FILE* fp = fopen(SYSTEM_CONFIG_FILE, "wt");
 	if (!fp) return false;
 	
 	char line[256] = { 0 };
 	// sd-card
-	strcpy(line, "[sdcard]\n");	fwrite(line, 1, strlen(line), fp);
+	strcpy(line, "[sdcard]\n"); fwrite(line, 1, strlen(line), fp);
 	sprintf(line, "automount=%d\n", systemconfig.sdcard.automount); fwrite(line, 1, strlen(line), fp);
 	
 	strcpy(line, "[wifi]\n"); fwrite(line, 1, strlen(line), fp);
