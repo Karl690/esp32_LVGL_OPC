@@ -66,7 +66,7 @@ char* parseValue(char* line)
 bool load_configuration()
 {
 	SYSTEMCONFIG tmp;
-	if (!storage_read(STORAGE_ADDRESS_SETTINGS, (uint8_t*)&tmp, sizeof(SYSTEMCONFIG))) return false;
+	if (!storage_read(STORAGE_ADDRESS_SETTINGS, &tmp, sizeof(SYSTEMCONFIG))) return false;
 	if (tmp.initialized == 0x1)
 	{
 		memcpy(&systemconfig, &tmp, sizeof(SYSTEMCONFIG));
@@ -149,7 +149,7 @@ bool load_configu_from_ssd() {
 bool save_configuration()
 {
 	systemconfig.initialized = 1;
-	return storage_write(STORAGE_ADDRESS_SETTINGS, (uint8_t*)&systemconfig, sizeof(SYSTEMCONFIG));
+	return storage_write(STORAGE_ADDRESS_SETTINGS, &systemconfig, sizeof(SYSTEMCONFIG));
 }
 bool save_configu_to_ssd() {
 	if (!systemconfig.sdcard.status)	return false;

@@ -1,6 +1,7 @@
 #include "main.h"
 #include "L_Core/bluetooth/ble.h"
 #include "K_Core/tools/tools.h"
+#include "L_Core/storage/storage.h"
 #include "ui-bluetooth.h"
 
 lv_obj_t* ui_ble_screen;
@@ -45,7 +46,6 @@ void ui_ble_switch_screen(uint8_t screen)
 		lv_obj_set_style_bg_color(ui_ble_server_button, lv_color_hex(UI_CHECK_NONACTIVE_COLOR), LV_PART_MAIN);
 		lv_obj_set_style_bg_color(ui_ble_client_button, lv_color_hex(UI_CHECK_ACTIVE_COLOR), LV_PART_MAIN);
 	}
-	
 }
 
 void ui_ble_server_send_event_cb(lv_event_t* e) 

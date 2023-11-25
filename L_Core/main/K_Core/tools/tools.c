@@ -11,6 +11,8 @@ char tempstring[256] = { 0 };
 void tools_init()
 {
 	storage_read(STORAGE_ADDRESS_TOOLINFO, (uint8_t*)&toolInfo, sizeof(ToolInfo));
+	if (toolInfo.Address >= 99) toolInfo.Address = 99;
+	ui_ble_set_headindex(toolInfo.Address);
 }
 
 void tools_report_information()
