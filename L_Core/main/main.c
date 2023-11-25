@@ -2,7 +2,8 @@
 #include "K_Core/K_Core.h"
 #include "L_Core/wifi/wifi.h"
 #include "L_Core/bluetooth/ble.h"
-#include "L_Core/storage/storage.h"
+#include "L_Core/storage/partition.h"
+#include "L_Core/storage/nvs.h"
 #include "L_Core/sd-card/sd-card.h"
 #include "L_Core/server/server.h"
 #ifdef USE_OPC
@@ -27,7 +28,8 @@ extern "C" void app_main(void)
 	
 	IsInitialized = false;
 	
-	storage_init();
+	// storage_partition_init();
+	storage_nvs_init();
 	load_configuration();
 	if (sdcard_init())
 	{	
@@ -65,12 +67,7 @@ char* parseValue(char* line)
 }
 bool load_configuration()
 {
-	SYSTEMCONFIG tmp;
-	if (!storage_read(STORAGE_ADDRESS_SETTINGS, &tmp, sizeof(SYSTEMCONFIG))) return false;
-	if (tmp.initialized == 0x1)
-	{
-		memcpy(&systemconfig, &tmp, sizeof(SYSTEMCONFIG));
-	}
+	if (!storage_nvs_get_blob(NVS_KEY_CONFIG, &systemconfig)) return false;
 	return true;
 }
 bool load_configu_from_ssd() {
@@ -149,7 +146,8 @@ bool load_configu_from_ssd() {
 bool save_configuration()
 {
 	systemconfig.initialized = 1;
-	return storage_write(STORAGE_ADDRESS_SETTINGS, &systemconfig, sizeof(SYSTEMCONFIG));
+	return storage_nvs_set_blob(NVS_KEY_CONFIG, &systemconfig, sizeof(SYSTEMCONFIG));
+	//return storage_partition_write(STORAGE_ADDRESS_SETTINGS, &systemconfig, sizeof(SYSTEMCONFIG));
 }
 bool save_configu_to_ssd() {
 	if (!systemconfig.sdcard.status)	return false;

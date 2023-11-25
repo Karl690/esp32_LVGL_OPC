@@ -1,6 +1,6 @@
 
 #include "bcode.h"
-#include "L_Core/storage/storage.h"
+#include "L_Core/storage/nvs.h"
 #include "K_Core/tools/tools.h"
 #include "L_Core/bluetooth/ble.h"
 #include "L_Core/ui/ui-bluetooth.h"
@@ -32,7 +32,7 @@ void BCODE_11(GMBCOMMAND* cmd)
 	if (!ARG_PRESENT(cmd->T)) return;
 	toolInfo.Address = cmd->T;
 	ble_server_status = BLE_SERVER_HEADSET;
-	storage_write(STORAGE_ADDRESS_TOOLINFO, (uint8_t*)&toolInfo, sizeof(ToolInfo));
+	storage_nvs_set_blob(NVS_KEY_TOOLINFO, &toolInfo, sizeof(ToolInfo));	
 	tools_report_register();
 	ui_ble_set_headindex(toolInfo.Address);
 }

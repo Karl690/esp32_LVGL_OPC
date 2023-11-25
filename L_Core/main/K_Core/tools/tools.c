@@ -1,7 +1,7 @@
 #include "L_Core/ui/ui.h"
 #include "L_Core/ui/ui-bluetooth.h"
 #include "tools.h"
-#include "L_Core/storage/storage.h"
+#include "L_Core/storage/nvs.h"
 #include "L_Core/bluetooth/ble.h"
 #include "K_Core/communication/communication.h"
 
@@ -10,7 +10,8 @@ char tempstring[256] = { 0 };
 
 void tools_init()
 {
-	storage_read(STORAGE_ADDRESS_TOOLINFO, (uint8_t*)&toolInfo, sizeof(ToolInfo));
+	//storage_partition_read(STORAGE_ADDRESS_TOOLINFO, (uint8_t*)&toolInfo, sizeof(ToolInfo));
+	storage_nvs_get_blob(NVS_KEY_TOOLINFO, &toolInfo);
 	if (toolInfo.Address >= 99) toolInfo.Address = 99;
 	ui_ble_set_headindex(toolInfo.Address);
 }

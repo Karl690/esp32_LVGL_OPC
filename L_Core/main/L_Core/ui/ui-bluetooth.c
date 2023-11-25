@@ -1,7 +1,7 @@
 #include "main.h"
 #include "L_Core/bluetooth/ble.h"
 #include "K_Core/tools/tools.h"
-#include "L_Core/storage/storage.h"
+#include "L_Core/storage/nvs.h"
 #include "ui-bluetooth.h"
 
 lv_obj_t* ui_ble_screen;
@@ -98,17 +98,7 @@ void ui_ble_timer_handler(lv_timer_t* timer)
 	{
 		lv_obj_set_style_bg_color(ui_ble_server_status[prev_ble_server_status], lv_color_hex(UI_BUTTON_DISABLE_COLOR), LV_PART_MAIN);
 		lv_obj_set_style_bg_color(ui_ble_server_status[ble_server_status], lv_color_hex(UI_BUTTON_ACTIVE_COLOR), LV_PART_MAIN);
-		
-		if (ble_server_status == BLE_SERVER_HEADSET)
-		{
-			sprintf(ui_temp, "HEAD %d", toolInfo.Address);			
-			lv_label_set_text(lv_obj_get_child(ui_ble_server_status[BLE_SERVER_HEADSET], 0), ui_temp);
-		}
-		else
-		{
-			sprintf(ui_temp, "HEAD #");
-			lv_label_set_text(lv_obj_get_child(ui_ble_server_status[BLE_SERVER_HEADSET], 0), ui_temp);
-		}
+
 		prev_ble_server_status = ble_server_status;
 	}
 }

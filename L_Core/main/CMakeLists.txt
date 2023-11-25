@@ -7,8 +7,9 @@ idf_component_register(
                 	L_Core/devices/display.c
                 	L_Core/server/server.c
                 	L_Core/server/parse.c
-                    L_Core/storage/storage.c
-                    L_Core/bluetooth/ble.c
+                	L_Core/storage/partition.c
+                    L_Core/storage/nvs.c
+                	L_Core/bluetooth/ble.c
                 	L_Core/bluetooth/ble-server.c
                 	L_Core/bluetooth/ble-client.c
                 	L_Core/sd-card/sd-card.c
@@ -21,7 +22,7 @@ idf_component_register(
                 	L_Core/ui/ui-sdcard.c
                 	L_Core/ui/ui-settings.c
                 	L_Core/ui/ui-home.c
-                    L_Core/ui/ui-bluetooth.c                	
+                	L_Core/ui/ui-bluetooth.c
                 	L_Core/ui/ui-control.c
                 	L_Core/ui/ui-server.c
                 	L_Core/ui/ui-pct.c
@@ -73,12 +74,11 @@ idf_component_register(
                 	K_Core/adc/adc.c
                 	K_Core/adc/adc-table.c
                 	K_Core/display/DisplayCagetoryList.c
-					K_Core/communication/communication.c
-                    K_Core/communication/parser.c
-                    K_Core/execution/bcode.c
-                    K_Core/execution/cmdprocessor.c
-                    K_Core/tools/tools.c
-                    
+                	K_Core/communication/communication.c
+                	K_Core/communication/parser.c
+                	K_Core/execution/bcode.c
+                	K_Core/execution/cmdprocessor.c
+                	K_Core/tools/tools.c
                 INCLUDE_DIRS "."
                 REQUIRES
                 	LovyanGFX

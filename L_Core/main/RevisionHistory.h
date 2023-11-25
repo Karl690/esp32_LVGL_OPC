@@ -2,14 +2,16 @@
 
 #define SYSTEMINFO "ESP32SC01-PLUS"
 #define RevisionHeader ">Hy:L_Core:"
-#define MajorStep      "1.027"
+#define MajorStep      "1.028"
 #define RevisionDate   "11/25/2023"
 #define SYSTEMVERSION  MajorStep " " RevisionDate
 #define CONNECTIONSTRING ">Hy:L_Core Rev " MajorStep ":" RevisionDate ":ESP32SC01 Plus:---:\n"   //"1.000:0:0:0:USB"
 
 /* 
+1.028 11/25/2023
+    Implemented NVS read/write. 
 1.026 11/24/2023
-    Implemented NVS read/write. it need to set SHARED_SPI1 in sdkconfig.
+    Implemented NVS partition read/write. it need to erase before writting.
 1.024 11/21/2023
     Added BLE C# project for testing
 
