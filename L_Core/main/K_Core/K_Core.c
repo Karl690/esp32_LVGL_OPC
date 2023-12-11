@@ -1,6 +1,5 @@
 #include "configure.h"
 #include "main.h"
-#include "L_Core/ui/ui-opc.h"
 #include "K_Core.h"
 #include "gpio/GPIO.h"
 #include "taskmanager.h"
@@ -9,6 +8,7 @@
 #include "adc/adc.h"
 #include "serial/serial.h"
 #include "tools/tools.h"
+#include "sps30/sps30.h"
 DisplayVariableInfo *ActiveVariableInfo = NULL;
 void forground_task(void* arg);
 void K_Core_Main()
@@ -18,6 +18,7 @@ void K_Core_Main()
 	adc_init();
 	serial_init();
 	tools_init();
+	sps30_init();
 	// InitSerialBuffers();
 	// Init_Uart();
 	// Init_CAN();

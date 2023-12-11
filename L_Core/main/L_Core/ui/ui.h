@@ -51,12 +51,12 @@ typedef enum
 	SCREEN_SDCARD,
 	SCREEN_PCT,
 	SCREEN_BLUETOOTH,
+	SCREEN_SPS30,
 }SCREEN_TYPE;
 
 extern char ui_temp_string[];
 extern uint8_t ui_initialized;
 extern lv_obj_t * keyboard;
-extern char ui_temp[256];
 void InitUI(void);
 
 lv_obj_t* ui_create_screen();

@@ -2,6 +2,7 @@
 #include "RevisionHistory.h"
 #include "L_Core/bluetooth/ble.h"
 #include "K_Core/execution/cmdprocessor.h"
+#include "K_Core/sps30/sps30.h"
 uint32_t ProcessingError = 0;
 
 
@@ -155,8 +156,16 @@ void parser_incomming_ble_process()
 
 void parser_incomming_serial_process()
 {
-	parser_serial_data(&ComUart1, 0);
-	parser_serial_data(&ComUart1, 1);
+	if (COMSPS30)
+	{
+		sps30_process_rx_data();
+	}
+	else
+	{
+		parser_serial_data(&ComUart1, 0);
+		parser_serial_data(&ComUart1, 1);	
+	}
+	
 	parser_serial_data(&ComUart2, 0);
 	parser_serial_data(&ComUart2, 1);
 }

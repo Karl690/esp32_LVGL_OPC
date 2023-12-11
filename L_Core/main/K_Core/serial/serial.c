@@ -65,26 +65,26 @@ char serial_uart_read_byte(int uart_port)
 
 void* serial_uart1_read_task(void* param)
 {
-	uint8_t buffer[256];
+	uint8_t buffer[SERIAL_RX_BUFFER_SIZE];
 	while (1)
 	{
-		int len = uart_read_bytes(UART_NUM_1, buffer, 256, (100 / portTICK_PERIOD_MS));	
+		int len = uart_read_bytes(UART_NUM_1, buffer, SERIAL_RX_BUFFER_SIZE, (100 / portTICK_PERIOD_MS));	
 		if (len == 0) {
 			buffer[0] = 0;
 			continue;
 		}
-		memcpy(serial_uart1_last_read_buffer, buffer, len);
-		serial_uart1_last_read_buffer[len] = 0;
+		//memcpy(serial_uart1_last_read_buffer, buffer, len);
+		//serial_uart1_last_read_buffer[len] = 0;
 		commnuication_add_buffer_to_serial_buffer(&ComUart1.RxBuffer, buffer, len);
 	}
 	return NULL;
 }
 void* serial_uart2_read_task(void* param)
 {
-	uint8_t buffer[256];
+	uint8_t buffer[SERIAL_RX_BUFFER_SIZE]; // 2kbytes
 	while (1)
 	{
-		int len = uart_read_bytes(UART_NUM_2, buffer, 256, (100 / portTICK_PERIOD_MS));	
+		int len = uart_read_bytes(UART_NUM_2, buffer, SERIAL_RX_BUFFER_SIZE, (100 / portTICK_PERIOD_MS));	
 		if (len == 0) {
 			buffer[0] = 0;
 			continue;

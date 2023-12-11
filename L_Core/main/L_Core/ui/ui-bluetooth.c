@@ -74,8 +74,8 @@ void ui_ble_timer_handler(lv_timer_t* timer)
 {
 	if (ble_server_send_blink_count > 0)
 	{
-		sprintf(ui_temp, "%d", (int)ble_server_total_sent);
-		lv_label_set_text(ui_ble_server_sent_total, ui_temp);
+		sprintf(ui_temp_string, "%d", (int)ble_server_total_sent);
+		lv_label_set_text(ui_ble_server_sent_total, ui_temp_string);
 		lv_obj_set_style_text_color(ui_ble_server_sent_status, lv_color_hex(ble_server_send_blink_count % 2 ? UI_BUTTON_ACTIVE_COLOR : UI_BUTTON_DISABLE_COLOR), LV_PART_MAIN);
 		ble_server_send_blink_count--;
 	}
@@ -84,8 +84,8 @@ void ui_ble_timer_handler(lv_timer_t* timer)
 	}
 	if (ble_server_receive_blink_count > 0)
 	{
-		sprintf(ui_temp, "%d", (int)ble_server_total_received);
-		lv_label_set_text(ui_ble_server_receive_total, ui_temp);
+		sprintf(ui_temp_string, "%d", (int)ble_server_total_received);
+		lv_label_set_text(ui_ble_server_receive_total, ui_temp_string);
 		lv_obj_set_style_text_color(ui_ble_server_receive_status, lv_color_hex(ble_server_receive_blink_count % 2 ? UI_BUTTON_ACTIVE_COLOR : UI_BUTTON_DISABLE_COLOR), LV_PART_MAIN);
 		ble_server_receive_blink_count--;
 	}
@@ -206,8 +206,8 @@ void ui_ble_screen_init()
 	obj = ui_create_button(ui_ble_server_panel, "CONNECTED", 100, 30, 0, UI_BUTTON_DISABLE_COLOR, &lv_font_montserrat_14, NULL, NULL); lv_obj_set_pos(obj, x, y);
 	ui_ble_server_status[BLE_SERVER_CONNECTED] = obj;
 	x += 101;
-	sprintf(ui_temp, "HEAD %d", toolInfo.Address);
-	obj = ui_create_button(ui_ble_server_panel, ui_temp, 100, 30, 0, UI_BUTTON_DISABLE_COLOR, &lv_font_montserrat_14, NULL, NULL); lv_obj_set_pos(obj, x, y);
+	sprintf(ui_temp_string, "HEAD %d", toolInfo.Address);
+	obj = ui_create_button(ui_ble_server_panel, ui_temp_string, 100, 30, 0, UI_BUTTON_DISABLE_COLOR, &lv_font_montserrat_14, NULL, NULL); lv_obj_set_pos(obj, x, y);
 	ui_ble_server_status[BLE_SERVER_HEADSET] = obj;
 	
 	x = 10; y += 45;
@@ -378,14 +378,14 @@ void ui_ble_set_received_data(BleRemoteDevice* dev)
 {
 	if(selected_device != dev) return;
 	lv_label_set_text(ui_ble_receive, (const char*)dev->last_received_buffer);
-	sprintf(ui_temp, "%d", (int)dev->total_received);
-	lv_label_set_text(ui_ble_total_received, ui_temp);
+	sprintf(ui_temp_string, "%d", (int)dev->total_received);
+	lv_label_set_text(ui_ble_total_received, ui_temp_string);
 }
 
 void ui_ble_set_headindex(uint8_t index)
 {
 	if (!ui_ble_server_status[BLE_SERVER_HEADSET]) return;
-	sprintf(ui_temp, "HEAD %d", index);
-	lv_label_set_text(lv_obj_get_child(ui_ble_server_status[BLE_SERVER_HEADSET], 0), ui_temp);
+	sprintf(ui_temp_string, "HEAD %d", index);
+	lv_label_set_text(lv_obj_get_child(ui_ble_server_status[BLE_SERVER_HEADSET], 0), ui_temp_string);
 }
 

@@ -126,6 +126,7 @@ uint8_t ble_add_scan_device(esp_ble_gap_cb_param_t* scan_result) {
 	ble_client_remote_device[ble_client_scaned_device_num].total_sent = 0;
 	ble_client_remote_device[ble_client_scaned_device_num].total_received = 0;
 	ui_ble_add_device(&ble_client_remote_device[ble_client_scaned_device_num]);
+	ble_client_write_data(&ble_client_remote_device[ble_client_scaned_device_num], (uint8_t*)"B10\n", 4);
 	ble_client_scaned_device_num++;
 	return 1;
 }

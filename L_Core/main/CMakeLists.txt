@@ -26,6 +26,7 @@ idf_component_register(
                 	L_Core/ui/ui-control.c
                 	L_Core/ui/ui-server.c
                 	L_Core/ui/ui-pct.c
+                    L_Core/ui/ui-sps30.c
                 	L_Core/ui/images/btn_about.c
                 	L_Core/ui/images/copyright.c
                 	L_Core/ui/images/mark.c
@@ -79,6 +80,7 @@ idf_component_register(
                 	K_Core/execution/bcode.c
                 	K_Core/execution/cmdprocessor.c
                 	K_Core/tools/tools.c
+                    K_Core/sps30/sps30.c
                 INCLUDE_DIRS "."
                 REQUIRES
                 	LovyanGFX

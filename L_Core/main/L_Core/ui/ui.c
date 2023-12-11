@@ -19,12 +19,13 @@
 #include "ui-server.h"
 #include "ui-pct.h"
 #include "ui-bluetooth.h"
-	
+#include "ui-sps30.h"
+
 lv_obj_t * keyboard;
 lv_obj_t* msgbox;
 lv_obj_t* msgbox_label;
 uint8_t ui_initialized = 0;
-char ui_temp[256];
+char ui_temp_string[256];
 
 lv_obj_t* ui_create_screen()
 {
@@ -190,6 +191,11 @@ void ui_transform_screen(SCREEN_TYPE screen)
 		lv_obj_set_parent(keyboard, ui_ble_screen);
 		lv_obj_set_parent(msgbox, ui_ble_screen);
 		break;
+	case SCREEN_SPS30:
+		lv_scr_load_anim(ui_sps30_screen, LV_SCR_LOAD_ANIM_FADE_ON, 300, 0, false);
+		lv_obj_set_parent(keyboard, ui_ble_screen);
+		lv_obj_set_parent(msgbox, ui_ble_screen);
+		break;
 	default:
 		break;
 	}
@@ -236,7 +242,7 @@ void InitUI( void )
 	ui_control_screen_init();
 	ui_pct_screen_init();
 	ui_ble_screen_init();
-	
+	ui_sps30_screen_init();
 
 	keyboard = lv_keyboard_create(ui_home_screen);
 	lv_obj_add_flag(keyboard, LV_OBJ_FLAG_HIDDEN);
@@ -250,7 +256,7 @@ void InitUI( void )
 	vTaskDelay(pdMS_TO_TICKS(5000));
 	//lv_scr_load(ui_variables_screen);
 	//lv_scr_load_anim(ui_home_screen, LV_SCR_LOAD_ANIM_FADE_ON, 300, 0, false);
-	ui_transform_screen(SCREEN_HOME);
+	ui_transform_screen(SCREEN_SPS30);
 
 	
 }

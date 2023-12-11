@@ -98,6 +98,11 @@ void ui_home_screen_init(void)
 	lv_obj_add_event_cb(obj, ui_home_event_tranform_screen_cb, LV_EVENT_CLICKED, (void*)SCREEN_BLUETOOTH);
 	lv_obj_set_pos(obj, x, y);
 	
+	x += BUTTON_WIDTH + gap_x;
+	obj = ui_home_create_button(ui_home_screen, &btnhome_08, &controllers, "SPS 30");
+	lv_obj_add_event_cb(obj, ui_home_event_tranform_screen_cb, LV_EVENT_CLICKED, (void*)SCREEN_SPS30);
+	lv_obj_set_pos(obj, x, y);
+	
 	lv_obj_t* banner = ui_create_label(ui_home_screen, "#ffffff ©2023, PCT Systems. All rights reserved. #", &font_en_16);
 	lv_obj_align(banner, LV_ALIGN_BOTTOM_MID, 0, -10);
 }

@@ -9,6 +9,7 @@
 #include "K_Core/communication/communication.h"
 #include "K_Core/tools/tools.h"
 #include "K_Core/execution/cmdprocessor.h"
+#include "K_Core/sps30/sps30.h"
 esp_timer_handle_t systickTimer;
 
 
@@ -58,7 +59,7 @@ const PFUNC F1HZ[NUM_1HZ] =
 	Spare,
 	Spare,
 	Spare,
-	Spare,
+	sps30_request_read,
 	CheckBluetoothConnection,
 	ReportToolInfo,
 	BlinkHeartBeat,
