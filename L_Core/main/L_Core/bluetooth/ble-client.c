@@ -302,7 +302,9 @@ void ble_client_read_data(BleRemoteDevice* dev, uint8_t* data, uint16_t len)
 	strncpy((char*)dev->last_received_buffer, (char*)data, len>=50?50: len);
     memcpy(dev->receive_buffer, data, len);
 	dev->total_received += len;
-	ui_ble_set_received_data(dev);
+	//ui_ble_set_received_data(dev);
+	comm_add_buffer_to_buffer(&bleDevice.RxBuffer, data, len);
+	
 }
 
 void ble_client_write_data(BleRemoteDevice* dev, uint8_t* data, uint16_t len)
@@ -318,4 +320,11 @@ void ble_client_write_data(BleRemoteDevice* dev, uint8_t* data, uint16_t len)
 		data,
 		ESP_GATT_WRITE_TYPE_RSP,
 		ESP_GATT_AUTH_REQ_NONE);
+}
+
+void ble_client_write_data_all(uint8_t* data, uint16_t len)
+{
+
+	for (uint8_t i = 0; i < BLE_CLIENT_MAX_CONNECT_NUM; i++)
+		ble_client_write_data(&ble_client_remote_device[i], data, len);
 }

@@ -19,7 +19,7 @@ void parser_rx_characters(ComBuffer* WorkBuff)
 
 		if(commentFlag)		//in comment mode, we should plug into a comment buffer for large transfers
 		{
-			if (RawRxChar == CMD_END_CHAR || RawRxChar == CR_CHAR)
+			if(RawRxChar==CMD_END_CHAR)
 			{//purge till we see a cr, eol
 				WorkBuff->ReadyForAtof =1;
 				*WorkBuff->GCodeArgPtr++ = 0;
@@ -36,7 +36,6 @@ void parser_rx_characters(ComBuffer* WorkBuff)
 
 		switch(RawRxChar)
 		{
-		case CR_CHAR:
 		case CMD_END_CHAR:
 			WorkBuff->ReadyForAtof =1;
 			commentFlag=0;
@@ -249,7 +248,7 @@ void parser_incomming_into_gcodes()
 	{
 		if (comm_raw_rx_combuffer.ReadyForAtof == 1)
 		{
-			cmd_execution_ptr = &cmd_que[cmd_nextcommand_insertion_pointer];
+			//cmd_execution_ptr = &cmd_que[cmd_nextcommand_insertion_pointer];
 			ConvertArgs2Float(&comm_raw_rx_combuffer);
 			//MasterCommPort->AcksWaiting++; //release one line of buffer
 			return;

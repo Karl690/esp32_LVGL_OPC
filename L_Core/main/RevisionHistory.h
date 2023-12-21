@@ -2,10 +2,10 @@
 
 #define SYSTEMINFO "ESP32SC01-PLUS"
 #define RevisionHeader ">Hy:L_Core:"
-#define MajorStep      "1.029"
-#define RevisionDate   "12/11/2023"
+#define MajorStep      "1.030"
+#define RevisionDate   "12/21/2023"
 #define SYSTEMVERSION  MajorStep " " RevisionDate
-#define CONNECTIONSTRING ">Hy:L_Core Rev " MajorStep ":" RevisionDate ":ESP32SC01 Plus:---:\n"   //"1.000:0:0:0:USB"
+#define CONNECTIONSTRING RevisionHeader " Rev " MajorStep ":" RevisionDate ":" SYSTEMINFO ":---:\n"   //"1.000:0:0:0:USB"
 
 /* 
 1.028 11/25/2023

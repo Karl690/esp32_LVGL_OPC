@@ -7,6 +7,7 @@
 #include "K_Core/serial/serial.h"
 #include "K_Core/communication/parser.h"
 #include "K_Core/communication/communication.h"
+#include "K_Core/execution/sequence.h"
 #include "K_Core/tools/tools.h"
 #include "K_Core/execution/cmdprocessor.h"
 #include "K_Core/sps30/sps30.h"
@@ -20,11 +21,11 @@ const PFUNC F1000HZ[NUM_1000HZ] =
 {
 	Spare,
 	// keep as last call in this array
-	communication_check_tx,
+	comm_check_rx, //serial_uart_read_slice, we can't use this here. 
+	comm_check_tx, 
+	parser_incomming_into_gcodes, //parser_incomming_into_gcodes, 
 	Spare,
-	parser_incomming_ble_process,
-	parser_incomming_serial_process,
-	cmd_ble_sequener,
+	seq_sequence, //seq_sequence,
 	Spare,
 	Spare,
 };
@@ -59,8 +60,8 @@ const PFUNC F1HZ[NUM_1HZ] =
 	Spare,
 	Spare,
 	Spare,
-	sps30_request_read,
-	CheckBluetoothConnection,
+	Spare, //sps30_request_read,
+	Spare, //CheckBluetoothConnection,
 	ReportToolInfo,
 	BlinkHeartBeat,
 };
@@ -71,7 +72,6 @@ const PFUNC F1HZ[NUM_1HZ] =
 //void TaskManager()
 void func_SystickCallback(void* arg)
 {
-
 	SliceCnt++;
 	SliceOffset = SliceCnt & 0x0007; //precalculate the slice index into the jump table
 	if (SliceOffset)

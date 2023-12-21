@@ -21,15 +21,21 @@
 #define SERIAL_RS485 UART_NUM_2
 
 #define SERIAL_BAUD_RATE 115200
-#define SERIAL_RX_BUFFER_SIZE 1024
+
+
+extern uint8_t serial_uart1_rx_buffer[RX_BUF_SIZE];
+extern uint8_t serial_uart1_rx_urgent_buffer[RX_BUF_SIZE];
+extern uint8_t serial_uart1_tx_buffer[TX_BUF_SIZE];
+
+extern uint8_t serial_uart2_rx_buffer[RX_BUF_SIZE];
+extern uint8_t serial_uart2_rx_urgent_buffer[RX_BUF_SIZE];
+extern uint8_t serial_uart2_tx_buffer[TX_BUF_SIZE];
 
 extern COMPORT ComUart1;
 extern COMPORT ComUart2;
+extern COMPORT* MasterCommPort;
 extern uint8_t serial_uart1_last_read_buffer[256];
 extern uint8_t serial_uart2_last_read_buffer[256];
 void serial_init();
-
+void serial_uart_read_slice();
 bool serial_uart_write_byte(int uart_port, char byte);
-void serial_add_char_to_buffer(ComBuffer *targetBuffer, uint8_t RawChar);
-void serial_add_string_to_buffer(ComBuffer *targetBuffer, char* SourceString);
-void serial_add_buffer_to_buffer(ComBuffer *targetBuffer, uint8_t* buf, uint16_t size);

@@ -19,8 +19,10 @@ void sps30_init()
 	COMSPS30 = &ComUart1;
 	sps30_config.status = SPS30_STATUS_IDLE;
 	sps30_config.auto_read = 1;
+	sps30_send_command(SPS30_VERSION);
+	
 	size_t size = sps30_make_tx_package(SPS30_RESET, sps30_data, 0);
-	commnuication_add_buffer_to_serial_buffer(&COMSPS30->TxBuffer, sps30_tx_buffer, size);
+	comm_add_buffer_to_buffer(&COMSPS30->TxBuffer, sps30_tx_buffer, size);
 	//size = sps30_make_tx_package(SPS30_WAKEUP, sps30_data, 0);
 	//commnuication_add_buffer_to_serial_buffer(&COMSPS30->TxBuffer, sps30_tx_buffer, size);
 	
@@ -39,7 +41,7 @@ void sps30_request_read()
 	if (!sps30_config.auto_read) return;
 	if (sps30_config.status != SPS30_STATUS_STARTED) return;
 	size_t size = sps30_make_tx_package(SPS30_READ, sps30_data, 0);
-	commnuication_add_buffer_to_serial_buffer(&COMSPS30->TxBuffer, sps30_tx_buffer, size);
+	comm_add_buffer_to_buffer(&COMSPS30->TxBuffer, sps30_tx_buffer, size);
 }
 
 uint8_t sps30_make_checksum(uint8_t* data, uint8_t first, uint8_t last)
@@ -132,7 +134,7 @@ void sps30_process_rx_data()
 		//must be != because it is circular que.... can not simpley be less than
 		RxChar = COMSPS30->RxBuffer.buffer[COMSPS30->RxBuffer.Tail];
 		COMSPS30->RxBuffer.Tail++; //point to the next character
-		COMSPS30->RxBuffer.Tail &= COMSPS30->RxBuffer.Buffer_Size; //circular que with even hex size....
+		COMSPS30->RxBuffer.Tail &= (COMSPS30->RxBuffer.Buffer_Size - 1); //circular que with even hex size....
 		if (RxChar == SPS30_STARTEND_BIT)
 		{
 			if (sps30_rx_length > 4)
@@ -208,5 +210,5 @@ void sps30_send_command(uint8_t command)
 		sps30_config.auto_read = !sps30_config.auto_read;
 		break;
 	}
-	if(size > 0) commnuication_add_buffer_to_serial_buffer(&COMSPS30->TxBuffer, sps30_tx_buffer, size);
+	if(size > 0) comm_add_buffer_to_buffer(&COMSPS30->TxBuffer, sps30_tx_buffer, size);
 }

@@ -6,14 +6,14 @@
 #include "K_Core/communication/communication.h"
 #include "K_Core/tools/tools.h";
 #define ESP_SERVER_PROFILE_APP_IDX         0
-#define SAMPLE_DEVICE_NAME          "ESP32_S3_SC01"    //The Device Name Characteristics in GAP
+#define BLE_DEVICE_NAME          "HYREL_ESP32S3"    //The Device Name Characteristics in GAP
 #define SPP_SVC_INST_ID	            0
 
 
 uint8_t ble_server_rx_buffer[RX_BUF_SIZE];
 uint8_t ble_server_rx_urgent_buffer[RX_BUF_SIZE];
 uint8_t ble_server_tx_buffer[TX_BUF_SIZE];
-BleDevice bleServerDevice;
+COMPORT bleDevice;
 ble_server_status_t ble_server_status = BLE_SERVER_LISTENING;
 uint8_t ble_server_send_blink_count = 0;
 uint8_t ble_server_receive_blink_count = 0;
@@ -22,14 +22,26 @@ char ble_tmp[256] = { 0 };
 const uint16_t spp_service_uuid = SPP_SERVICE_UUID;
 /// Characteristic UUID
 
-static const uint8_t spp_adv_data[23] = {
+static const uint8_t spp_adv_data[22] = {
 	/* Flags */
 	0x02,0x01,0x06,
 	/* Complete List of 16-bit Service Class UUIDs */
 	0x03,0x03,0xF0,0xAB,
 	/* Complete Local Name in advertising */
 	0x0F,0x09,
-	'E', 'S', 'P', '3', '2', '_', 'S', '3', '_', 'S', 'C', '0', '1',
+	'H',
+	'Y',
+	'R',
+	'E',
+	'L',
+	'_',
+	'E',
+	'S',
+	'P',
+	'3',
+	'2',
+	'S',
+	'3'
 };
 
 static uint16_t spp_server_mtu_size = 23;
@@ -296,7 +308,7 @@ static void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_
 	switch (event) {
 	case ESP_GATTS_REG_EVT:
 		ESP_LOGI(BLE_TAG, "%s %d\n", __func__, __LINE__);
-		esp_ble_gap_set_device_name(SAMPLE_DEVICE_NAME);
+		esp_ble_gap_set_device_name(BLE_DEVICE_NAME);
 
 		ESP_LOGI(BLE_TAG, "%s %d\n", __func__, __LINE__);
 		esp_ble_gap_config_adv_data_raw((uint8_t *)spp_adv_data, sizeof(spp_adv_data));
@@ -453,7 +465,8 @@ uint8_t ble_server_enable()
 	systemconfig.bluetooth.server_enabled = 1;
 	ble_server_total_received = 0;
 	// initialize the buffer(Rx, Tx, Urgent Rx)
-	communication_buffers_ble_init(BLE_PORT_ID, &bleServerDevice);
+	bleDevice.id = COMM_TYPE_BLESERVER;
+	comm_init_buffer(&bleDevice, ble_server_rx_buffer, RX_BUF_SIZE, ble_server_tx_buffer, TX_BUF_SIZE, NULL, 0);
 	return 1;
 }
 
@@ -487,6 +500,6 @@ void ble_server_received_data(uint8_t* data, uint16_t size)
 {
 	ble_server_receive_blink_count = 5;
 	ble_server_total_received += size;
-	commnuication_process_rx_ble_characters(&bleServerDevice, data, size);	
+	comm_process_rx_characters(&bleDevice, data, size);	
 }
 //////////////////////////////////////////////////////////////////////////////

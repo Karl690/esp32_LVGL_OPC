@@ -11,7 +11,7 @@
 #include "K_Core/communication/communication.h"
 int serial_uart_fd = -1;
 
-
+	
 uint8_t serial_uart1_rx_buffer[RX_BUF_SIZE];
 uint8_t serial_uart1_rx_urgent_buffer[RX_BUF_SIZE];
 uint8_t serial_uart1_tx_buffer[TX_BUF_SIZE];
@@ -20,8 +20,9 @@ uint8_t serial_uart2_rx_buffer[RX_BUF_SIZE];
 uint8_t serial_uart2_rx_urgent_buffer[RX_BUF_SIZE];
 uint8_t serial_uart2_tx_buffer[TX_BUF_SIZE];
 
-
+uint8_t serial_rx_buffer[256];
 COMPORT ComUart1, ComUart2;
+COMPORT* MasterCommPort = &ComUart1;
 
 uint8_t serial_uart1_last_read_buffer[256];
 uint8_t serial_uart2_last_read_buffer[256];
@@ -63,48 +64,34 @@ char serial_uart_read_byte(int uart_port)
 	return byte;
 }
 
-void* serial_uart1_read_task(void* param)
-{
-	uint8_t buffer[SERIAL_RX_BUFFER_SIZE];
-	while (1)
-	{
-		int len = uart_read_bytes(UART_NUM_1, buffer, SERIAL_RX_BUFFER_SIZE, (100 / portTICK_PERIOD_MS));	
-		if (len == 0) {
-			buffer[0] = 0;
-			continue;
-		}
-		//memcpy(serial_uart1_last_read_buffer, buffer, len);
-		//serial_uart1_last_read_buffer[len] = 0;
-		commnuication_add_buffer_to_serial_buffer(&ComUart1.RxBuffer, buffer, len);
-	}
-	return NULL;
-}
-void* serial_uart2_read_task(void* param)
-{
-	uint8_t buffer[SERIAL_RX_BUFFER_SIZE]; // 2kbytes
-	while (1)
-	{
-		int len = uart_read_bytes(UART_NUM_2, buffer, SERIAL_RX_BUFFER_SIZE, (100 / portTICK_PERIOD_MS));	
-		if (len == 0) {
-			buffer[0] = 0;
-			continue;
-		}
-		memcpy(serial_uart2_last_read_buffer, buffer, len);
-		serial_uart2_last_read_buffer[len] = 0;
-		commnuication_add_buffer_to_serial_buffer(&ComUart2.RxBuffer, buffer, len);
-	}
-	return NULL;
+
+void serial_uart_read(COMPORT* uart)
+{	
+	int len = uart_read_bytes(uart->id, serial_rx_buffer, 256, (100 / portTICK_PERIOD_MS));	
+	if (len == 0) return;
+	comm_add_buffer_to_buffer(&uart->RxBuffer, serial_rx_buffer, len);	
+	//comm_process_rx_characters(uart, serial_rx_buffer, len);	
 }
 
+void serial_uart_read_task(void* args)
+{
+	while (1)
+	{
+		serial_uart_read(&ComUart1);
+		serial_uart_read(&ComUart2);
+	}
+	//return NULL;
+}
 void serial_init()
 {
-	pthread_t uart1_thread, uart2_thread;
 	// initialize uart devices
 	serial_uart_init(UART_NUM_1, SERIAL_UART1_TXD_PIN, SERIAL_UART1_RXD_PIN, SERIAL_UART1_RTS_PIN, SERIAL_UART1_CTS_PIN, false);
 	serial_uart_init(UART_NUM_2, SERIAL_UART2_TXD_PIN, SERIAL_UART2_RXD_PIN, SERIAL_UART2_RTS_PIN, SERIAL_UART2_CTS_PIN, false);
 	// initialize buffers
-	communication_buffers_serial_init(UART_NUM_1, &ComUart1, serial_uart1_rx_buffer, serial_uart1_rx_urgent_buffer, serial_uart1_tx_buffer);
-	communication_buffers_serial_init(UART_NUM_2, &ComUart2, serial_uart2_rx_buffer, serial_uart2_rx_urgent_buffer, serial_uart2_tx_buffer);
-	pthread_create(&uart1_thread, NULL, serial_uart1_read_task, NULL);
-	pthread_create(&uart2_thread, NULL, serial_uart2_read_task, NULL);
+	ComUart1.id = COMM_TYPE_UART1;
+	ComUart2.id = COMM_TYPE_UART2;
+	
+	//pthread_t uart_thread;
+	//pthread_create(&uart_thread, NULL, serial_uart_read_task, NULL);	
+	xTaskCreatePinnedToCore(serial_uart_read_task, "forground_task", 1024 * 2, NULL, 10, NULL, 1);
 }

@@ -253,10 +253,10 @@ void InitUI( void )
     //lv_disp_load_scr(ui_main_screen);
 	
 	// Switch to the main application if OTA has not been started
-	vTaskDelay(pdMS_TO_TICKS(5000));
+	vTaskDelay(pdMS_TO_TICKS(2000));
 	//lv_scr_load(ui_variables_screen);
 	//lv_scr_load_anim(ui_home_screen, LV_SCR_LOAD_ANIM_FADE_ON, 300, 0, false);
-	ui_transform_screen(SCREEN_SPS30);
+	ui_transform_screen(SCREEN_BLUETOOTH);
 
 	
 }

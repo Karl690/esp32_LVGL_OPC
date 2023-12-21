@@ -1,6 +1,7 @@
 #include "main.h"
 #include "L_Core/bluetooth/ble.h"
 #include "K_Core/tools/tools.h"
+#include "K_Core/communication/communication.h"
 #include "L_Core/storage/nvs.h"
 #include "ui-bluetooth.h"
 
@@ -118,8 +119,13 @@ void ui_ble_send_event_cb(lv_event_t* e)
 	char* text = (char*)lv_textarea_get_text(textobj);
 	uint8_t len = strlen(text);
 	if (!len) return;
-	if (!selected_device) return;
-	ble_client_write_data(selected_device, (uint8_t*)text, len);
+	//ble_client_write_data_all((uint8_t*)text, len);
+	//ble_client_write_data_all((uint8_t*)text, len);
+	comm_add_string_to_buffer(&bleDevice.TxBuffer, text);
+	comm_add_char_to_buffer(&bleDevice.TxBuffer, (uint8_t)0xa);
+	//if (!selected_device) return;
+	//ble_client_write_data(selected_device, (uint8_t*)text, len);
+	
 }
 void ui_ble_switch_event_cb(lv_event_t* e)
 {
@@ -313,7 +319,7 @@ void ui_ble_screen_init()
 	lv_obj_set_pos(obj, x, y);
 	obj = ui_create_label(ui_ble_device_detail, "", &lv_font_montserrat_14);
 	lv_obj_set_pos(obj, 100, y); ui_ble_total_received = obj;
-	ui_ble_switch_screen(0);
+	ui_ble_switch_screen(1);
 	
 	lv_timer_create(ui_ble_timer_handler, 100, NULL);
 }

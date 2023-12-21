@@ -42,58 +42,59 @@ static void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param
 		break;
 		// client side
 	case ESP_GAP_BLE_SCAN_PARAM_SET_COMPLETE_EVT: {
-        if((err = param->scan_param_cmpl.status) != ESP_BT_STATUS_SUCCESS){
-	        //ESP_LOGE(BLE_TAG, "Scan param set failed: %s", esp_err_to_name(err));
-            break;
-        }
-		//esp_ble_gap_set_scan_params(&ble_scan_params); // reset parameters
+			if ((err = param->scan_param_cmpl.status) != ESP_BT_STATUS_SUCCESS) {
+				//ESP_LOGE(BLE_TAG, "Scan param set failed: %s", esp_err_to_name(err));
+				break;
+			}
+			//esp_ble_gap_set_scan_params(&ble_scan_params); // reset parameters
 		
-		ble_scan_status = BLE_CLIENT_SCAN_READY;
-		ui_ble_changed_ble_status(ble_scan_status);
-        //the unit of the duration is second
-        //uint32_t duration = 0xFFFF;
-		//ESP_LOGI(BLE_TAG, "Enable Ble Scan:during time %04" PRIx32 " minutes.", duration);
-		//esp_ble_gap_start_scanning(BLE_CLIENT_SCAN_DURATION);
-        break;
-    }
-    case ESP_GAP_BLE_SCAN_START_COMPLETE_EVT:
-        //scan start complete event to indicate scan start successfully or failed
-        if ((err = param->scan_start_cmpl.status) != ESP_BT_STATUS_SUCCESS) {
-	        //ESP_LOGE(BLE_TAG, "Scan start failed: %s", esp_err_to_name(err));
-            break;
-        }
+			ble_scan_status = BLE_CLIENT_SCAN_READY;
+			ui_ble_changed_ble_status(ble_scan_status);
+			//the unit of the duration is second
+			//uint32_t duration = 0xFFFF;
+			//ESP_LOGI(BLE_TAG, "Enable Ble Scan:during time %04" PRIx32 " minutes.", duration);
+			//esp_ble_gap_start_scanning(BLE_CLIENT_SCAN_DURATION);
+			break;
+		}
+	case ESP_GAP_BLE_SCAN_START_COMPLETE_EVT:
+		//scan start complete event to indicate scan start successfully or failed
+		if ((err = param->scan_start_cmpl.status) != ESP_BT_STATUS_SUCCESS) {
+			//ESP_LOGE(BLE_TAG, "Scan start failed: %s", esp_err_to_name(err));
+			break;
+		}
 		// reset the remote device list information
 		ble_client_scaned_device_num = 0;
 		//memset(ble_client_remote_device, 0, sizeof(BleRemoteDevice) * BLE_CLIENT_MAX_CONNECT_NUM);
 		ble_scan_status = BLE_CLIENT_SCANNING;
 		ESP_LOGI(BLE_TAG, "Scan start successed");
 		ui_ble_changed_ble_status(ble_scan_status);
-        break;
-    case ESP_GAP_BLE_SCAN_STOP_COMPLETE_EVT:
+		break;
+	case ESP_GAP_BLE_SCAN_STOP_COMPLETE_EVT:
 		ESP_LOGI(BLE_TAG, "Scan stop successed");
 		ble_scan_status = BLE_CLIENT_SCAN_READY;
 		ui_ble_changed_ble_status(ble_scan_status);
-        break;
-    case ESP_GAP_BLE_SCAN_RESULT_EVT: {
-        esp_ble_gap_cb_param_t *scan_result = (esp_ble_gap_cb_param_t *)param;
-        switch (scan_result->scan_rst.search_evt) {
-        case ESP_GAP_SEARCH_INQ_RES_EVT:
-	        ble_add_scan_device(scan_result);
-            break;
-        case ESP_GAP_SEARCH_INQ_CMPL_EVT:
-            break;
-        default:
-            break;
-        }
-        break;
-    }
-    case ESP_GAP_BLE_ADV_STOP_COMPLETE_EVT:
-        if ((err = param->adv_stop_cmpl.status) != ESP_BT_STATUS_SUCCESS){
-	        ESP_LOGE(BLE_TAG, "Adv stop failed: %s", esp_err_to_name(err));
-        }else {
-	        ESP_LOGI(BLE_TAG, "Stop adv successfully");
-        }
-        break;
+		break;
+	case ESP_GAP_BLE_SCAN_RESULT_EVT: {
+			esp_ble_gap_cb_param_t *scan_result = (esp_ble_gap_cb_param_t *)param;
+			switch (scan_result->scan_rst.search_evt) {
+			case ESP_GAP_SEARCH_INQ_RES_EVT:
+				ble_add_scan_device(scan_result);
+				break;
+			case ESP_GAP_SEARCH_INQ_CMPL_EVT:
+				break;
+			default:
+				break;
+			}
+			break;
+		}
+	case ESP_GAP_BLE_ADV_STOP_COMPLETE_EVT:
+		if ((err = param->adv_stop_cmpl.status) != ESP_BT_STATUS_SUCCESS) {
+			ESP_LOGE(BLE_TAG, "Adv stop failed: %s", esp_err_to_name(err));
+		}
+		else {
+			ESP_LOGI(BLE_TAG, "Stop adv successfully");
+		}
+		break;
 	default:
 		break;
 	}
@@ -103,30 +104,36 @@ uint8_t ble_add_scan_device(esp_ble_gap_cb_param_t* scan_result) {
 	uint8_t *adv_name = NULL;
 	uint8_t adv_name_len = 0;
 	adv_name = esp_ble_resolve_adv_data(scan_result->scan_rst.ble_adv, ESP_BLE_AD_TYPE_NAME_CMPL, &adv_name_len);
-	if(!adv_name) return 0;
-	if(strcmp((char*)adv_name, BLE_SERVER_DEVICE_NAME)) return 0; // that is not the device what we want.
+	if (!adv_name) return 0;
+	if (strcmp((char*)adv_name, BLE_SERVER_DEVICE_NAME)) return 0; // that is not the device what we want.
 	
 	BleRemoteDevice* device;
-	for(uint8_t i = 0; i < ble_client_scaned_device_num; i ++) 
+	for (uint8_t i = 0; i < ble_client_scaned_device_num; i++) 
 	{
 		device = &ble_client_remote_device[i];
-		if(!memcmp(device->scan_result.scan_rst.bda, scan_result->scan_rst.bda, 6))
+		if (!memcmp(device->scan_result.scan_rst.bda, scan_result->scan_rst.bda, 6))
 		{
 			// that is same device
 			return 0;
 		}
 	}
 	strcpy(ble_client_remote_device[ble_client_scaned_device_num].device_name, (const char*)adv_name);
-	sprintf(ble_client_remote_device[ble_client_scaned_device_num].address, "%02x-%02x-%02x-%02x-%02x-%02x", 
-							scan_result->scan_rst.bda[0], scan_result->scan_rst.bda[1],scan_result->scan_rst.bda[2],
-							scan_result->scan_rst.bda[3], scan_result->scan_rst.bda[4],scan_result->scan_rst.bda[5]);
+	sprintf(ble_client_remote_device[ble_client_scaned_device_num].address,
+		"%02x-%02x-%02x-%02x-%02x-%02x", 
+		scan_result->scan_rst.bda[0],
+		scan_result->scan_rst.bda[1],
+		scan_result->scan_rst.bda[2],
+		scan_result->scan_rst.bda[3],
+		scan_result->scan_rst.bda[4],
+		scan_result->scan_rst.bda[5]);
 	memcpy(&(ble_client_remote_device[ble_client_scaned_device_num].scan_result), scan_result, sizeof(esp_ble_gap_cb_param_t));
 	ble_client_remote_device[ble_client_scaned_device_num].id = ble_client_scaned_device_num;
 	ble_client_remote_device[ble_client_scaned_device_num].is_scaned = 1;
 	ble_client_remote_device[ble_client_scaned_device_num].total_sent = 0;
 	ble_client_remote_device[ble_client_scaned_device_num].total_received = 0;
+#ifdef USE_UI	
 	ui_ble_add_device(&ble_client_remote_device[ble_client_scaned_device_num]);
-	ble_client_write_data(&ble_client_remote_device[ble_client_scaned_device_num], (uint8_t*)"B10\n", 4);
+#endif	
 	ble_client_scaned_device_num++;
 	return 1;
 }
@@ -184,14 +191,14 @@ void ble_scan_stop() {
 }
 
 BleRemoteDevice* ble_client_get_device_by_address(uint8_t* address) {
-    BleRemoteDevice* dev = NULL;
-    for(uint8_t i = 0; i < ble_client_scaned_device_num; i ++) {
-        dev = &ble_client_remote_device[i];
-        if(!memcmp(dev->scan_result.scan_rst.bda, address, 6)) {
-            return dev;
-        }
-    }
-    return NULL;
+	BleRemoteDevice* dev = NULL;
+	for (uint8_t i = 0; i < ble_client_scaned_device_num; i++) {
+		dev = &ble_client_remote_device[i];
+		if (!memcmp(dev->scan_result.scan_rst.bda, address, 6)) {
+			return dev;
+		}
+	}
+	return NULL;
 }
 
 BleRemoteDevice* ble_client_get_device_by_conn_id(uint16_t conn_id) {

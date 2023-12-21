@@ -77,8 +77,9 @@ idf_component_register(
                 	K_Core/display/DisplayCagetoryList.c
                 	K_Core/communication/communication.c
                 	K_Core/communication/parser.c
-                	K_Core/execution/bcode.c
+                	K_Core/execution/mcode.c
                 	K_Core/execution/cmdprocessor.c
+                    K_Core/execution/sequence.c
                 	K_Core/tools/tools.c
                     K_Core/sps30/sps30.c
                 INCLUDE_DIRS "."

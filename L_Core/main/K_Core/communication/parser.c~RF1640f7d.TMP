@@ -19,7 +19,7 @@ void parser_rx_characters(ComBuffer* WorkBuff)
 
 		if(commentFlag)		//in comment mode, we should plug into a comment buffer for large transfers
 		{
-			if (RawRxChar == CMD_END_CHAR || RawRxChar == CR_CHAR)
+			if(RawRxChar==CMD_END_CHAR)
 			{//purge till we see a cr, eol
 				WorkBuff->ReadyForAtof =1;
 				*WorkBuff->GCodeArgPtr++ = 0;
@@ -36,7 +36,6 @@ void parser_rx_characters(ComBuffer* WorkBuff)
 
 		switch(RawRxChar)
 		{
-		case CR_CHAR:
 		case CMD_END_CHAR:
 			WorkBuff->ReadyForAtof =1;
 			commentFlag=0;
@@ -247,6 +246,7 @@ void parser_incomming_into_gcodes()
 {
 	if (cmd_commands_in_que < (SIZE_OF_COMMAND_QUEUE - 3))
 	{
+		return;
 		if (comm_raw_rx_combuffer.ReadyForAtof == 1)
 		{
 			cmd_execution_ptr = &cmd_que[cmd_nextcommand_insertion_pointer];
@@ -256,21 +256,21 @@ void parser_incomming_into_gcodes()
 		}//only 1 conversion per slice
 		if (comm_raw_rx_combuffer.Head != comm_raw_rx_combuffer.Tail)
 		{
-			parser_rx_characters(&comm_raw_rx_combuffer);
+			//parser_rx_characters(&comm_raw_rx_combuffer);
 			return;
 		}
-//		//first check to see if we have full line to convert to floats and add to cmdque
-//		if (comm_raw_rx_urgent_combuffer.ReadyForAtof == 1)
-//		{
-//			cmd_execution_ptr = &cmd_que[0];
-//			ConvertArgs2Float(&comm_raw_rx_urgent_combuffer);
-//			//			MasterCommPort->AcksWaiting++;//release one line of buffer
-//			return;
-//		}//only 1 conversion per slice
-//		if (comm_raw_rx_urgent_combuffer.Head != comm_raw_rx_urgent_combuffer.Tail)
-//		{
-//			parser_rx_characters(&comm_raw_rx_urgent_combuffer);
-//			return;
-//		}
+		//first check to see if we have full line to convert to floats and add to cmdque
+		if (comm_raw_rx_urgent_combuffer.ReadyForAtof == 1)
+		{
+			cmd_execution_ptr = &cmd_que[0];
+			ConvertArgs2Float(&comm_raw_rx_urgent_combuffer);
+			//			MasterCommPort->AcksWaiting++;//release one line of buffer
+			return;
+		}//only 1 conversion per slice
+		if (comm_raw_rx_urgent_combuffer.Head != comm_raw_rx_urgent_combuffer.Tail)
+		{
+			parser_rx_characters(&comm_raw_rx_urgent_combuffer);
+			return;
+		}
 	}
 }

@@ -28,10 +28,10 @@ void ui_settings_serial_event_cb(lv_event_t* e)
 	switch (type)
 	{
 	case 1:
-		commnuication_add_string_to_serial_buffer(&ComUart1.TxBuffer, text);
+		comm_add_string_to_buffer(&ComUart1.TxBuffer, text);
 		break;
 	case 2:
-		commnuication_add_string_to_serial_buffer(&ComUart2.TxBuffer, text);
+		comm_add_string_to_buffer(&ComUart2.TxBuffer, text);
 		break;
 	}
 }
