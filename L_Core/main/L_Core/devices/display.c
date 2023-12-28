@@ -1,3 +1,4 @@
+#include "main.h"
 #include "display.h"
 #include  "configure.h"
 #include "../server/server.h"
@@ -35,7 +36,8 @@ esp_err_t InitLCDAndLVGL()
 	
 #else
 	//if (lcd.width() < lcd.height()) lcd.setRotation(lcd.getRotation() ^ 2);
-	lcd.setRotation(3);
+	if (systemconfig.screen.filp) lcd.setRotation(1);
+	else lcd.setRotation(3);
 #endif
 	lcd.setColorDepth(16);	
 	lcd.setBrightness(128);

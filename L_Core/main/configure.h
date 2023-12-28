@@ -45,6 +45,12 @@ typedef struct
 	uint8_t autostart; 
 	uint8_t status; //1: connected, 0: disconnected	
 } OPC_CONFIG;
+
+typedef struct
+{
+	uint8_t defaultScreen;
+	uint8_t filp;
+} SCREEN_CONFIG;
 typedef struct 
 {
 	uint8_t initialized;
@@ -52,4 +58,5 @@ typedef struct
 	BLUETOOTH_CONFIG bluetooth;
 	OPC_CONFIG opc;
 	SDCARD_CONFIG sdcard;
+	SCREEN_CONFIG screen;
 }SYSTEMCONFIG;

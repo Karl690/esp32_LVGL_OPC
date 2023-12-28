@@ -8,6 +8,7 @@
 #include "K_Core/communication/communication.h"
 #include "RevisionHistory.h"
 lv_obj_t* ui_settings_screen;
+lv_obj_t* ui_settings_screen_page;
 lv_obj_t* ui_settings_bluetooth_page;
 lv_obj_t* ui_settings_wifi_page;
 lv_obj_t* ui_settings_opc_page;
@@ -48,6 +49,10 @@ void ui_settings_event_submenu_cb(lv_event_t* e)
 	if (settings_active_page) lv_obj_add_flag(settings_active_page, LV_OBJ_FLAG_HIDDEN);
 	switch (type)
 	{
+	case SETTINGS_SUBMENU_SCREEN:
+		settings_active_page = ui_settings_screen_page;
+		lv_obj_clear_flag(ui_settings_screen_page, LV_OBJ_FLAG_HIDDEN);
+		break;
 	case SETTINGS_SUBMENU_BLUETOOTH:
 		settings_active_page = ui_settings_bluetooth_page;
 		lv_obj_clear_flag(ui_settings_bluetooth_page, LV_OBJ_FLAG_HIDDEN);
@@ -154,8 +159,13 @@ void ui_settings_event_save_cb(lv_event_t* e)
 	}
 }
 
+void ui_settings_event_cmb_handler(lv_event_t* e) 
+{
+	uint8_t screen = lv_dropdown_get_selected(ui_settings.ui_screen.screen_type);
+	systemconfig.screen.defaultScreen = screen;
+}
 char tempString[256] = { 0 };
-void ui_settings_update_data_timer_cb(lv_timer_t * timer)
+void ui_settings_screen_refresh()
 {
 	//sprintf(tempString, "0x%02X 0x%02X 0x%02X 0x%02X", serial_uart_last_read_buffer[0], serial_uart_last_read_buffer[1], serial_uart_last_read_buffer[2], serial_uart_last_read_buffer[3]);
 	lv_label_set_text(ui_settings.ui_serial.uart1_latest_received_text, (char*)serial_uart1_last_read_buffer);
@@ -188,10 +198,54 @@ void ui_settings_bluetooth_page_init()
 	obj = lv_switch_create(ui_settings_bluetooth_page);
 	lv_obj_set_pos(obj, 160, y);
 	if (systemconfig.bluetooth.autostart) lv_obj_add_state(obj, LV_STATE_CHECKED);
-	else lv_obj_add_state(obj, LV_STATE_CHECKED);
+	else lv_obj_clear_state(obj, LV_STATE_CHECKED);
 	lv_obj_add_event_cb(obj, ui_settings_event_switch_cb, LV_EVENT_VALUE_CHANGED, &systemconfig.bluetooth.autostart);
 	ui_settings.ui_bluetooth.autostart = obj;
 
+	
+}
+
+void ui_settings_screen_page_init()
+{
+	ui_settings_screen_page = lv_obj_create(ui_settings_screen);
+	lv_obj_set_size(ui_settings_screen_page, 375, 256); //480-105
+	lv_obj_set_pos(ui_settings_screen_page, 102, 32); 
+	lv_obj_set_style_pad_all(ui_settings_screen_page, 10, LV_PART_MAIN);
+	lv_obj_t* obj = ui_create_label(ui_settings_screen_page, "Screen", &lv_font_montserrat_20);
+	lv_obj_set_align(obj, LV_ALIGN_TOP_MID);
+	
+	uint16_t x = 0, y = 40;
+	obj = ui_create_label(ui_settings_screen_page, "Start screen: ", &lv_font_montserrat_14);
+	lv_obj_set_pos(obj, 0, y + 10);
+	obj = lv_dropdown_create(ui_settings_screen_page);
+	lv_dropdown_set_options(obj,
+			"Home\n"
+	        "Variables\n"
+	        "Server\n"
+			"Settings\n"
+	        "Controls\n"
+			"Qaulity\n"
+			"SD Card\n"
+	        "PCT\n"
+	        "Bluetooth\n"
+			"SPS 30\n");
+	lv_obj_add_event_cb(obj, ui_settings_event_cmb_handler, LV_EVENT_VALUE_CHANGED, NULL);
+	lv_obj_set_pos(obj, 160, y);
+	ui_settings.ui_screen.screen_type = obj;
+	
+	
+	y += SETTINGS_LINE_SPACE;
+	obj = ui_create_label(ui_settings_screen_page, "filp: ", &lv_font_montserrat_14);
+	lv_obj_set_pos(obj, 0, y + 10);
+	obj = lv_switch_create(ui_settings_screen_page);
+	lv_obj_set_pos(obj, 160, y);
+	lv_obj_add_event_cb(obj, ui_settings_event_switch_cb, LV_EVENT_VALUE_CHANGED, &systemconfig.screen.filp);
+	ui_settings.ui_screen.filp = obj;
+	
+	lv_dropdown_set_selected(ui_settings.ui_screen.screen_type, systemconfig.screen.defaultScreen);
+	if (systemconfig.screen.filp) lv_obj_add_state(ui_settings.ui_screen.filp, LV_STATE_CHECKED);
+	else  lv_obj_clear_state(ui_settings.ui_screen.filp, LV_STATE_CHECKED);
+	
 }
 
 void ui_settings_wifi_page_init()
@@ -500,13 +554,19 @@ void ui_settings_screen_init()
 	lv_obj_set_style_pad_all(submenu, 2, LV_PART_MAIN);
 	
 	int y = 2, step = 35;
-	lv_obj_t* obj = ui_create_button(submenu, "Bluetooth", LV_PCT(100), 30, 3, UI_MENU_ACTIVE_ITEM_COLOR, &lv_font_montserrat_14, ui_settings_event_submenu_cb, (void*)SETTINGS_SUBMENU_BLUETOOTH);
-	lv_obj_set_user_data(obj, (void*)SETTINGS_SUBMENU_BLUETOOTH);
+	lv_obj_t* obj = ui_create_button(submenu, "Screen", LV_PCT(100), 30, 3, UI_MENU_ACTIVE_ITEM_COLOR, &lv_font_montserrat_14, ui_settings_event_submenu_cb, (void*)SETTINGS_SUBMENU_SCREEN);
+	lv_obj_set_user_data(obj, (void*)SETTINGS_SUBMENU_SCREEN);
 	lv_obj_set_pos(obj, 0, y);
 	settings_active_menu = obj;
+	
+	obj = ui_create_button(submenu, "Bluetooth", LV_PCT(100), 30, 3, UI_MENU_NORMAL_ITEM_COLOR, &lv_font_montserrat_14, ui_settings_event_submenu_cb, (void*)SETTINGS_SUBMENU_BLUETOOTH);
+	lv_obj_set_user_data(obj, (void*)SETTINGS_SUBMENU_BLUETOOTH);
+	y += step; lv_obj_set_pos(obj, 0, y);	
+	
 	obj = ui_create_button(submenu, "WIFI", LV_PCT(100), 30, 3, UI_MENU_NORMAL_ITEM_COLOR, &lv_font_montserrat_14, ui_settings_event_submenu_cb, (void*)SETTINGS_SUBMENU_WIFI);
 	lv_obj_set_user_data(obj, (void*)SETTINGS_SUBMENU_BLUETOOTH);
 	y += step; 	lv_obj_set_pos(obj, 0, y);
+	
 	obj = ui_create_button(submenu, "OPC", LV_PCT(100), 30, 3, UI_MENU_NORMAL_ITEM_COLOR, &lv_font_montserrat_14, ui_settings_event_submenu_cb, (void*)SETTINGS_SUBMENU_OPC);
 	lv_obj_set_user_data(obj, (void*)SETTINGS_SUBMENU_OPC);
 	y += step; lv_obj_set_pos(obj, 0, y);
@@ -522,8 +582,10 @@ void ui_settings_screen_init()
 	lv_obj_set_user_data(obj, (void*)SETTINGS_SUBMENU_SYSTEM);
 	y += step; lv_obj_set_pos(obj, 0, y);
 
+	ui_settings_screen_page_init();
+	settings_active_page = ui_settings_screen_page;
 	ui_settings_bluetooth_page_init();
-	settings_active_page = ui_settings_bluetooth_page;
+	lv_obj_add_flag(ui_settings_bluetooth_page, LV_OBJ_FLAG_HIDDEN);
 	ui_settings_wifi_page_init();
 	lv_obj_add_flag(ui_settings_wifi_page, LV_OBJ_FLAG_HIDDEN);
 	ui_settings_opc_page_init();
@@ -542,8 +604,6 @@ void ui_settings_screen_init()
 	
 	ui_settings_update_configuratiion();
 	ui_settings_initialized = true;
-	
-	lv_timer_t * timer = lv_timer_create(ui_settings_update_data_timer_cb, 500, NULL);
 }
 
 void ui_settings_update_configuratiion()

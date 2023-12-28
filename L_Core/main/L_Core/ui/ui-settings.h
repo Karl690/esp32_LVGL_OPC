@@ -3,6 +3,7 @@
 
 typedef enum
 {
+	SETTINGS_SUBMENU_SCREEN,
 	SETTINGS_SUBMENU_BLUETOOTH,
 	SETTINGS_SUBMENU_WIFI,
 	SETTINGS_SUBMENU_OPC,
@@ -11,6 +12,11 @@ typedef enum
 	SETTINGS_SUBMENU_SYSTEM,
 }SETTINGS_SUBMENU_TYPE;
 
+typedef struct
+{
+	lv_obj_t* screen_type;
+	lv_obj_t* filp;
+} UI_SCREEN;
 typedef struct
 {
 	lv_obj_t* ssid;
@@ -50,6 +56,7 @@ typedef struct
 
 typedef struct
 {
+	UI_SCREEN ui_screen;
 	UI_WIFI ui_wifi;
 	UI_BLUETOOTH ui_bluetooth;
 	UI_OPC ui_opc;
@@ -62,3 +69,4 @@ extern UI_SETTINGS ui_settings;
 
 void ui_settings_screen_init();
 void ui_settings_update_configuratiion();
+void ui_settings_screen_refresh();

@@ -211,6 +211,7 @@ void ui_timer_handler(lv_timer_t* timer)
 	case SCREEN_HOME:
 		break;
 	case SCREEN_SETTINGS:
+		ui_settings_screen_refresh();
 		break;
 	case SCREEN_VARIABLE:
 		break;
@@ -287,7 +288,7 @@ void InitUI( void )
 	vTaskDelay(pdMS_TO_TICKS(2000));
 	//lv_scr_load(ui_variables_screen);
 	//lv_scr_load_anim(ui_home_screen, LV_SCR_LOAD_ANIM_FADE_ON, 300, 0, false);
-	ui_transform_screen(SCREEN_BLUETOOTH);
+	ui_transform_screen((SCREEN_TYPE)systemconfig.screen.defaultScreen);
 
 	lv_timer_create(ui_timer_handler, 100, NULL);
 	
