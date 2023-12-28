@@ -6,7 +6,6 @@
 #include "L_Core/bluetooth/ble.h"
 #include "L_Core/ui/ui-bluetooth.h"
 
-#include "cmdprocessor.h"
 char mcode_string[100] = { 0 };
 /* BCODE 0: disconnect ble-client
 	format: B0 
@@ -31,7 +30,7 @@ void BCODE_10()
 **/
 void BCODE_11()
 {
-	if (!ARG_PRESENT(cmd_execution_ptr->T)) return;
+	//if (!ARG_PRESENT(cmd_execution_ptr->T)) return;
 	toolInfo.Address = cmd_execution_ptr->T;
 	ble_server_status = BLE_SERVER_HEADSET;
 	storage_nvs_set_blob(NVS_KEY_TOOLINFO, &toolInfo, sizeof(ToolInfo));	

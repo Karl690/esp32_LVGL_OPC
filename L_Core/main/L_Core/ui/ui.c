@@ -27,6 +27,8 @@ lv_obj_t* msgbox_label;
 uint8_t ui_initialized = 0;
 char ui_temp_string[256];
 
+SCREEN_TYPE current_screen;
+
 lv_obj_t* ui_create_screen()
 {
 	lv_obj_t* screen = lv_obj_create(NULL);
@@ -151,6 +153,7 @@ void ui_transform_screen(SCREEN_TYPE screen)
 {
 	if (lv_obj_is_visible(keyboard)) lv_obj_add_flag(keyboard, LV_OBJ_FLAG_HIDDEN);
 	if (lv_obj_is_visible(msgbox)) lv_obj_add_flag(msgbox, LV_OBJ_FLAG_HIDDEN);
+	current_screen = screen;
 	switch (screen)
 	{
 	case SCREEN_HOME:
@@ -195,6 +198,34 @@ void ui_transform_screen(SCREEN_TYPE screen)
 		lv_scr_load_anim(ui_sps30_screen, LV_SCR_LOAD_ANIM_FADE_ON, 300, 0, false);
 		lv_obj_set_parent(keyboard, ui_ble_screen);
 		lv_obj_set_parent(msgbox, ui_ble_screen);
+		break;
+	default:
+		break;
+	}
+}
+
+void ui_timer_handler(lv_timer_t* timer)
+{
+	switch (current_screen)
+	{
+	case SCREEN_HOME:
+		break;
+	case SCREEN_SETTINGS:
+		break;
+	case SCREEN_VARIABLE:
+		break;
+	case SCREEN_SERVER:
+		break;
+	case SCREEN_SDCARD:
+		break;
+	case SCREEN_CONTROLS:
+		break;
+	case SCREEN_PCT:
+		break;
+	case SCREEN_BLUETOOTH:
+		ui_bluetooth_screen_refresh();
+		break;
+	case SCREEN_SPS30:
 		break;
 	default:
 		break;
@@ -258,5 +289,6 @@ void InitUI( void )
 	//lv_scr_load_anim(ui_home_screen, LV_SCR_LOAD_ANIM_FADE_ON, 300, 0, false);
 	ui_transform_screen(SCREEN_BLUETOOTH);
 
+	lv_timer_create(ui_timer_handler, 100, NULL);
 	
 }

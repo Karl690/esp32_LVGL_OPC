@@ -71,8 +71,8 @@ void ui_ble_scan_event_cb(lv_event_t* e)
 	}
 }
 
-void ui_ble_timer_handler(lv_timer_t* timer)
-{
+void ui_bluetooth_screen_refresh()
+{	
 	if (ble_server_send_blink_count > 0)
 	{
 		sprintf(ui_temp_string, "%d", (int)ble_server_total_sent);
@@ -102,6 +102,22 @@ void ui_ble_timer_handler(lv_timer_t* timer)
 
 		prev_ble_server_status = ble_server_status;
 	}
+	
+	if (prev_ble_server_status != ble_server_status)
+	{
+		lv_obj_set_style_bg_color(ui_ble_server_status[prev_ble_server_status], lv_color_hex(UI_BUTTON_DISABLE_COLOR), LV_PART_MAIN);
+		lv_obj_set_style_bg_color(ui_ble_server_status[ble_server_status], lv_color_hex(UI_BUTTON_ACTIVE_COLOR), LV_PART_MAIN);
+
+		prev_ble_server_status = ble_server_status;
+	}
+	
+	if (selected_device)
+	{
+		lv_label_set_text(ui_ble_receive, (char*)selected_device->last_received_buffer);
+		sprintf(ui_temp_string, "%d", (int)selected_device->total_received);
+		lv_label_set_text(ui_ble_total_received, ui_temp_string);
+	}
+		
 }
 void ui_ble_event_device_item_cb(lv_event_t* e) 
 {
@@ -320,8 +336,6 @@ void ui_ble_screen_init()
 	obj = ui_create_label(ui_ble_device_detail, "", &lv_font_montserrat_14);
 	lv_obj_set_pos(obj, 100, y); ui_ble_total_received = obj;
 	ui_ble_switch_screen(1);
-	
-	lv_timer_create(ui_ble_timer_handler, 100, NULL);
 }
 
 void ui_ble_changed_ble_status(uint8_t status)

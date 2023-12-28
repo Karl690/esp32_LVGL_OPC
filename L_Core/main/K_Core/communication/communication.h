@@ -1,6 +1,6 @@
 #pragma once
 #include "main.h"
-
+#include "K_Core/execution/mcode.h"
 #define NULL_CHAR                  '\0'    // 0
 #define TERMINATE_WAIT_CHAR          1
 #define PAUSE_AT_END_OF_MOVE_CHAR    2
@@ -26,8 +26,6 @@
 
 
 #define MAX_CHARS_FOR_PARAMETER 	20
-#define COMMENT_STRING_LENGTH   	(256+3)	//+3 for leading and trailing delim + NULL_CHAR
-#define GCODE_STRING_ARG_LENGTH 	(256+3)	//+3 for leading and trailing delim + NULL_CHAR
 
 typedef struct {
 	char GCodeArgA[MAX_CHARS_FOR_PARAMETER];
